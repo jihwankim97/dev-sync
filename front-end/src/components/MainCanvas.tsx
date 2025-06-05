@@ -33,7 +33,7 @@ interface ChildComponentProps {
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
-const MM_TO_PX = 2.4;  
+const MM_TO_PX = 2.4;
 const WIDTH = A4_WIDTH_MM * MM_TO_PX;
 const HEIGHT = A4_HEIGHT_MM * MM_TO_PX;
 const LINE_HEIGHT = 12;
@@ -217,7 +217,7 @@ export const MainCanvas = ({ gitInfo }: ChildComponentProps) => {
       >
         <div
           style={{
-            // transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+            transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
             transformOrigin: "center",
             transition: isDragging.current ? "none" : "transform 0.1s ease-out",
           }}

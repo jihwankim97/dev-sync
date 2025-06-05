@@ -16,7 +16,11 @@ const GitRepoList = ({
   result,
   onSelectionChange,
 }: {
-  result: { name: string; recent_commit_messages: string[]; commits: { message: string; description: string} }[];
+  result: {
+    name: string;
+    recent_commit_messages: string[];
+    commits: { message: string; description: string };
+  }[];
   onSelectionChange: (
     selected: {
       name: string;
@@ -125,9 +129,7 @@ const GitRepoList = ({
   const toggleCommitsVisibility = (repoIndex: number) => {
     setSelectedItems((prev) =>
       prev.map((item, index) =>
-        index === repoIndex
-          ? { ...item, showCommits: !item.showCommits }
-          : item
+        index === repoIndex ? { ...item, showCommits: !item.showCommits } : item
       )
     );
   };
@@ -159,19 +161,21 @@ const GitRepoList = ({
                 {repo.commits.map((commit, commitIndex) => (
                   <div key={commitIndex} css={commitStyle}>
                     <div css={commitHeaderStyle}>
-                      <DescriptionIcon fontSize="small" />
+                      {/* <DescriptionIcon fontSize="small" /> */}
                       <Checkbox
                         onChange={() =>
                           handleCommitCheckboxChange(repoIndex, commitIndex)
                         }
                         checked={commit.selected}
                       />
-                      <Typography>{commit.message}</Typography>
+                      <Typography sx={{ fontSize: "0.9rem" }}>
+                        {commit.message}
+                      </Typography>
                     </div>
                     <TextareaAutosize
                       css={textareaStyle}
                       minRows={2}
-                      placeholder="커밋 내용에 대해 추가하고 싶은 점."
+                      placeholder="커밋 내용에 대해 추가해보세요."
                       value={commit.description}
                       onChange={(e) =>
                         handleDescriptionChange(

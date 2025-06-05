@@ -16,14 +16,12 @@ import { useCallback, useEffect, useState } from "react";
 import { GitResume } from "./GitResume";
 import GitRepoList from "./gitRepoList/GitRepoList";
 import { ThreeCanvas } from "./ThreeCanvas";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const containerStyle = css`
   display: flex;
+  position: relative;
   flex-direction: column;
-  //   height: 100vh
-  //   overflow: hidden;
-  // width: 100vw;
-  padding: 5% 20%;
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -31,26 +29,37 @@ const containerStyle = css`
 
 const btnStyle = css`
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 35%;
-  margin: 3rem auto;
+  justify-content: center;
+  z-index: 1;
 `;
 
 const titleStyle = css`
-  font-size: 2.7rem;
+  font-size: 3rem;
+  span {
+    display: block; /* 기본은 inline */
+  }
+  @media (max-width: 768px) {
+    font-size: 2.2rem;
+  }
   font-weight: bold;
-  color: #5a5a5a;
-  margin: 0rem 1.5rem 1.4rem 0rem;
   text-align: center;
+  z-index: 1;
 `;
 
 const subtitleStyle = css`
-  font-size: 0.9rem;
-  color: #636363; /* text.secondary 색상 */
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 10px;
   text-align: center;
+  z-index: 1;
+`;
+
+const responsiveLine = css`
+  display: inline;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
 `;
 
 interface Project {
@@ -164,76 +173,130 @@ export const GitPatchPage = () => {
 
   return (
     <div css={containerStyle}>
-      {/* <div css={leftPanelStyle}> */}
+      <div
+        css={css`
+          position: absolute;
+          top: -10vh;
+          left: 0;
+          width: 100%;
+          height: 95vh;
+          background: #3599fdff;
+          transform: skewY(-5deg);
+          z-index: 0;
+        `}
+      />
+      <header
+        css={css`
+          position: relative;
+          display: flex;
+          z-index: 0;
+          padding-left: 1rem;
+          width: 100%;
+          justify-content: space-between;
+          color: #ffffff;
+        `}
+      >
+        <h2>DevSync</h2>
+        <Button
+          css={css`
+            color: #ffffff;
+            margin: 1rem;
+          `}
+          variant="text"
+          onClick={changeNavigate}
+        >
+          <ArrowBackIcon fontSize="medium" />
+        </Button>
+      </header>
       {!gitBtnClick && (
         <>
           {/* 버튼 및 상태 표시 */}
-          <div>
-            <div css={titleStyle}>
-              🚀 Git과 연동하여 포트폴리오를 작성해보세요.
-            </div>
-            <p css={subtitleStyle}>
-              Git 정보를 가져와 자동으로 이력서를 작성하고 PDF로 저장할 수
-              있어요.
-            </p>
-          </div>
-          {!isLoading ? (
-            <div css={btnStyle}>
-              <Button
-                variant="contained"
-                size="large"
-                color="primary"
-                onClick={updateUserData}
-              >
-                Git 정보 가져오기
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                color="primary"
-                onClick={changeNavigate}
-              >
-                돌아가기
-              </Button>
-            </div>
-          ) : (
-            <div
+          <main>
+            <section
               css={css`
-                display: flex;
-                justify-content: center;
-                margin-top: 15%;
+                position: relative;
+                color: #ffffff;
+                margin: 6rem 6rem 4rem 6rem;
+                @media (max-width: 768px) {
+                  margin: 6rem 1.5rem;
+                }
               `}
             >
-              <CircularProgress size={60} />
-            </div>
-          )}
+              <div css={titleStyle}>
+                <span>🚀Git 연동을 통해</span>
+                <span>&nbsp;포트폴리오를 작성해보세요.</span>
+              </div>
+              <p css={subtitleStyle}>
+                <span>Git 정보를 가져와 자동으로 이력서를 작성하고</span>
+                <span>PDF로 저장할 수 있어요.</span>
+              </p>
+            </section>
+            {!isLoading ? (
+              <div css={btnStyle}>
+                <Button
+                  css={css`
+                    font-size: 1.2rem;
+                    padding: 0.8rem 1.5rem;
+                  `}
+                  variant="contained"
+                  size="large"
+                  color="primary"
+                  onClick={updateUserData}
+                >
+                  Git 정보 가져오기
+                </Button>
+              </div>
+            ) : (
+              <div
+                css={css`
+                  display: flex;
+                  justify-content: center;
+                  margin-top: 3%;
+                `}
+              >
+                <CircularProgress size={80} />
+              </div>
+            )}
 
-          {/* GitRepoList 컴포넌트 */}
-          {repoData.length > 0 && (
-            <div
-              css={css`
-                padding: 0px 10px;
-              `}
-            >
-              <GitRepoList
-                result={repoData}
-                onSelectionChange={handleSelectionChange}
-              />
-              <Button
-                variant="contained"
-                size="large"
-                color="primary"
-                onClick={() => {
-                  generateResume(selectedRepos);
-                }}
-              >
-                이력서 만들기
-              </Button>
-            </div>
-          )}
+            {/* GitRepoList 컴포넌트 */}
+
+            {repoData.length > 0 && (
+              <>
+                <GitRepoList
+                  result={repoData}
+                  onSelectionChange={handleSelectionChange}
+                />
+                <div
+                  css={css`
+                    width: 59%;
+                    justify-content: flex-end;
+                    display: flex;
+                    margin: 0 auto 5rem auto;
+                    position: relative;
+
+                    @media (max-width: 768px) {
+                      justify-content: center;
+                      margin: 0;
+                      width: 100%;
+                    }
+                  `}
+                >
+                  <Button
+                    variant="contained"
+                    size="large"
+                    color="primary"
+                    onClick={() => {
+                      generateResume(selectedRepos);
+                    }}
+                  >
+                    이력서 만들기
+                  </Button>
+                </div>
+              </>
+            )}
+          </main>
         </>
       )}
     </div>
-    // </div>
   );
 };

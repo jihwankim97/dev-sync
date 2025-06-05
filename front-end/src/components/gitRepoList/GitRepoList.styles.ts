@@ -3,9 +3,19 @@ import { css } from "@emotion/react";
 
 export const containerStyle = css`
   display: flex;
+  margin:  3rem auto 2rem auto;
   flex-direction: column;
   gap: 1rem;
-  margin: 20px 0;
+  width : 55%; 
+  padding : 2%;
+  border-radius : 8px;
+  box-shadow: 0 4px 6px rgba(214, 214, 214, 0.3); 
+  background-color: #ffffff4d;
+  z-index:1;
+  position: relative;
+   @media (max-width: 768px) {
+    width: 90%;
+  }
 `;
 
 export const itemStyle = css`
@@ -27,12 +37,11 @@ export const itemStyle = css`
 `;
 
 export const commitAreaStyle = css`
-  padding: 15px 10px;
-  margin-left: 20px;
-  background-color: #f5f5f5;
-  border-left: 3px solid #ddd;
-  border-radius: 0 5px 5px 0;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin: 0.5rem 1rem;
+  background-color: #ffffff;
+  border : 1.5px solid #e9e9e9ff;
+  border-radius: 5px;
   animation: slide-in 0.3s ease-out;
 
   @keyframes slide-in {
@@ -56,23 +65,24 @@ export const commitContainerStyle = css`
 export const commitStyle = css`
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 1px;
 `;
 
 export const commitHeaderStyle = css`
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-right : 7px;
 `;
 
 export const textareaStyle = css`
-  width: 100%;
   resize: none;
-  padding: 5px;
+  padding: 10px;
   font-size: 0.9rem;
+  margin : 0 10px;
   background-color: #ffffff;
   color: #000000;
-  border: 1px solid #ddd;
+  border : 1.5px solid #469cecff;
   border-radius: 5px;
   outline: none;
 
