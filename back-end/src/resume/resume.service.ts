@@ -23,6 +23,9 @@ import { CreateAchievementsDto } from './dto/create-achievements.dto';
 import { CreateCareersDto } from './dto/create-careers.dto';
 import { CustomModel } from './entities/custom.entity';
 import { CreateCustomDto } from './dto/create-custom.dto';
+import { OrderModel } from './entities/order.entity';
+import { UpdateBlockOrdersDto } from './dto/update-block-orders.dto';
+import { ResumeBlockType } from './enum/resume-type.enum';
 
 @Injectable()
 export class ResumeService {
@@ -49,6 +52,8 @@ export class ResumeService {
     private readonly achievementRepository: Repository<AchievementModel>,
     @InjectRepository(CustomModel)
     private readonly customRepository: Repository<CustomModel>,
+    @InjectRepository(OrderModel)
+    private readonly blockOrderRepository: Repository<OrderModel>,
   ) {}
 
   // GITHUB 인증 헤더 생성 함수
@@ -252,22 +257,48 @@ export class ResumeService {
   async saveBlock(resumeId: string, dto: any) {
     const { type, ...entityData } = dto;
 
+    let result;
+    let blockType: ResumeBlockType;
+    let blockId: string | undefined;
+
     switch (type) {
       case 'introduction':
-        return this.upsertIntroduction(resumeId, entityData);
+        result = await this.upsertIntroduction(resumeId, entityData);
+        blockType = ResumeBlockType.INTRODUCTION;
+        break;
       case 'profile':
-        return this.upsertProfile(resumeId, entityData);
+        result = await this.upsertProfile(resumeId, entityData);
+        blockType = ResumeBlockType.PROFILE;
+        break;
       case 'projects':
-        return this.syncProjectsForResume(resumeId, entityData);
+        result = await this.syncProjectsForResume(resumeId, entityData);
+        blockType = ResumeBlockType.PROJECTS;
+        break;
       case 'skills':
-        return this.setSkillsForResume(resumeId, entityData);
+        result = await this.setSkillsForResume(resumeId, entityData);
+        blockType = ResumeBlockType.SKILLS;
+        break;
       case 'careers':
-        return this.upsertCareer(resumeId, entityData);
+        result = await this.upsertCareer(resumeId, entityData);
+        blockType = ResumeBlockType.CAREERS;
+        break;
       case 'achievements':
-        return this.upsertAchievement(resumeId, entityData);
+        result = await this.upsertAchievement(resumeId, entityData);
+        blockType = ResumeBlockType.ACHIEVEMENTS;
+        break;
       case 'custom':
-        return this.upsertCustom(resumeId, entityData);
+        result = await this.upsertCustom(resumeId, entityData);
+        blockType = ResumeBlockType.CUSTOM;
+        blockId = entityData.id; // 커스텀 블록의 경우 ID가 있음
+        break;
     }
+
+    // 블록 순서에 추가 (이미 존재하는지 확인 후 추가)
+    if (result) {
+      await this.addBlockToOrderIfNotExists(resumeId, blockType, blockId);
+    }
+
+    return result;
   }
 
   getResumes(id: number): Promise<ResumeModel[]> {
@@ -299,6 +330,7 @@ export class ResumeService {
       careers,
       achievements,
       customs,
+      blockOrders,
     ] = await Promise.all([
       this.getProfile(resume.id),
       this.getIntroduction(resume.id),
@@ -307,6 +339,7 @@ export class ResumeService {
       this.getCareersByResumeId(resume.id),
       this.getAchievementsByResumeId(resume.id),
       this.getCustomsByResumeId(resume.id),
+      this.getBlockOrders(resume.id),
     ]);
 
     const entities = [];
@@ -319,7 +352,7 @@ export class ResumeService {
       entities.push(introduction);
     }
 
-    if (skills) {
+    if (skills && skills.strengths.length > 0) {
       entities.push(skills);
     }
     if (projects && projects.items.length > 0) {
@@ -343,7 +376,7 @@ export class ResumeService {
     return {
       id: resume.id,
       title: resume.title,
-      order: entities.map((e) => e.id),
+      order: blockOrders,
       entities,
     };
   }
@@ -362,19 +395,6 @@ export class ResumeService {
     return this.resumeRepository.save(resume);
   }
 
-  async getIntroduction(resumeId: string) {
-    const introduction = await this.introductionRepository.findOne({
-      where: { resume: { id: resumeId } },
-    });
-
-    if (!introduction) {
-      throw new NotFoundException(
-        `Introduction for resume ${resumeId} not found`,
-      );
-    }
-
-    return { id: introduction.id, type: 'introduction', ...introduction };
-  }
   async removeResume(userId: number, resumeId: string): Promise<ResumeModel> {
     const resume = await this.getResume(resumeId);
 
@@ -385,6 +405,18 @@ export class ResumeService {
     }
 
     return this.resumeRepository.remove(resume);
+  }
+
+  async getIntroduction(resumeId: string) {
+    const introduction = await this.introductionRepository.findOne({
+      where: { resume: { id: resumeId } },
+    });
+
+    if (!introduction) {
+      return null;
+    }
+
+    return { id: introduction.id, type: 'introduction', ...introduction };
   }
 
   async upsertIntroduction(resumeId: string, dto: CreateIntroductionDto) {
@@ -419,6 +451,8 @@ export class ResumeService {
       );
     }
 
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.INTRODUCTION);
+
     return this.introductionRepository.remove(introduction);
   }
 
@@ -428,9 +462,7 @@ export class ResumeService {
     });
 
     if (!profile) {
-      throw new NotFoundException(
-        `Profile for resume ID ${resumeId} not found.`,
-      );
+      return null;
     }
 
     return { id: profile.id, type: 'profile', ...profile };
@@ -471,6 +503,8 @@ export class ResumeService {
       );
     }
 
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.PROFILE);
+
     return this.profileRepository.remove(profile);
   }
 
@@ -479,6 +513,10 @@ export class ResumeService {
       where: { resume: { id: resumeId } },
       relations: ['skills', 'outcomes'],
     });
+
+    if (!projects) {
+      return null;
+    }
 
     return {
       id: 'projects',
@@ -570,20 +608,12 @@ export class ResumeService {
     });
   }
 
-  async removeProject(resumeId: string, projectId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId, resume: { id: resume.id } },
+  async removeProject(resumeId: string) {
+    await this.projectRepository.delete({
+      resume: { id: resumeId },
     });
 
-    if (!project) {
-      throw new NotFoundException(
-        `Project with ID ${projectId} for resume ID ${resumeId} not found.`,
-      );
-    }
-
-    return this.projectRepository.remove(project);
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.PROJECTS);
   }
 
   async getProjectOutcomesByProjectId(
@@ -678,6 +708,10 @@ export class ResumeService {
       where: [{ familiarResumes: { id: resume.id } }],
     });
 
+    if (!strengths || !familiars) {
+      return null;
+    }
+
     return { id: 'skills', type: 'skills', strengths, familiars };
   }
 
@@ -739,6 +773,20 @@ export class ResumeService {
     return await this.resumeRepository.save(resume);
   }
 
+  async removeSkills(resumeId: string) {
+    const resume = await this.getResume(resumeId);
+    
+
+    resume.str_skills = [];
+    resume.fam_skills = [];
+    
+
+    await this.resumeRepository.save(resume);
+  
+
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.SKILLS);
+  }
+
   async searchSkills(query: string): Promise<SkillModel[]> {
     if (!query) return [];
 
@@ -755,6 +803,10 @@ export class ResumeService {
     const careers = await this.careerRepository.find({
       where: { resume: { id: resumeId } },
     });
+
+    if (!careers) {
+      return null;
+    }
 
     return {
       id: 'careers',
@@ -793,6 +845,10 @@ export class ResumeService {
     const achievements = await this.achievementRepository.find({
       where: { resume: { id: resumeId } },
     });
+
+    if (!achievements) {
+      return null;
+    }
 
     return {
       id: 'achievements',
@@ -854,6 +910,10 @@ export class ResumeService {
       where: { resume: { id: resumeId } },
     });
 
+    if (!customs) {
+      return null;
+    }
+
     return {
       id: 'customs',
       type: 'customs',
@@ -862,5 +922,158 @@ export class ResumeService {
         ...custom,
       })),
     };
+  }
+
+  async removeCustom(resumeId: string, customId: string) {
+    const resume = await this.getResume(resumeId);
+
+    const custom = await this.customRepository.findOne({
+      where: { id: customId, resume: { id: resume.id } },
+    });
+
+    if (!custom) {
+      throw new NotFoundException(
+        `Custom block with ID ${customId} for resume ID ${resumeId} not found.`,
+      );
+    }
+
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.CUSTOM, customId);
+
+    return this.customRepository.remove(custom);
+  }
+
+  async removeCareer(resumeId: string) {
+    await this.getResume(resumeId);
+
+    await this.careerRepository.delete({
+      resume: { id: resumeId },
+    });
+
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.CAREERS);
+  }
+
+  async removeAchievement(resumeId: string) {
+    const resume = await this.getResume(resumeId);
+
+    const achievements = await this.achievementRepository.find({
+      where: { resume: { id: resume.id } },
+    });
+
+    if (achievements.length === 0) {
+      throw new NotFoundException(
+        `Achievement for resume ID ${resumeId} not found.`,
+      );
+    }
+
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.ACHIEVEMENTS);
+
+    return await this.achievementRepository.remove(achievements);
+  }
+
+  async updateBlockOrders(
+    resumeId: string,
+    updateBlockOrdersDto: UpdateBlockOrdersDto,
+  ) {
+    const resume = await this.getResume(resumeId);
+    if (!resume) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    await this.blockOrderRepository.delete({ resume: { id: resumeId } });
+
+    if (updateBlockOrdersDto.blockOrders.length === 0) {
+      return [];
+    }
+
+    const blockOrders = updateBlockOrdersDto.blockOrders.map((dto) =>
+      this.blockOrderRepository.create({
+        ...dto,
+        resume,
+      }),
+    );
+
+    await this.blockOrderRepository.save(blockOrders);
+
+    return this.getBlockOrders(resumeId);
+  }
+
+  async getBlockOrders(resumeId: string): Promise<string[]> {
+    const blockOrders = await this.blockOrderRepository.find({
+      where: { resume: { id: resumeId } },
+      order: { order: 'ASC' },
+    });
+
+    return blockOrders.map((order) =>
+      order.blockId ? `${order.blockType}/${order.blockId}` : order.blockType,
+    );
+  }
+
+  async removeBlockOrdersByBlockId(blockId: string): Promise<void> {
+    await this.blockOrderRepository.delete({ blockId });
+  }
+
+  async addBlockToOrder(
+    resumeId: string,
+    blockType: ResumeBlockType,
+    blockId?: string,
+  ): Promise<void> {
+    const currentOrders = await this.getBlockOrders(resumeId);
+    const newOrder = currentOrders.length + 1;
+
+    const blockOrder = this.blockOrderRepository.create({
+      order: newOrder,
+      blockType,
+      blockId,
+      resume: { id: resumeId },
+    });
+
+    await this.blockOrderRepository.save(blockOrder);
+  }
+
+  async addBlockToOrderIfNotExists(
+    resumeId: string,
+    blockType: ResumeBlockType,
+    blockId?: string,
+  ): Promise<void> {
+    const whereCondition =
+      blockType === ResumeBlockType.CUSTOM
+        ? { resume: { id: resumeId }, blockType, blockId }
+        : { resume: { id: resumeId }, blockType };
+
+    const existingOrder = await this.blockOrderRepository.findOne({
+      where: whereCondition,
+    });
+
+    if (!existingOrder) {
+      await this.addBlockToOrder(resumeId, blockType, blockId);
+    }
+  }
+
+  async removeBlockFromOrder(
+    resumeId: string,
+    blockType: ResumeBlockType,
+    blockId?: string,
+  ): Promise<void> {
+    const whereCondition =
+      blockType === ResumeBlockType.CUSTOM
+        ? { resume: { id: resumeId }, blockType, blockId }
+        : { resume: { id: resumeId }, blockType };
+
+    await this.blockOrderRepository.delete(whereCondition);
+
+    await this.reorderBlockOrders(resumeId);
+  }
+
+  private async reorderBlockOrders(resumeId: string): Promise<void> {
+    const currentOrders = await this.blockOrderRepository.find({
+      where: { resume: { id: resumeId } },
+      order: { order: 'ASC' },
+    });
+
+    for (let i = 0; i < currentOrders.length; i++) {
+      currentOrders[i].order = i + 1;
+    }
+
+    await this.blockOrderRepository.save(currentOrders);
   }
 }

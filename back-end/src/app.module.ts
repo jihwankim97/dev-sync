@@ -28,6 +28,7 @@ import { ProfileModel } from './resume/entities/profile.entity';
 import { CareerModel } from './resume/entities/career.entity';
 import { AchievementModel } from './resume/entities/achievement.entity';
 import { CustomModel } from './resume/entities/custom.entity';
+import { OrderModel } from './resume/entities/order.entity';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { CustomModel } from './resume/entities/custom.entity';
           CareerModel,
           AchievementModel,
           CustomModel,
+          OrderModel,
         ],
         autoLoadEntities: true,
         synchronize: true,

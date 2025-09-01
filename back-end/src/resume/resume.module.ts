@@ -15,6 +15,7 @@ import { SkillSeederService } from './skill_seeder.service';
 import { AchievementModel } from './entities/achievement.entity';
 import { CareerModel } from './entities/career.entity';
 import { CustomModel } from './entities/custom.entity';
+import { OrderModel } from './entities/order.entity';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CustomModel } from './entities/custom.entity';
       CareerModel,
       AchievementModel,
       CustomModel,
+      OrderModel,
     ]),
   ],
   controllers: [ResumeController],
