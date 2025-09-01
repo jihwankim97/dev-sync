@@ -13,13 +13,13 @@ export class SkillModel {
   @Column({ nullable: true })
   icon: string;
 
-  @ManyToMany(() => ResumeModel, (resume) => resume.str_skills)
+  @ManyToMany(() => ResumeModel, (resume) => resume.str_skills, { onDelete: 'CASCADE' })
   strongResumes: ResumeModel[];
 
-  @ManyToMany(() => ResumeModel, (resume) => resume.fam_skills)
+  @ManyToMany(() => ResumeModel, (resume) => resume.fam_skills, { onDelete: 'CASCADE' })
   familiarResumes: ResumeModel[];
 
-  @ManyToMany(() => ProjectModel, (project) => project.skills)
+  @ManyToMany(() => ProjectModel, (project) => project.skills, { onDelete: 'CASCADE' })
   projects: ProjectModel[];
   
 }

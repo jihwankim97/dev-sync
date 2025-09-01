@@ -12,6 +12,6 @@ export class ProjectOutcomeModel {
   @Column()
   result: string;
 
-  @ManyToOne(() => ProjectModel, (resume) => resume.outcomes)
+  @ManyToOne(() => ProjectModel, (resume) => resume.outcomes, { onDelete: 'CASCADE' })
   project: ProjectModel;
 }

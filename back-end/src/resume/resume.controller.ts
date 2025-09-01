@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Request,
   Body,
   HttpException,
@@ -23,6 +24,7 @@ import { CreateSkillsDto } from './dto/create-skills.dto';
 import { CreateAchievementsDto } from './dto/create-achievements.dto';
 import { CreateCustomDto } from './dto/create-custom.dto';
 import { CreateCareersDto } from './dto/create-careers.dto';
+import { UpdateBlockOrdersDto } from './dto/update-block-orders.dto';
 
 @Controller('resumes')
 export class ResumeController {
@@ -38,7 +40,7 @@ export class ResumeController {
   @UseGuards(AuthenticatedGuard)
   async generateResume(
     @Request() req,
-    @Body('profileData') profileData: string
+    @Body('profileData') profileData: string,
   ) {
     try {
       // 입력 데이터 길이를 최대 4000자로 제한
@@ -51,8 +53,7 @@ export class ResumeController {
         user.id,
       );
       return resume;
-
-    } catch(err) {
+    } catch (err) {
       console.error('Error generating resume:', err);
       throw new HttpException(
         'Failed to generate resume',
@@ -91,7 +92,7 @@ export class ResumeController {
 
     return resume;
   }
-  
+
   @Delete(':id')
   @UseGuards(AuthenticatedGuard)
   async deleteResume(@Param('id') id: string, @Request() req) {
@@ -103,19 +104,22 @@ export class ResumeController {
     return { message: 'Resume deleted successfully' };
   }
 
-  @Post(':id/introduction')
+  @Post(':id/introductions')
   @UseGuards(AuthenticatedGuard)
   async createIntroduction(
     @Param('id') id: string,
     @Body() createIntroductionDto: CreateIntroductionDto,
   ) {
-    return await this.resumeService.saveBlock(
-      id,
-      createIntroductionDto,
-    );
+    return await this.resumeService.saveBlock(id, createIntroductionDto);
   }
 
-  @Post(':id/profile')
+  @Delete(':id/introductions')
+  @UseGuards(AuthenticatedGuard)
+  async removeIntroduction(@Param('id') id: string) {
+    return this.resumeService.removeIntroduction(id);
+  }
+
+  @Post(':id/profiles')
   @UseGuards(AuthenticatedGuard)
   async createProfile(
     @Param('id') id: string,
@@ -124,16 +128,25 @@ export class ResumeController {
     return await this.resumeService.saveBlock(id, profileDto);
   }
 
+  @Delete(':id/profiles')
+  @UseGuards(AuthenticatedGuard)
+  async removeProfile(@Param('id') id: string) {
+    return this.resumeService.removeProfile(id);
+  }
+
   @Post(':id/projects')
   @UseGuards(AuthenticatedGuard)
   async createProject(
     @Param('id') id: string,
     @Body() createProjectsDto: CreateProjectsWidthOutcomesDto,
   ) {
-    return await this.resumeService.saveBlock(
-      id,
-      createProjectsDto,
-    );
+    return await this.resumeService.saveBlock(id, createProjectsDto);
+  }
+
+  @Delete(':id/projects')
+  @UseGuards(AuthenticatedGuard)
+  async removeProject(@Param('id') id: string) {
+    return this.resumeService.removeProject(id);
   }
 
   @Post(':id/skills')
@@ -143,6 +156,11 @@ export class ResumeController {
     @Body() createSkillsDto: CreateSkillsDto,
   ) {
     return await this.resumeService.saveBlock(id, createSkillsDto);
+  }
+
+  @Delete(':resumeId/skills')
+  async removeSkills(@Param('resumeId') resumeId: string) {
+    return this.resumeService.removeSkills(resumeId);
   }
 
   @Get('skills/search')
@@ -160,13 +178,10 @@ export class ResumeController {
     return await this.resumeService.saveBlock(id, createAchievementsDto);
   }
 
-  @Post(':id/custom')
+  @Delete(':id/achievements')
   @UseGuards(AuthenticatedGuard)
-  async createCustom(
-    @Param('id') id: string,
-    @Body() createCustomDto: CreateCustomDto,
-  ) {
-    return await this.resumeService.saveBlock(id, createCustomDto);
+  async removeAchievement(@Param('id') id: string) {
+    return this.resumeService.removeAchievement(id);
   }
 
   @Post(':id/careers')
@@ -176,5 +191,44 @@ export class ResumeController {
     @Body() createCareersDto: CreateCareersDto,
   ) {
     return await this.resumeService.saveBlock(id, createCareersDto);
+  }
+
+  @Delete(':id/careers')
+  @UseGuards(AuthenticatedGuard)
+  async removeCareer(@Param('id') id: string) {
+    return this.resumeService.removeCareer(id);
+  }
+
+  @Post(':id/customs')
+  @UseGuards(AuthenticatedGuard)
+  async createCustom(
+    @Param('id') id: string,
+    @Body() createCustomDto: CreateCustomDto,
+  ) {
+    return await this.resumeService.saveBlock(id, createCustomDto);
+  }
+
+  @Delete(':id/customs/:customId')
+  @UseGuards(AuthenticatedGuard)
+  async removeCustom(
+    @Param('id') id: string,
+    @Param('customId') customId: string,
+  ) {
+    return this.resumeService.removeCustom(id, customId);
+  }
+
+  @Put(':id/orders')
+  @UseGuards(AuthenticatedGuard)
+  async updateBlockOrders(
+    @Param('id') id: string,
+    @Body() updateBlockOrdersDto: UpdateBlockOrdersDto,
+  ) {
+    return this.resumeService.updateBlockOrders(id, updateBlockOrdersDto);
+  }
+
+  @Get(':id/orders')
+  @UseGuards(AuthenticatedGuard)
+  async getBlockOrders(@Param('id') id: string) {
+    return this.resumeService.getBlockOrders(id);
   }
 }

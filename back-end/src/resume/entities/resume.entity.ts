@@ -16,6 +16,7 @@ import { ProfileModel } from './profile.entity';
 import { CareerModel } from './career.entity';
 import { AchievementModel } from './achievement.entity';
 import { CustomModel } from './custom.entity';
+import { OrderModel } from './order.entity';
 
 @Entity()
 export class ResumeModel extends BaseModel {
@@ -70,4 +71,10 @@ export class ResumeModel extends BaseModel {
     nullable: true 
   })
   customs: CustomModel[];
+
+  @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume, { 
+    cascade: true, 
+    onDelete: 'CASCADE' 
+  })
+  blockOrders: OrderModel[];
 }

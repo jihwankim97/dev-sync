@@ -31,7 +31,7 @@ export class ProjectModel {
   @ManyToOne(() => ResumeModel, (resume) => resume.projects)
   resume: ResumeModel;
 
-  @OneToMany(() => ProjectOutcomeModel, (outcome) => outcome.project, { cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(() => ProjectOutcomeModel, (outcome) => outcome.project, { cascade: true })
   outcomes: ProjectOutcomeModel[];
 
   @ManyToMany(() => SkillModel, { cascade: true })
