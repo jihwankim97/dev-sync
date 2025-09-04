@@ -3,16 +3,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import { Fab, Popover } from "@mui/material";
 import html2pdf from "html2pdf.js";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
 import { ResumeEditorPanel } from "../../components/resume/ResumeEditorPanel";
 import { ResumeOptionBar } from "../../components/resume/ResumeOptionBar.tsx";
 import { ResumePreviewPanel } from "../../components/resume/ResumePreviewPanel.tsx";
 import { SectionOrderManager } from "../../components/resume/SectionOrderManager.tsx";
 import { blueGrayStyle } from "../../styles/blueGrayTheme.ts";
 import { modernStyle } from "../../styles/modernTheme.ts";
-import type { ResumeData } from "../../types/resume.type.ts";
+import type { RootState } from "../../redux/store.ts";
 
 const containerStyle = css`
   display: flex;
@@ -97,9 +96,11 @@ const rightPanelStyle = css`
 `;
 
 export const EditResumePage = () => {
-  // const gitInfo = location.state;
-  const sections = useSelector((state: any) => state.resumeInfo);
-  console.log(sections);
+  const { order, entities } = useSelector((state: RootState) => ({
+    order: state.resumeInfo.order,
+    entities: state.resumeInfo.entities,
+  }));
+  const [isEditing, setEditing] = useState<Record<string, boolean>>({});
 
   const printRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<"modern" | "blueGray">("modern");
@@ -128,13 +129,19 @@ export const EditResumePage = () => {
       .set(opt)
       .from(element)
       .save()
-      .catch((err: any) => console.error(err));
+      .catch((err) => console.error(err));
   };
-
-  // console.log(gitInfo);
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
+
+  const onEdit = (id: string) => {
+    setEditing((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const onSave = (id: string) => {
+    setEditing((prev) => ({ ...prev, [id]: false }));
+  };
 
   return (
     <div css={containerStyle}>
@@ -144,11 +151,12 @@ export const EditResumePage = () => {
           setTheme={setTheme}
         />
         <ResumeEditorPanel
-          sections={sections}
-          // setSections={sections}
-          // updateSectionData={updateSectionData}
-          // removeSection={removeSection}
-          // addSection={addSection}
+          setEditing={setEditing}
+          isEditing={isEditing}
+          entities={entities}
+          order={order}
+          onEdit={onEdit}
+          onSave={onSave}
         />
         <Fab
           ref={anchorRef}
@@ -181,21 +189,14 @@ export const EditResumePage = () => {
             mt: -2,
           }}
         >
-          {open && (
-            <SectionOrderManager
-              sections={sections}
-              // onReorder={(newOrder: string[]) =>
-              //   setSections((prev) => ({ ...prev, order: newOrder }))
-              // }
-              // onClose={() => setOpen(false)}
-            />
-          )}
+          {open && <SectionOrderManager order={order} entities={entities} />}
         </Popover>
       </div>
       <div css={rightPanelStyle}>
-        {sections && (
+        {order && (
           <ResumePreviewPanel
-            sections={sections}
+            entities={entities}
+            order={order}
             ref={printRef}
             styleTheme={selectedStyle}
           />

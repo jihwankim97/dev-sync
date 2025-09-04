@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { openLoginForm } from "../../redux/loginSlice";
+import type { RootState } from "../../redux/store";
 
 interface CommunityActionsProps {
   category: string;
@@ -24,7 +25,7 @@ const CommunityAction = ({ category, setPostList }: CommunityActionsProps) => {
   const [searchType, setSearchType] = useState<"title" | "content" | "all">(
     "all"
   );
-  const isLogin = useSelector((state: any) => state.login.loggedIn);
+  const isLogin = useSelector((state: RootState) => state.login.loggedIn);
   const dispatch = useDispatch();
 
   // 게시물 페이지에서는 안 보이게 설정

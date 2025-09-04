@@ -15,17 +15,6 @@ const rootReducer = combineReducers({
   resumeInfo: persistReducer(resumePersistConfig, resumeReducer), // persist 적용
 });
 
-// const customizedMiddleware = getDefaultMiddleware({
-//   serializableCheck: {
-//     ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"], // redux-persist 관련 액션 무시
-//   },
-// });
-
-// const rootReducer = combineReducers({
-//   login: loginReducer, // persist 안 함
-//   resumeInfo: persistReducer(resumePersistConfig, resumeReducer), // persist 적용
-// });
-
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
@@ -37,3 +26,4 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+export type RootState = ReturnType<typeof store.getState>;

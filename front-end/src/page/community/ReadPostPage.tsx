@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
@@ -13,21 +12,33 @@ import { ToggleLike } from "../../api/ToggleLike";
 import { CommentPost } from "../../components/community/CommentPost";
 import { DeletePostDlalog } from "../../components/community/DeletePostDialog";
 import { OptionBar } from "../../components/community/OptionBar";
+import type { userInfo } from "../../types/resume.type";
+import { fetchUserInfo } from "../../api/UserApi";
 
 export const ReadPostPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [likeCount, setLikeCount] = useState<number>(0);
+  const [liked, setLiked] = useState(false);
+  // const userId = useSelector((state: any) => state.login.loginInfo.user_id);
+  const [userData, setUserData] = useState<userInfo>();
+  const [open, setOpen] = useState(false);
   const post = location.state; // `navigate`에서 전달된 데이터
-  console.log(post);
-  if (!post) return null; // post가 없으면 렌더링 막기
+  // if (!post) return null; // post가 없으면 렌더링 막기
   const [date, time] = post.createdAt.split("T");
   const formmatTime = time.substring(0, 5);
   //xss 방지를 위한 데이터 처리
   const sanitizedContent = DOMPurify.sanitize(post.content);
-  const [likeCount, setLikeCount] = useState<number>(0);
-  const [liked, setLiked] = useState(false);
-  const userId = useSelector((state: any) => state.login.loginInfo.user_id);
-  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    fetchUserInfo()
+      .then((data) => {
+        setUserData(data);
+      })
+      .catch((err) => {
+        console.log(err.message || "알 수 없는 에러");
+      });
+  }, []);
 
   const checkLikeStatus = async () => {
     try {
@@ -50,11 +61,17 @@ export const ReadPostPage = () => {
   };
 
   useEffect(() => {
-    const checkLike = async () => {
-      const status = await checkLikeStatus();
-      status === true ? setLiked(true) : setLiked(false);
-    };
-    checkLike();
+    if (post.post_id) {
+      const checkLike = async () => {
+        const status = await checkLikeStatus();
+        if (status) {
+          setLiked(true);
+        } else {
+          setLiked(false);
+        }
+      };
+      checkLike();
+    }
   }, []);
 
   const count = async () => {
@@ -123,7 +140,7 @@ export const ReadPostPage = () => {
                 {post.title}
               </div>
               <div>
-                {post?.user?.user_id === userId && (
+                {post?.user?.user_id === userData?.user_id && (
                   <OptionBar
                     deleteClick={handleDelete}
                     editClick={handleEditPost}

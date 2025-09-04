@@ -1,27 +1,18 @@
-import { Box, Container } from "@mui/material";
+import { Box, css } from "@mui/material";
 import { Outlet } from "react-router-dom";
-
 
 const Content = () => {
   return (
-    <>
-      <Container disableGutters maxWidth={false}>
-        <Box
-          sx={{
-            height: "auto",
-            bgcolor: "#ffffff",
-            p: 2,
-            padding: 0,
-            // border: "5px solid blue",
-            minHeight: "500px",
-          }}
-        >
-          <Box sx={{ minHeight: "800px", backgroundColor: "#f7f7f8" }}>
-            <Outlet />
-          </Box>
-        </Box>
-      </Container>
-    </>
+    <div
+      css={css`
+        width: 100%;
+        margin: 0 auto;
+        overflow-y: hidden;
+        border: "5px solid #708216";
+      `}
+    >
+      <Outlet />
+    </div>
   );
 };
 export default Content;

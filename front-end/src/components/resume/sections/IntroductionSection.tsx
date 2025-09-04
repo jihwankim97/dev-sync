@@ -9,6 +9,7 @@ import {
   titleTextFieldStyle,
 } from "../../../styles/resumeLayerStyle";
 import { TextField, Typography, css } from "@mui/material";
+import { useLocalSection } from "../../../hooks/useLocalSection";
 
 interface Props {
   section: IntroductionTypeSection;
@@ -33,25 +34,35 @@ export const IntroductionSection = ({
   onEdit,
   onSave,
 }: Props) => {
+  const { handleChange, SaveSection, localSection } = useLocalSection(
+    section,
+    onSave
+  );
   return (
     <SectionWrapper
       title="자기소개"
       isEditing={isEditing}
       onEdit={onEdit}
-      onSave={onSave}
+      onSave={SaveSection}
     >
       {isEditing ? (
         <>
           <TextField
             multiline
             css={titleTextFieldStyle}
-            value={section.headline || ""}
+            value={localSection.headline || ""}
+            onChange={(e) => {
+              handleChange("headline", e.target.value);
+            }}
             placeholder="제목을 입력하세요"
           />
           <TextField
             multiline
             css={textareaStyle}
-            value={section.description || ""}
+            value={localSection.description || ""}
+            onChange={(e) => {
+              handleChange("description", e.target.value);
+            }}
             placeholder="자기소개를 입력하세요"
           />
         </>

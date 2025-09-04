@@ -8,7 +8,13 @@ import {
   CardContent,
   css,
 } from "@mui/material";
-import type { AchievementItem, AchievementsTypeSection, CareerItem, CareersTypeSection, ResumeData } from "../../types/resume.type";
+import type {
+  AchievementItem,
+  AchievementsTypeSection,
+  CareerItem,
+  CareersTypeSection,
+  ResumeData,
+} from "../../types/resume.type";
 import { addResume } from "../../redux/resumeSlice";
 import { useDispatch } from "react-redux";
 
@@ -45,7 +51,7 @@ interface GitResumeProps {
   setSections?: Dispatch<SetStateAction<ResumeData>>;
 }
 
-export const CreateSection = ({ sections }: GitResumeProps) => {
+export const CreateSection = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const dispatch = useDispatch();
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -62,68 +68,53 @@ export const CreateSection = ({ sections }: GitResumeProps) => {
       const newItem: CareerItem | AchievementItem =
         type === "career"
           ? {
-            id: crypto.randomUUID(),
-            type: "career",
-            company: "",
-            position: "",
-            startDate: "",
-            endDate: "",
-            description: "",
-          }
+              id: crypto.randomUUID(),
+              type: "career",
+              company: "",
+              position: "",
+              startDate: "",
+              endDate: "",
+              description: "",
+            }
           : {
-            id: crypto.randomUUID(),
-            type: "achievement",
-            title: "",
-            organization: "",
-            date: "",
-            description: "",
-          };
+              id: crypto.randomUUID(),
+              type: "achievement",
+              title: "",
+              organization: "",
+              date: "",
+              description: "",
+            };
 
       dispatch(
-        addResume((prev) => {
-          const existingSection = prev.entities.find(
+        addResume((draft) => {
+          const existingSection = draft.entities.find(
             (s) => s.type === sectionKey
           ) as CareersTypeSection | AchievementsTypeSection | undefined;
 
           if (existingSection) {
-            // 이미 섹션이 있으면 items에 추가
-            return {
-              ...prev,
-              entities: prev.entities.map((s) => {
-                if (s.id !== existingSection.id) return s;
-
-                if (s.type === "careers") {
-                  return { ...s, items: [...s.items, newItem as CareerItem] };
-                }
-                if (s.type === "achievements") {
-                  return {
-                    ...s,
-                    items: [...s.items, newItem as AchievementItem],
-                  };
-                }
-                return s;
-              }),
-            };
+            // 기존 섹션에 items 추가
+            if (existingSection.type === "careers") {
+              existingSection.items.push(newItem as CareerItem);
+            } else if (existingSection.type === "achievements") {
+              existingSection.items.push(newItem as AchievementItem);
+            }
           } else {
-            // 섹션이 없으면 새로 생성
+            // 새 섹션 생성
             const newSection =
               type === "career"
                 ? {
-                  id: crypto.randomUUID(),
-                  type: "careers" as const,
-                  items: [newItem as CareerItem],
-                }
+                    id: crypto.randomUUID(),
+                    type: "careers" as const,
+                    items: [newItem as CareerItem],
+                  }
                 : {
-                  id: crypto.randomUUID(),
-                  type: "achievements" as const,
-                  items: [newItem as AchievementItem],
-                };
+                    id: crypto.randomUUID(),
+                    type: "achievements" as const,
+                    items: [newItem as AchievementItem],
+                  };
 
-            return {
-              ...prev,
-              order: [...prev.order, newSection.id],
-              entities: [...prev.entities, newSection],
-            };
+            draft.entities.push(newSection);
+            draft.order.push(newSection.id);
           }
         })
       );
@@ -134,18 +125,15 @@ export const CreateSection = ({ sections }: GitResumeProps) => {
         id: crypto.randomUUID(),
       };
       dispatch(
-        addResume((prev) => ({
-          ...prev,
-          order: [...prev.order, newSection.id],
-          entities: [...prev.entities, newSection],
-        }))
+        addResume((draft) => {
+          draft.entities.push(newSection);
+          draft.order.push(newSection.id);
+        })
       );
     }
 
     handleClose();
   };
-
-
 
   const open = Boolean(anchorEl);
 

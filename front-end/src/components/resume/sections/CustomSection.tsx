@@ -1,75 +1,82 @@
 import type { Dispatch, SetStateAction } from "react";
-import type {
-    ResumeData,
-    CustomTypeSection,
-} from "../../../types/resume.type";
+import type { ResumeData, CustomTypeSection } from "../../../types/resume.type";
 import { SectionWrapper } from "./SectionWrapper";
-import {
-    textareaStyle,
-    titleTextFieldStyle,
-} from "../../../styles/resumeLayerStyle";
+import { textareaStyle } from "../../../styles/resumeLayerStyle";
 import { TextField, Typography, css } from "@mui/material";
+import { useLocalSection } from "../../../hooks/useLocalSection";
 
 interface Props {
-    section: CustomTypeSection;
-    setSections?: Dispatch<SetStateAction<ResumeData>>;
-    isEditing: boolean;
-    onEdit: () => void;
-    onSave: () => void;
+  section: CustomTypeSection;
+  setSections?: Dispatch<SetStateAction<ResumeData>>;
+  isEditing: boolean;
+  onEdit: () => void;
+  onSave: () => void;
 }
 
 interface Props {
-    label?: string;
-    value?: string;
-    type?: string;
-    placeholder?: string;
-    startAdornmentText?: string;
+  label?: string;
+  value?: string;
+  type?: string;
+  placeholder?: string;
+  startAdornmentText?: string;
 }
 
 export const CustomSection = ({
-    section,
-    isEditing,
-    onEdit,
-    onSave,
+  section,
+  isEditing,
+  onEdit,
+  onSave,
 }: Props) => {
+  const { handleChange, SaveSection, localSection } = useLocalSection(
+    section,
+    onSave
+  );
 
-
-    return (
-        <SectionWrapper
-            title={
-                isEditing ? (
-                    <TextField
-                        css={css`  width: 100%; height: 100%; overflow: auto;`}
-                        value={section.title || ""}
-                        placeholder="섹션 제목을 입력하세요"
-                        fullWidth
-                    />
-                ) : (
-                    <Typography variant="h5">
-                        {section.title || "사용자 정의 섹션"}
-                    </Typography>
-                )
-            }
-            isEditing={isEditing}
-            onEdit={onEdit}
-            onSave={onSave}
-        >
-            {
-                isEditing ? (
-                    <>
-                        <TextField
-                            multiline
-                            css={textareaStyle}
-                            value={section.description || ""}
-                            placeholder="설명을 입력하세요"
-                            minRows={4}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <Typography>{section.description || ""}</Typography>
-                    </>
-                )}
-        </SectionWrapper >
-    );
+  return (
+    <SectionWrapper
+      title={
+        isEditing ? (
+          <TextField
+            css={css`
+              width: 100%;
+              height: 100%;
+              overflow: auto;
+            `}
+            value={localSection.title || ""}
+            onChange={(e) => {
+              handleChange("title", e.target.value);
+            }}
+            placeholder="섹션 제목을 입력하세요"
+            fullWidth
+          />
+        ) : (
+          <Typography variant="h5">
+            {section.title || "사용자 정의 섹션"}
+          </Typography>
+        )
+      }
+      isEditing={isEditing}
+      onEdit={onEdit}
+      onSave={SaveSection}
+    >
+      {isEditing ? (
+        <>
+          <TextField
+            multiline
+            css={textareaStyle}
+            value={localSection.description || ""}
+            placeholder="설명을 입력하세요"
+            onChange={(e) => {
+              handleChange("description", e.target.value);
+            }}
+            minRows={4}
+          />
+        </>
+      ) : (
+        <>
+          <Typography>{section.description || ""}</Typography>
+        </>
+      )}
+    </SectionWrapper>
+  );
 };

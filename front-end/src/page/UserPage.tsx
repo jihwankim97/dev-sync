@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import {
   Alert,
@@ -16,7 +15,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
-import { useEffect, useReducer, useState } from "react";
+import {
+  useEffect,
+  useReducer,
+  useState,
+  type ChangeEventHandler,
+} from "react";
 import { fetchUserInfo } from "../api/UserApi";
 import type { userInfo } from "../types/resume.type";
 
@@ -116,7 +120,7 @@ export const CustomTextField = ({
 function reducer(
   state: userInfo,
   action:
-    | { type: "SET_FIELD"; field: keyof userInfo; value: any }
+    | { type: "SET_FIELD"; field: keyof userInfo; value: string | number }
     | { type: "SET_ALL"; payload: Partial<userInfo> }
 ) {
   switch (action.type) {
@@ -130,7 +134,7 @@ function reducer(
 // UserPage 컴포넌트
 export const UserPage = () => {
   const [userData, setUserData] = useReducer(reducer, initialState);
-  const [selectedFile, setSelectedFile] = useState(null); // 선택된 파일 상태
+  const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined); // 선택된 파일 상태
   const [previewImage, setPreviewImage] = useState(
     userData?.profile_image || ""
   );
@@ -151,12 +155,12 @@ export const UserPage = () => {
       });
   }, []);
 
-  const handlePreviewChange = (event: any) => {
+  const handlePreviewChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file); // 선택한 파일로부터 URL 생성
       setPreviewImage(imageUrl); // 미리보기 이미지 설정
-      setSelectedFile(event.target.files[0]);
+      setSelectedFile(file);
     }
   };
 
@@ -191,7 +195,12 @@ export const UserPage = () => {
   };
 
   const handleSave = async () => {
-    const { user_id, profile_image, createdDt, ...rest } = userData;
+    const {
+      user_id: _user_id,
+      profile_image: _profile_image,
+      createdDt: _createdDt,
+      ...rest
+    } = userData;
     console.log(rest);
     const response = await fetch("http://localhost:3000/user", {
       method: "POST",
@@ -220,7 +229,7 @@ export const UserPage = () => {
     }
   }, [userData?.profile_image]);
 
-  const changeValue = (section: keyof userInfo, data: any) => {
+  const changeValue = (section: keyof userInfo, data: string | number) => {
     setUserData({ type: "SET_FIELD", field: section, value: data });
   };
 
@@ -355,7 +364,7 @@ export const UserPage = () => {
                       // setBirthDate(formattedDate); // 상태 업데이트
                       changeValue("birthDate", formattedDate);
                     } else {
-                      changeValue("birthDate", null);
+                      changeValue("birthDate", "");
                     }
                   }}
                 />

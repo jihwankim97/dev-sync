@@ -1,4 +1,4 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type Draft, type PayloadAction } from "@reduxjs/toolkit";
 import { ResumeSection, ResumeData } from "../types/resume.type";
 
 type ResumeState = ResumeData | null;
@@ -21,9 +21,13 @@ const resumeSlice = createSlice({
         section.id === action.payload.id ? action.payload : section
       );
     },
-    addResume(state, action: PayloadAction<(prev: ResumeData) => ResumeData>) {
-      if (!state) return state; // 아직 null이면 업데이트 못함
-      return action.payload(state);
+    addResume(
+      state,
+      action: PayloadAction<(draft: Draft<ResumeData>) => void>
+    ) {
+      // state는 Immer draft 상태
+      if (!state) return;
+      action.payload(state); // 내부에서 바로 수정 가능
     },
   },
 });

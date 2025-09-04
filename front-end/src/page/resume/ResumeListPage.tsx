@@ -1,7 +1,6 @@
 import { css } from "@emotion/react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -18,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import { useDispatch } from "react-redux";
 import { setResume } from "../../redux/resumeSlice";
+import { GetExistResume } from "../../api/GetExistResume";
 
 type ResumeSummary = {
   id: string;
@@ -45,28 +45,28 @@ export const ResumeListPage = () => {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    
-    const fetchResumes = async (id : string) => {
-      try {
-        const response = await fetch(`http://localhost:3000/resumes/${id}`, {
-          method: "GET",
-          credentials: "include",
-        });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(data)
-              dispatch(setResume(data));
-      } catch (error) {
-        console.error("이력서 가져오기 실패:", error);
+  const fetchResumes = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/resumes/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data = await response.json();
+      console.log(data);
+      dispatch(setResume(data));
+    } catch (error) {
+      console.error("이력서 가져오기 실패:", error);
+    }
+  };
 
-  const handleClick = (id : string) => {
+  const handleClick = (id: string) => {
     // navigate("/Users"); // 새로운 경로로 이동
     fetchResumes(id);
   };
@@ -78,9 +78,7 @@ export const ResumeListPage = () => {
     setAnchorEl(null);
   };
 
-  const handleDelete = () => {
-
-  }
+  const handleDelete = () => {};
 
   useEffect(() => {
     console.log("aaaa");
@@ -104,8 +102,11 @@ export const ResumeListPage = () => {
     fetchResumes();
   }, []);
 
-
-
+  const handleEntryResume = async (id: string) => {
+    const result = await GetExistResume(id);
+    navigate(`/resume/${result.id}/editor`);
+    dispatch(setResume(result));
+  };
 
   return (
     <Box
@@ -137,26 +138,30 @@ export const ResumeListPage = () => {
                 }
               `}
             >
-        <Menu
-        anchorEl={anchorEl}
-        id="account-menu"
-        open={open}
-        onClose={handleClose}
-        onClick={handleClose}
-        slotProps={{
-          paper: {
-            // 그림자 0
-            elevation: 0,
-            sx: {
-              filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-              mt: 1,
-            },
-          },
-        }}
-      >
-        <MenuItem onClick={() => handleClick(resume.id)}>수정하기</MenuItem>
-        <MenuItem onClick={handleDelete} >삭제하기 </MenuItem>
-      </Menu>
+              <Menu
+                anchorEl={anchorEl}
+                id="account-menu"
+                open={open}
+                onClose={handleClose}
+                onClick={handleClose}
+                disableScrollLock
+                slotProps={{
+                  paper: {
+                    // 그림자 0
+                    // elevation: 0,
+                    sx: {
+                      mt: 1,
+                      boxShadow: "2px 2px 4px rgba(217, 217, 217, 0.08)",
+                      borderRadius: "8px",
+                    },
+                  },
+                }}
+              >
+                <MenuItem onClick={() => handleEntryResume(resume.id)}>
+                  수정하기
+                </MenuItem>
+                <MenuItem onClick={handleDelete}>삭제하기 </MenuItem>
+              </Menu>
 
               <CardContent>
                 <div
@@ -168,10 +173,9 @@ export const ResumeListPage = () => {
                   <Typography variant="h6" fontWeight={600}>
                     {resume.title}
                   </Typography>
-                  <IconButton  onClick={handleOption}>
-                   <MoreVertIcon/>
+                  <IconButton onClick={handleOption}>
+                    <MoreVertIcon />
                   </IconButton>
-  
                 </div>
 
                 <Typography
