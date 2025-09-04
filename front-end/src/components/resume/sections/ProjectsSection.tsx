@@ -6,6 +6,7 @@ import type {
 import { SectionWrapper } from "./SectionWrapper";
 import { sectionBar } from "../../../styles/resumeLayerStyle";
 import { TextField, Typography, css } from "@mui/material";
+import { useLocalSection } from "../../../hooks/useLocalSection";
 
 interface Props {
   section: ProjectsTypeSection;
@@ -30,15 +31,18 @@ export const ProjectsSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  console.log(section)
+  const { handleChange, SaveSection, localSection, handleArrayItemChange } =
+    useLocalSection(section, onSave);
+
+  console.log(localSection);
   return (
     <SectionWrapper
       title="프로젝트"
       isEditing={isEditing}
       onEdit={onEdit}
-      onSave={onSave}
+      onSave={SaveSection}
     >
-      {section.items.map((project) => (
+      {localSection.items.map((project) => (
         <div key={project.id} css={{ marginBottom: "2rem" }}>
           {isEditing ? (
             <section
@@ -50,9 +54,7 @@ export const ProjectsSection = ({
               <div
                 key={project.id}
                 css={{
-                  // background: "#fdfdfd",
                   borderRadius: "12px",
-                  border: "1px solid #d0d0d0",
                   padding: "1.5rem",
                   display: "flex",
                   flexDirection: "column",
@@ -70,14 +72,30 @@ export const ProjectsSection = ({
                     label="프로젝트명"
                     value={project.name}
                     fullWidth
+                    onChange={(e) =>
+                      handleArrayItemChange(
+                        "items",
+                        project.id,
+                        "name",
+                        e.target.value
+                      )
+                    }
                     size="small"
                     margin="dense"
                   />
                   <TextField
                     label="사용 기술"
-                    value={project.skills.join(", ")}
+                    value={project.skills?.join(", ")}
                     fullWidth
                     size="small"
+                    onChange={(e) =>
+                      handleArrayItemChange(
+                        "items",
+                        project.id,
+                        "skills",
+                        e.target.value
+                      )
+                    }
                     margin="dense"
                     multiline
                     minRows={2}
@@ -94,6 +112,14 @@ export const ProjectsSection = ({
                   <TextField
                     label="시작일"
                     value={project.startDate}
+                    onChange={(e) =>
+                      handleArrayItemChange(
+                        "items",
+                        project.id,
+                        "startDate",
+                        e.target.value
+                      )
+                    }
                     fullWidth
                     size="small"
                     margin="dense"
@@ -101,6 +127,14 @@ export const ProjectsSection = ({
                   <TextField
                     label="종료일"
                     value={project.endDate}
+                    onChange={(e) =>
+                      handleArrayItemChange(
+                        "items",
+                        project.id,
+                        "endDate",
+                        e.target.value
+                      )
+                    }
                     fullWidth
                     size="small"
                     margin="dense"
@@ -109,6 +143,14 @@ export const ProjectsSection = ({
                 <TextField
                   label="설명"
                   value={project.description}
+                  onChange={(e) =>
+                    handleArrayItemChange(
+                      "items",
+                      project.id,
+                      "description",
+                      e.target.value
+                    )
+                  }
                   fullWidth
                   size="small"
                   margin="dense"
@@ -121,7 +163,6 @@ export const ProjectsSection = ({
                       display: "flex",
                       flexDirection: "column",
                       gap: "1rem",
-                      // border: "2px solid red",
                     }}
                   >
                     <Typography
@@ -138,27 +179,55 @@ export const ProjectsSection = ({
                       <div
                         key={outcome.id}
                         css={{
-                          // background: "#fafafa",
                           borderRadius: "8px",
                           padding: "1rem",
                           display: "flex",
                           flexDirection: "column",
                           gap: "0.8rem",
-                          boxShadow: "inset 0 0 4px rgba(0,0,0,0.05)",
                         }}
                       >
                         <TextField
                           label="한 일"
                           value={outcome.task}
+                          onChange={(e) =>
+                            handleArrayItemChange(
+                              "items",
+                              project.id,
+                              "outcomes",
+                              project.outcomes.map((o) =>
+                                o.id === outcome.id
+                                  ? { ...o, task: e.target.value }
+                                  : o
+                              )
+                            )
+                          }
                           fullWidth
                           size="small"
                           margin="dense"
                           multiline
                           minRows={2}
+                          sx={{
+                            backgroundColor: "#fff",
+                          }}
                         />
                         <TextField
                           label="성과"
                           value={outcome.result}
+                          sx={{
+                            backgroundColor: "#fff",
+                          }}
+                          onChange={(e) =>
+                            handleArrayItemChange(
+                              "items",
+                              project.id,
+                              "outcomes",
+                              project.outcomes.map((o) =>
+                                o.id === outcome.id
+                                  ? { ...o, result: e.target.value }
+                                  : o
+                              )
+                            )
+                          }
                           fullWidth
                           size="small"
                           margin="dense"

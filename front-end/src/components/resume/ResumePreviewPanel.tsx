@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { forwardRef } from "react";
-import { useSelector } from "react-redux";
 import { blueGrayStyle } from "../../styles/blueGrayTheme";
 import { modernStyle } from "../../styles/modernTheme";
 import type { ResumeData } from "../../types/resume.type";
@@ -12,17 +11,18 @@ import {
 } from "../../types/resume.type";
 
 type Props = {
-  sections: ResumeData;
+  entities: ResumeData["entities"];
+  order: ResumeData["order"];
   styleTheme: typeof modernStyle | typeof blueGrayStyle;
 };
 export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
-  ({ sections, styleTheme }, ref) => {
-    const { order, entities } = sections;
-
+  ({ entities, order, styleTheme }, ref) => {
     return (
       <div ref={ref} css={styleTheme.previewContainer}>
         {order.map((id) => {
-          const section = entities.find((entity) => entity.id === id);
+          const section = entities.find(
+            (entity) => entity.type === id || entity.id === id
+          );
           if (!section) return null;
           switch (section.type) {
             case "profile":
@@ -201,7 +201,7 @@ export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
                 </section>
               );
 
-            case "career":
+            case "careers":
               return (
                 <section
                   key={id}
@@ -210,39 +210,39 @@ export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
                   `}
                 >
                   <h3 css={styleTheme.sectionTitle}>경력</h3>
-                  <div
-                    css={css`
-                      display: flex;
-                    `}
-                  >
-                    <div css={styleTheme.careerLeft}>
-                      {section.startDate} ~{" "}
-                      {section.isCurrent ? "현재" : section.endDate}
-                    </div>
+                  {section.items.map((section, idx) => (
                     <div
+                      key={idx}
                       css={css`
-                        width: 80%;
+                        display: flex;
                       `}
                     >
-                      <h4 css={styleTheme.career}>
-                        {section.company}
-                        <span
-                          css={css`
-                            padding: 0 12px;
-                            border-left: 1px solid #d1d5db; /* 구분선 */
-                          `}
-                        >
-                          {section.position}
-                        </span>
-                      </h4>
-                      <p css={styleTheme.careerSkills}>
-                        기술: {section.technologies.join(", ")}
-                      </p>
-                      <p css={styleTheme.careerDescription}>
-                        {section.description}
-                      </p>
+                      <div css={styleTheme.careerLeft}>
+                        {section.startDate} ~{" "}
+                        {/* {section.isCurrent ? "현재" : section.endDate} */}
+                      </div>
+                      <div
+                        css={css`
+                          width: 80%;
+                        `}
+                      >
+                        <h4 css={styleTheme.career}>
+                          {section.company}
+                          <span
+                            css={css`
+                              padding: 0 12px;
+                              border-left: 1px solid #d1d5db; /* 구분선 */
+                            `}
+                          >
+                            {section.position}
+                          </span>
+                        </h4>
+                        <p css={styleTheme.careerDescription}>
+                          {section.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </section>
               );
 
@@ -255,92 +255,85 @@ export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
                   `}
                 >
                   <h3 css={styleTheme.sectionTitle}>{section.title}</h3>
-                  <p css={styleTheme.sectionContent}>{section.content}</p>
+                  <p css={styleTheme.sectionContent}>{section.description}</p>
                 </section>
               );
-            case "achievement":
-              // 현재 section이 order에서 첫 번째 achievement인지 확인
-              const firstAchievementIndex = order.findIndex(
-                (id) =>
-                  entities.find((e) => e.id === id)?.type === "achievement"
-              );
-              const isFirstAchievement = order[firstAchievementIndex] === id;
-
+            case "achievements":
               return (
                 <section key={id}>
                   {/* 첫 번째 achievement에서만 제목 표시 */}
-                  {isFirstAchievement && (
-                    <h3 css={styleTheme.sectionTitle}>자격증 · 수상</h3>
-                  )}
-
-                  <div
-                    css={css`
-                      display: flex;
-                      flex-direction: column;
-                      border-bottom: 1px solid #ddd;
-                      padding-bottom: 4px;
-                      margin-bottom: 8px;
-                    `}
-                  >
+                  <h3 css={styleTheme.sectionTitle}>자격증 · 수상</h3>
+                  {section.items.map((section, idx) => (
                     <div
+                      key={idx}
                       css={css`
                         display: flex;
-                        align-items: center;
+                        flex-direction: column;
+                        border-bottom: 1px solid #ddd;
+                        padding-bottom: 4px;
+                        margin-bottom: 8px;
                       `}
                     >
-                      {/* 제목 */}
-                      <h4
+                      <div
                         css={css`
-                          font-size: 14px;
-                          font-weight: 600;
-                          color: #111827;
-                          padding-right: 12px;
-                          border-right: 1px solid #d1d5db;
+                          display: flex;
+                          align-items: center;
                         `}
                       >
-                        {section.title}
-                      </h4>
-
-                      {/* 기관 */}
-                      {section.organization && (
-                        <span
+                        {/* 제목 */}
+                        <h4
                           css={css`
                             font-size: 14px;
-                            color: #374151;
-                            padding: 0 12px;
+                            font-weight: 600;
+                            color: #111827;
+                            padding-right: 12px;
                             border-right: 1px solid #d1d5db;
                           `}
                         >
-                          {section.organization}
-                        </span>
-                      )}
+                          {section.title}
+                        </h4>
 
-                      {/* 날짜 */}
-                      <span
-                        css={css`
-                          font-size: 14px;
-                          color: #6b7280;
-                          padding: 0 12px;
-                        `}
-                      >
-                        {section.date}
-                      </span>
+                        {/* 기관 */}
+                        {section.organization && (
+                          <span
+                            css={css`
+                              font-size: 14px;
+                              color: #374151;
+                              padding: 0 12px;
+                              border-right: 1px solid #d1d5db;
+                            `}
+                          >
+                            {section.organization}
+                          </span>
+                        )}
 
-                      {/* 설명 */}
-                      {section.description && (
+                        {/* 날짜 */}
                         <span
                           css={css`
                             font-size: 14px;
-                            border-left: 1px solid #d1d5db;
-                            color: #374151;
-                            padding-left: 12px;
+                            color: #6b7280;
+                            padding: 0 12px;
                           `}
                         >
-                          {section.description}
+                          {section.date}
                         </span>
-                      )}
+
+                        {/* 설명 */}
+                        {section.description && (
+                          <span
+                            css={css`
+                              font-size: 14px;
+                              border-left: 1px solid #d1d5db;
+                              color: #374151;
+                              padding-left: 12px;
+                            `}
+                          >
+                            {section.description}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </section>
               );
             case "projects":

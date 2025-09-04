@@ -14,6 +14,9 @@ import { openLoginForm } from "../../redux/loginSlice";
 import { CommentGroup } from "./CommentGroup";
 import { CommentReply } from "./CommentReply";
 import { OptionBar } from "./OptionBar";
+import type { RootState } from "../../redux/store";
+import { fetchUserInfo } from "../../api/UserApi";
+import type { userInfo } from "../../types/resume.type";
 
 const CommentLayout = memo(
   ({
@@ -33,24 +36,34 @@ const CommentLayout = memo(
     setEditTargetId: React.Dispatch<React.SetStateAction<number | null>>;
     editTargetId: number | null;
   }) => {
-    const userId = useSelector((state: any) => state.login.loginInfo.user_id);
+    const [userData, setUserData] = useState<userInfo>();
+    const userId = userData?.user_id;
     const location = useLocation();
     const postId = location.state.post_id; // `navigate`에서 전달된 데이터
     const textRef = useRef<HTMLInputElement | null>(null);
-    const isLogin = useSelector((state: any) => state.login.loggedIn);
+    const isLogin = useSelector((state: RootState) => state.login.loggedIn);
     const dispatch = useDispatch();
     const [replying, setReplying] = useState({
       isReplying: false,
       parent_id: 0,
     });
 
+    useEffect(() => {
+      fetchUserInfo()
+        .then((data) => {
+          setUserData(data);
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err.message || "알 수 없는 에러");
+        });
+    }, []);
+
     const handleDeleteComment = async () => {
       await RemoveComment(comment.comment_id);
 
       GetCommentList(1, postId, setComments, setTotalPages);
     };
-
-    console.log(location);
     const handleEdit = () => {
       setEditTargetId(comment.comment_id);
     };
@@ -255,7 +268,8 @@ const CommentLayout = memo(
 
 export const CommentPost = () => {
   const textRef = useRef<HTMLInputElement | null>(null);
-  const userId = useSelector((state: any) => state.login.loginInfo.user_id);
+  const [userData, setUserData] = useState<userInfo>();
+
   const location = useLocation();
   const postId = location.state.post_id; // `navigate`에서 전달된 데이터
   const [comments, setComments] = useState<any[]>([]);
@@ -264,6 +278,20 @@ export const CommentPost = () => {
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
   const dispatch = useDispatch();
   const isLogin = useSelector((state: any) => state.login.loggedIn);
+  let userId = 0;
+  useEffect(() => {
+    fetchUserInfo()
+      .then((data) => {
+        setUserData(data);
+      })
+      .catch((err) => {
+        console.log(err.message || "알 수 없는 에러");
+      });
+  }, []);
+
+  if (userData) {
+    userId = userData.user_id;
+  }
 
   useEffect(() => {
     GetCommentList(page, postId, setComments, setTotalPages);
@@ -271,6 +299,7 @@ export const CommentPost = () => {
 
   //댓글 입력시 이벤트 처리
   const eventComment = useEvent(async (value: any) => {
+    console.log(value, userId, postId);
     await SendComment(value, null, userId, postId);
     //댓글 추가후 첫페이지로 이동 및 댓글 가져오기
     await GetCommentList(1, postId, setComments, setTotalPages);

@@ -1,27 +1,27 @@
-import { Box, Container } from "@mui/material";
+import { css } from "@emotion/react";
 
 const Footer = () => {
   return (
-    <Container
-      disableGutters
-      maxWidth={false} // 가로 폭 제한 제거
+    <div
+      css={css`
+        width: 100%;
+        background-color: #ffffff;
+      `}
     >
-      <Box
-        sx={{
-          height: 80,
-          color: "#5a5a5a",
-          margin: 0,
-          padding: 0,
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          display: "flex",
-          fontSize: "12px",
-        }}
+      <div
+        css={css`
+          height: 80px;
+          color: #5a5a5a;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 12px;
+        `}
       >
         2024 DevSync, Create developer resumes effortlessly with AI.
-      </Box>
-    </Container>
+      </div>
+    </div>
   );
 };
+
 export default Footer;

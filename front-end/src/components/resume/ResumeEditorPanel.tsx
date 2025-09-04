@@ -18,25 +18,21 @@ const containerStyle = css`
 `;
 
 interface GitResumeProps {
-  sections: ResumeData;
-  // setSections: Dispatch<SetStateAction<ResumeData>>;
+  entities: ResumeData["entities"];
+  order: ResumeData["order"];
+  setEditing: Dispatch<SetStateAction<Record<string, boolean>>>;
+  isEditing: Record<string, boolean>;
+  onEdit: (id: string) => void;
+  onSave: (id: string) => void;
 }
 
 export const ResumeEditorPanel = ({
-  sections,
-}: // setSections,
-  GitResumeProps) => {
-  const [isEditing, setEditing] = useState<Record<string, boolean>>({});
-
-  const onEdit = (id: string) => {
-    setEditing((prev) => ({ ...prev, [id]: true }));
-  };
-
-  const onSave = (id: string) => {
-    setEditing((prev) => ({ ...prev, [id]: false }));
-  };
-
-
+  onEdit,
+  onSave,
+  entities,
+  order,
+  isEditing,
+}: GitResumeProps) => {
   const renderSection = (section: ResumeSection) => {
     const common = {
       isEditing: isEditing[section.id],
@@ -66,24 +62,22 @@ export const ResumeEditorPanel = ({
           <IntroductionSection key={section.id} section={section} {...common} />
         );
       case "custom":
-        return (
-          <CustomSection key={section.id} section={section} {...common} />
-        )
+        return <CustomSection key={section.id} section={section} {...common} />;
       default:
         return null;
     }
   };
-
-  const { order, entities } = sections;
-
+  console.log(order, entities);
   return (
     <div css={containerStyle}>
       {order.map((id) => {
-        const section = entities.find((entity) => entity.id === id);
+        const section = entities.find(
+          (entity) => entity.type === id || entity.id === id
+        );
         if (!section) return null;
         return renderSection(section);
       })}
-      <CreateSection sections={sections} />
+      <CreateSection />
     </div>
   );
 };

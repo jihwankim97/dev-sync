@@ -18,21 +18,20 @@ import { useEffect, useRef, useState } from "react";
 import type { ResumeData } from "../../types/resume.type";
 
 interface Props {
-  sections: ResumeData;
-  // onReorder: (newOrder: string[]) => void;
-  // onClose: () => void;
+  order: ResumeData["order"];
+  entities: ResumeData["entities"];
 }
 
 export const SectionOrderManager = ({
-  sections,
-}: // onReorder,
-// onClose,
+  order,
+  entities,
+}: // onClose,
 Props) => {
-  const [localOrder, setLocalOrder] = useState(sections.order);
+  const [localOrder, setLocalOrder] = useState(order);
   const initialOrderRef = useRef<string[]>([]);
 
   useEffect(() => {
-    initialOrderRef.current = sections.order;
+    initialOrderRef.current = order;
   }, []);
   //일단 , 리스트가 변경되면 setLocal 로
 
@@ -79,7 +78,7 @@ Props) => {
                 }}
               >
                 {localOrder.map((id, index) => {
-                  const entity = sections.entities.find((i) => i.id === id);
+                  const entity = entities.find((i) => i.id === id);
                   if (
                     !entity ||
                     entity.type === "project" ||
@@ -95,8 +94,8 @@ Props) => {
                             profile: "기본 정보",
                             skills: "스킬",
                             projects: "프로젝트",
-                            achievement: "수상/자격",
-                            career: "경력",
+                            achievements: "수상/자격",
+                            careers: "경력",
                             introduction: "자기소개",
                           } as const
                         )[entity.type];

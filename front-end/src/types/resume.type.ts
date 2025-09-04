@@ -1,6 +1,6 @@
 // ? 는 필수값아님
 //order에서 하나씩있는건  type string ,  커스텀만 type에  uuid custom/uuid
-// 아마 id, type 둘중 하나 사라짐 일단 아이디 없어짐 , 묶어주는것들만 그렇게 , 
+// 아마 id, type 둘중 하나 사라짐 일단 아이디 없어짐 , 묶어주는것들만 그렇게 ,
 // 블록내부의 items 애들은 id, type 들어감
 
 export type ResumeData = {
@@ -76,14 +76,14 @@ export type CareersTypeSection = {
 
 export type CareerItem = {
   id: string;
-  type : "career";
+  type: "career";
   company: string;
   position: string;
   startDate: string;
   endDate?: string;
   // isCurrent: boolean;
   description: string;
-}
+};
 
 export type AchievementsTypeSection = {
   id: string;
@@ -96,13 +96,13 @@ export type AchievementsTypeSection = {
 };
 
 export type AchievementItem = {
-  id : string;
-  type: "achievement"
+  id: string;
+  type: "achievement";
   title: string;
   organization: string;
   date: string;
   description?: string;
-}
+};
 
 export type ProjectTypeSection = {
   id: string;

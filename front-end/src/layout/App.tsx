@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { setloggedIn } from "../redux/loginSlice";
 import { Outlet } from "react-router-dom";
 import "devicon/devicon.min.css";
+
 const layoutStyle = css`
   display: flex;
   flex-direction: column;
@@ -56,23 +57,21 @@ function App() {
   }, []);
 
   return (
-    <StrictMode>
-      <div css={layoutStyle}>
-        <div css={containerStyle}>
-          <Header />
-        </div>
-
-        <main css={contentWrapperStyle}>
-          <div css={innerContentStyle}>
-            <Outlet />
-          </div>
-        </main>
-
-        <div css={containerStyle}>
-          <Footer />
-        </div>
+    <div css={layoutStyle}>
+      <div css={containerStyle}>
+        <Header />
       </div>
-    </StrictMode>
+
+      <main css={contentWrapperStyle}>
+        <div css={innerContentStyle}>
+          <Outlet />
+        </div>
+      </main>
+
+      <footer css={containerStyle}>
+        <Footer />
+      </footer>
+    </div>
   );
 }
 

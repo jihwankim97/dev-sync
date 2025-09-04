@@ -36,6 +36,7 @@ const ProfileButton = () => {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
+        disableScrollLock
         slotProps={{
           paper: {
             // 그림자 0
