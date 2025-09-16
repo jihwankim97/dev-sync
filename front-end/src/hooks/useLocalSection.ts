@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { updateResume } from "../redux/resumeSlice";
-import { useDispatch } from "react-redux";
+import { updateResume, updateResumeSection } from "../redux/resumeSlice";
 import type { OutcomeTypeSection, ResumeSection } from "../types/resume.type";
 import dayjs from "dayjs";
+import { useAppDispatch } from "./useAppDispatch";
 
 export const useLocalSection = <T extends ResumeSection>(
   section: T,
   onSave: () => void
 ) => {
   const [localSection, setLocalSection] = useState<T>(section);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     setLocalSection(section);
@@ -49,8 +49,7 @@ export const useLocalSection = <T extends ResumeSection>(
     []
   );
   const SaveSection = () => {
-    dispatch(updateResume(localSection));
-    console.log("저장시", localSection);
+    dispatch(updateResumeSection(localSection));
     onSave();
   };
 

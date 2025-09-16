@@ -78,10 +78,20 @@ export const ResumeListPage = () => {
     setAnchorEl(null);
   };
 
-  const handleDelete = () => {};
+  const handleDelete = async (id: string) => {
+    const response = await fetch(`http://localhost:3000/resumes/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    console.log(result)
+
+  };
 
   useEffect(() => {
-    console.log("aaaa");
     const fetchResumes = async () => {
       try {
         const response = await fetch("http://localhost:3000/resumes", {
@@ -104,6 +114,8 @@ export const ResumeListPage = () => {
 
   const handleEntryResume = async (id: string) => {
     const result = await GetExistResume(id);
+
+    console.log(result)
     navigate(`/resume/${result.id}/editor`);
     dispatch(setResume(result));
   };
@@ -160,7 +172,7 @@ export const ResumeListPage = () => {
                 <MenuItem onClick={() => handleEntryResume(resume.id)}>
                   수정하기
                 </MenuItem>
-                <MenuItem onClick={handleDelete}>삭제하기 </MenuItem>
+                <MenuItem onClick={() => handleDelete(resume.id)}>삭제하기 </MenuItem>
               </Menu>
 
               <CardContent>

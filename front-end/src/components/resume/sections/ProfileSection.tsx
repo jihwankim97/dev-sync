@@ -44,12 +44,12 @@ const ProfileFieldInput = ({
       slotProps={
         startAdornmentText
           ? {
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">github.com/</InputAdornment>
-                ),
-              },
-            }
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">github.com/</InputAdornment>
+              ),
+            },
+          }
           : undefined
       }
     />
