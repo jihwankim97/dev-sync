@@ -398,12 +398,6 @@ export class ResumeService {
   async removeResume(userId: number, resumeId: string): Promise<ResumeModel> {
     const resume = await this.getResume(resumeId);
 
-    if (resume.author.user_id !== userId) {
-      throw new NotFoundException(
-        `Resume with ID ${resumeId} does not belong to user with ID ${userId}.`,
-      );
-    }
-
     return this.resumeRepository.remove(resume);
   }
 

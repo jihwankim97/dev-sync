@@ -12,6 +12,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
   }));
   app.use(cookieParser());
   app.use(
