@@ -11,6 +11,7 @@ import {
   Param,
   Query,
   Delete,
+  UseFilters,
 } from '@nestjs/common';
 import { ResumeService } from './resume.service';
 import { UserService } from 'src/user/user.service';
@@ -25,6 +26,7 @@ import { CreateAchievementsDto } from './dto/create-achievements.dto';
 import { CreateCustomDto } from './dto/create-custom.dto';
 import { CreateCareersDto } from './dto/create-careers.dto';
 import { UpdateBlockOrdersDto } from './dto/update-block-orders.dto';
+import { UpsertResumeEntityDtoFilter } from './filter/upsert-resume-entity-dto.filter';
 
 @Controller('resumes')
 export class ResumeController {
@@ -106,6 +108,7 @@ export class ResumeController {
 
   @Post(':id/introductions')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createIntroduction(
     @Param('id') id: string,
     @Body() createIntroductionDto: CreateIntroductionDto,
@@ -121,6 +124,7 @@ export class ResumeController {
 
   @Post(':id/profiles')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createProfile(
     @Param('id') id: string,
     @Body() profileDto: CreateProfileDto,
@@ -136,6 +140,7 @@ export class ResumeController {
 
   @Post(':id/projects')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createProject(
     @Param('id') id: string,
     @Body() createProjectsDto: CreateProjectsWidthOutcomesDto,
@@ -151,6 +156,7 @@ export class ResumeController {
 
   @Post(':id/skills')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createSkills(
     @Param('id') id: string,
     @Body() createSkillsDto: CreateSkillsDto,
@@ -171,6 +177,7 @@ export class ResumeController {
 
   @Post(':id/achievements')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createAchievements(
     @Param('id') id: string,
     @Body() createAchievementsDto: CreateAchievementsDto,
@@ -186,6 +193,7 @@ export class ResumeController {
 
   @Post(':id/careers')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createCareers(
     @Param('id') id: string,
     @Body() createCareersDto: CreateCareersDto,
@@ -201,6 +209,7 @@ export class ResumeController {
 
   @Post(':id/customs')
   @UseGuards(AuthenticatedGuard)
+  @UseFilters(UpsertResumeEntityDtoFilter) 
   async createCustom(
     @Param('id') id: string,
     @Body() createCustomDto: CreateCustomDto,
