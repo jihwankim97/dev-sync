@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import type { ResumeData } from "../../types/resume.type";
+import { useDispatch } from "react-redux";
+import { updateOrder } from "../../redux/resumeSlice";
 
 interface Props {
   order: ResumeData["order"];
@@ -25,24 +27,27 @@ interface Props {
 export const SectionOrderManager = ({
   order,
   entities,
-}: // onClose,
-Props) => {
+}:
+  Props) => {
   const [localOrder, setLocalOrder] = useState(order);
   const initialOrderRef = useRef<string[]>([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     initialOrderRef.current = order;
   }, []);
-  //일단 , 리스트가 변경되면 setLocal 로
 
+  //일단 , 리스트가 변경되면 setLocal 로
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const newOrder = [...localOrder];
     const [removed] = newOrder.splice(result.source.index, 1);
     newOrder.splice(result.destination.index, 0, removed);
-    // onReorder(newOrder);
     setLocalOrder(newOrder);
   };
+
+
+
 
   return (
     <Fade in>
@@ -78,7 +83,7 @@ Props) => {
                 }}
               >
                 {localOrder.map((id, index) => {
-                  const entity = entities.find((i) => i.id === id);
+                  const entity = entities.find((i) => (i.type === id || i.id === id));
                   if (
                     !entity ||
                     entity.type === "project" ||
@@ -90,15 +95,15 @@ Props) => {
                     entity.type === "custom"
                       ? entity.title
                       : (
-                          {
-                            profile: "기본 정보",
-                            skills: "스킬",
-                            projects: "프로젝트",
-                            achievements: "수상/자격",
-                            careers: "경력",
-                            introduction: "자기소개",
-                          } as const
-                        )[entity.type];
+                        {
+                          profile: "기본 정보",
+                          skills: "스킬",
+                          projects: "프로젝트",
+                          achievements: "수상/자격",
+                          careers: "경력",
+                          introduction: "자기소개",
+                        } as const
+                      )[entity.type];
 
                   return (
                     <Draggable
@@ -153,7 +158,7 @@ Props) => {
           </Button>
           <Button
             variant="contained"
-            //  onClick={() => onReorder(localOrder)}
+            onClick={() => dispatch(updateOrder(localOrder))}
           >
             확인
           </Button>

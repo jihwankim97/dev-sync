@@ -12,23 +12,6 @@ import {
   titleStyle,
 } from "../styles/resumeCommonStyle";
 
-// interface Project {
-//   name: string;
-//   description: string;
-//   outcomes: string[];
-//   role: string;
-// }
-
-// interface GitInfo {
-//   introduction: {
-//     description: string;
-//   };
-//   projects: Project[];
-//   skills: {
-//     knowledgeable: string[];
-//     strengths: string[];
-//   };
-// }
 
 export interface ResumeContextType {
   isLoading: boolean;
@@ -56,7 +39,6 @@ export const ResumeSetupLayout = () => {
   const [selectedRepos, setSelectedRepos] = useState<
     { name: string; selected: boolean }[]
   >([]);
-  // const [gitInfo, setGitInfo] = useState<GitInfo | undefined>();
 
   const contextValue: ResumeContextType = {
     repoData,
