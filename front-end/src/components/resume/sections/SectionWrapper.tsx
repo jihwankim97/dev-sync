@@ -17,9 +17,11 @@ const titleStyle = css`
 `;
 export const SectionWrapper = ({
   title,
+  isEditing,
   onEdit,
   onSave,
-  isEditing,
+  onDelete,
+  sectionType, // 추가
   children,
 }: {
   title: React.ReactNode;
@@ -27,9 +29,8 @@ export const SectionWrapper = ({
   onEdit: () => void;
   onSave: () => void;
   onDelete?: () => void;
+  sectionType?: string;
   children: React.ReactNode;
-
-
 }) => {
 
   return (
@@ -46,7 +47,12 @@ export const SectionWrapper = ({
           marginTop: "2rem",
         }}
       >
-        {isEditing && <Button>삭제</Button>}
+        {isEditing &&
+          (sectionType === "custom" ||
+            sectionType === "careers" ||
+            sectionType === "achievements") && (
+            <Button onClick={onDelete}>삭제</Button>
+          )}
         <Button
           css={css`
             margin-left: auto;

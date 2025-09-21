@@ -32,7 +32,7 @@ export const CareerSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  const { SaveSection, localSection, handleArrayItemChange } = useLocalSection(
+  const { SaveSection, localSection, handleArrayItemChange, DeleteSection } = useLocalSection(
     section,
     onSave
   );
@@ -43,6 +43,8 @@ export const CareerSection = ({
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
+      onDelete={DeleteSection}
     >
       {localSection.items.map((section) => (
         <div key={section.id}>

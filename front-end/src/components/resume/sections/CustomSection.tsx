@@ -27,7 +27,7 @@ export const CustomSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection } = useLocalSection(
+  const { handleChange, SaveSection, localSection, DeleteSection } = useLocalSection(
     section,
     onSave
   );
@@ -58,6 +58,9 @@ export const CustomSection = ({
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
+      onDelete={DeleteSection}
+
     >
       {isEditing ? (
         <>

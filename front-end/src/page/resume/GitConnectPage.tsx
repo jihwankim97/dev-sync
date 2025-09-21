@@ -48,9 +48,9 @@ export const GitConnectPage = () => {
       // Check if the request was successful
       if (!response.ok) {
         const errorData = await response.json();
+        console.error(errorData)
         throw new Error(
-          `HTTP error! status: ${response.status}, message: ${
-            errorData.message || "Unknown error"
+          `HTTP error! status: ${response.status}, message: ${errorData.message || "Unknown error"
           }`
         );
       }

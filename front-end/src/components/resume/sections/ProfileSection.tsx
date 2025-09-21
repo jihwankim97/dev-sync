@@ -23,6 +23,7 @@ interface TextFieldProps {
   placeholder?: string;
   startAdornmentText?: string;
   onChange?: (value: string) => void;
+  error?: boolean;
 }
 const ProfileFieldInput = ({
   label,
@@ -30,6 +31,7 @@ const ProfileFieldInput = ({
   type,
   placeholder,
   onChange,
+  error,
   startAdornmentText,
 }: TextFieldProps) => {
   return (
@@ -41,6 +43,8 @@ const ProfileFieldInput = ({
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange?.(e.target.value)}
+      error={!!error && !value}
+      helperText={!!error && !value ? "필수값을 적어주세요." : ""}
       slotProps={
         startAdornmentText
           ? {
@@ -59,34 +63,34 @@ const ProfileFieldInput = ({
 export const ProfileSection = ({
   section,
   isEditing,
-  setSections,
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection } = useLocalSection(
+  const { handleChange, SaveSection, localSection, errors } = useLocalSection(
     section,
     onSave
   );
-
   return (
     <SectionWrapper
       title="기본 정보"
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
     >
       {isEditing ? (
         <>
           <div css={gridStyle}>
             <ProfileFieldInput
-              label="이름"
+              label="이름 *"
               value={localSection.name || ""}
               onChange={(v) => {
                 handleChange("name", v);
               }}
+              error={errors.name}
             />
             <ProfileFieldInput
-              label="이메일"
+              label="이메일 *"
               type="email"
               value={localSection.email || ""}
               onChange={(v) => {
@@ -94,7 +98,7 @@ export const ProfileSection = ({
               }}
             />
             <ProfileFieldInput
-              label="전화번호"
+              label="전화번호 *"
               type="tel"
               value={localSection.phoneNumber || ""}
               onChange={(v) => {
@@ -103,14 +107,14 @@ export const ProfileSection = ({
               placeholder="전화번호를 입력하세요"
             />
             <ProfileFieldInput
+              label="Github-URL"
               value={localSection.githubUrl || ""}
               onChange={(v) => {
                 handleChange("githubUrl", v);
               }}
-              startAdornmentText="github.com/"
             />
             <ProfileFieldInput
-              label="blog"
+              label="Blog-URL"
               value={localSection.blogUrl || ""}
               onChange={(v) => {
                 handleChange("blogUrl", v);
@@ -127,12 +131,14 @@ export const ProfileSection = ({
             />
           </div>
           <ProfileFieldInput
-            label="주소"
+            label="주소 *"
             type="address"
-            value={localSection.address || ""}
+            value={localSection.address}
             onChange={(v) => {
               handleChange("address", v);
             }}
+            error={errors.address}
+
           />
         </>
       ) : (

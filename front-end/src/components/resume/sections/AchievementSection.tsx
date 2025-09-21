@@ -34,7 +34,7 @@ export const AchievementSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection, handleArrayItemChange } =
+  const { handleChange, SaveSection, localSection, handleArrayItemChange, DeleteSection } =
     useLocalSection(section, onSave);
   return (
     <SectionWrapper
@@ -42,6 +42,8 @@ export const AchievementSection = ({
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
+      onDelete={DeleteSection}
     >
       {localSection.items.map((section) => (
         <div
