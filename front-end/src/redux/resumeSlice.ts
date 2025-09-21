@@ -16,7 +16,7 @@ export const updateResumeSection = createAsyncThunk<
     thunkAPI.dispatch(updateResume(section));
 
     try {
-      const updatedSection = await updateSectionAPI(section);
+      const updatedSection = await updateSectionAPI(section, stateBefore.id);
 
       return updatedSection; // 서버 값이 다르면 state 갱신
     } catch (error: any) {
@@ -28,6 +28,10 @@ export const updateResumeSection = createAsyncThunk<
         if (originalSection) {
           thunkAPI.dispatch(updateResume(originalSection));
         }
+      }
+
+      if (error.validationErrors) {
+        return thunkAPI.rejectWithValue(error.validationErrors);
       }
 
       // rejected 액션으로 처리
@@ -66,6 +70,11 @@ const resumeSlice = createSlice({
       if (!state) return;
       state.order = action.payload;
     },
+    removeSection(state, action: PayloadAction<string>) {
+      if (!state) return;
+      state.entities = state.entities.filter(section => section.id !== action.payload);
+      state.order = state.order.filter(id => id !== action.payload);
+    },
   },
   extraReducers: builder => {
     builder.addCase(updateResumeSection.fulfilled, (state, action) => {
@@ -83,5 +92,5 @@ const resumeSlice = createSlice({
   }
 });
 
-export const { updateResume, setResume, addResume, updateOrder } = resumeSlice.actions;
+export const { updateResume, setResume, addResume, updateOrder, removeSection } = resumeSlice.actions;
 export default resumeSlice.reducer;

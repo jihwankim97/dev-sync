@@ -37,7 +37,6 @@ type skill = {
 export const SkillsSection = ({
   section,
   isEditing,
-  setSections,
   onEdit,
   onSave,
 }: Props) => {
@@ -112,6 +111,7 @@ export const SkillsSection = ({
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={onSave}
+      sectionType={section.type}
     >
       {isEditing ? (
         <>

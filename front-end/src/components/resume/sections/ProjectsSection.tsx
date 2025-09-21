@@ -34,13 +34,13 @@ export const ProjectsSection = ({
   const { handleChange, SaveSection, localSection, handleArrayItemChange } =
     useLocalSection(section, onSave);
 
-  console.log(localSection);
   return (
     <SectionWrapper
       title="프로젝트"
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
     >
       {localSection.items.map((project) => (
         <div key={project.id} css={{ marginBottom: "2rem" }}>

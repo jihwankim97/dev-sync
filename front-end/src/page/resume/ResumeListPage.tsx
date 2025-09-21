@@ -44,6 +44,8 @@ type ProfileType = {
 export const ResumeListPage = () => {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -71,8 +73,9 @@ export const ResumeListPage = () => {
     fetchResumes(id);
   };
 
-  const handleOption = (e: React.MouseEvent<HTMLElement>) => {
+  const handleOption = (e: React.MouseEvent<HTMLElement>, id: string) => {
     setAnchorEl(e.currentTarget);
+    setSelectedId(id);
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -103,6 +106,7 @@ export const ResumeListPage = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log(data)
         setResumes(data);
       } catch (error) {
         console.error("이력서 리스트 가져오기 실패:", error);
@@ -169,10 +173,10 @@ export const ResumeListPage = () => {
                   },
                 }}
               >
-                <MenuItem onClick={() => handleEntryResume(resume.id)}>
+                <MenuItem onClick={() => selectedId && handleEntryResume(selectedId)}>
                   수정하기
                 </MenuItem>
-                <MenuItem onClick={() => handleDelete(resume.id)}>삭제하기 </MenuItem>
+                <MenuItem onClick={() => selectedId && handleDelete(selectedId)}>삭제하기 </MenuItem>
               </Menu>
 
               <CardContent>
@@ -185,7 +189,7 @@ export const ResumeListPage = () => {
                   <Typography variant="h6" fontWeight={600}>
                     {resume.title}
                   </Typography>
-                  <IconButton onClick={handleOption}>
+                  <IconButton onClick={(e) => handleOption(e, resume.id)}>
                     <MoreVertIcon />
                   </IconButton>
                 </div>
@@ -242,6 +246,6 @@ export const ResumeListPage = () => {
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </Box >
   );
 };

@@ -68,22 +68,22 @@ export const CreateSection = () => {
       const newItem: CareerItem | AchievementItem =
         type === "career"
           ? {
-              id: crypto.randomUUID(),
-              type: "career",
-              company: "",
-              position: "",
-              startDate: "",
-              endDate: "",
-              description: "",
-            }
+            id: crypto.randomUUID(),
+            type: "career",
+            company: "",
+            position: "",
+            startDate: "",
+            endDate: "",
+            description: "",
+          }
           : {
-              id: crypto.randomUUID(),
-              type: "achievement",
-              title: "",
-              organization: "",
-              date: "",
-              description: "",
-            };
+            id: crypto.randomUUID(),
+            type: "achievement",
+            title: "",
+            organization: "",
+            date: "",
+            description: "",
+          };
 
       dispatch(
         addResume((draft) => {
@@ -103,15 +103,15 @@ export const CreateSection = () => {
             const newSection =
               type === "career"
                 ? {
-                    id: crypto.randomUUID(),
-                    type: "careers" as const,
-                    items: [newItem as CareerItem],
-                  }
+                  id: "temp-" + crypto.randomUUID(),
+                  type: "careers" as const,
+                  items: [newItem as CareerItem],
+                }
                 : {
-                    id: crypto.randomUUID(),
-                    type: "achievements" as const,
-                    items: [newItem as AchievementItem],
-                  };
+                  id: crypto.randomUUID(),
+                  type: "achievements" as const,
+                  items: [newItem as AchievementItem],
+                };
 
             draft.entities.push(newSection);
             draft.order.push(newSection.id);
@@ -122,7 +122,7 @@ export const CreateSection = () => {
       // custom은 섹션 자체를 새로 추가
       const newSection = {
         ...sectionTemplates.custom,
-        id: crypto.randomUUID(),
+        id: "temp-" + crypto.randomUUID(),
       };
       dispatch(
         addResume((draft) => {

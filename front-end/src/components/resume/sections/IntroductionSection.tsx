@@ -44,6 +44,7 @@ export const IntroductionSection = ({
       isEditing={isEditing}
       onEdit={onEdit}
       onSave={SaveSection}
+      sectionType={section.type}
     >
       {isEditing ? (
         <>
