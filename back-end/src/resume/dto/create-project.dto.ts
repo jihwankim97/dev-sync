@@ -1,9 +1,9 @@
 import {
   IsArray,
   IsDateString,
-  IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
 import { CreateOutcomeDto } from './create-project-outcome.dto';
@@ -12,8 +12,7 @@ import { CreateSkillDto } from './create-skill.dto';
 
 export class CreateProjectDto {
 
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   id: string;
 
   @IsString()

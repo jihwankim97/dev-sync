@@ -3,14 +3,12 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ResumeModel } from './resume.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class ProfileModel {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class ProfileModel extends BaseUuidModel {
 
   @Column()
   name: string;

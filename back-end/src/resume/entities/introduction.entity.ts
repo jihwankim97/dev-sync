@@ -3,15 +3,14 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { IsString } from 'class-validator';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class IntroductionModel {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class IntroductionModel extends BaseUuidModel {
+
 
   @Column()
   @IsString()

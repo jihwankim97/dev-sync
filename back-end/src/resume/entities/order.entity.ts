@@ -1,10 +1,11 @@
-import { BaseModel } from 'src/common/entity/base.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 import { ResumeModel } from './resume.entity';
 import { ResumeBlockType } from '../enum/resume-type.enum';
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity()
-export class OrderModel extends BaseModel {
+export class OrderModel extends BaseUuidModel {
+
   @Column()
   order: number;
 

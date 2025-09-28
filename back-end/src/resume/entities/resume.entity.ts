@@ -1,4 +1,4 @@
-import { BaseModel } from 'src/common/entity/base.entity';
+import {  BaseUuidModel } from 'src/common/entity/base.entity';
 import { User } from 'src/user/entity/user.entity';
 import {
   Column,
@@ -19,7 +19,8 @@ import { CustomModel } from './custom.entity';
 import { OrderModel } from './order.entity';
 
 @Entity()
-export class ResumeModel extends BaseModel {
+export class ResumeModel extends BaseUuidModel {
+
   @Column()
   title: string;
 
