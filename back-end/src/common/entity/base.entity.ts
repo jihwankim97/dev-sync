@@ -1,7 +1,9 @@
+import { Exclude } from 'class-transformer';
 import {
   CreateDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 
 export abstract class BaseModel {
@@ -9,10 +11,16 @@ export abstract class BaseModel {
   id: number;
 
   @CreateDateColumn()
+  @Exclude()
   createdAt: Date;
 
   @UpdateDateColumn()
-  updateAt: Date;
+  @Exclude()
+  updatedAt: Date;
+
+  @VersionColumn()
+  @Exclude()
+  version: number;
 }
 
 export abstract class BaseUuidModel {
@@ -20,8 +28,14 @@ export abstract class BaseUuidModel {
   id: string;
 
   @CreateDateColumn()
+  @Exclude()
   createdAt: Date;
 
   @UpdateDateColumn()
-  updateAt: Date;
+  @Exclude()
+  updatedAt: Date;
+
+  @VersionColumn()
+  @Exclude()
+  version: number;
 }
