@@ -10,7 +10,7 @@ export class Comment{
     @Column({type:'text', nullable:false})
     comment:string;
 
-    @ManyToOne(()=>User, {nullable:false, onDelete:'CASCADE'})
+    @ManyToOne(()=>User, {nullable:false})
     @JoinColumn({name:'user_id'})
     user_id:User;
 

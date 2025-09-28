@@ -5,10 +5,13 @@ import {
   IsOptional,
   IsNumber,
   IsEnum,
+  IsUUID,
 } from 'class-validator';
 import { ResumeBlockType } from '../enum/resume-type.enum';
 
 export class CreateProfileDto {
+  @IsUUID()
+  id: string;
 
   @IsEnum(ResumeBlockType)
   type: ResumeBlockType.PROFILE;

@@ -28,13 +28,13 @@ export class User {
   @Column({ nullable: true })
   blogUrl: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   educationLevel: string; 
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   universityName: string; 
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   departmentName: string; 
 
 

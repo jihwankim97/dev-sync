@@ -2,14 +2,12 @@ import {
     Column,
     Entity,
     ManyToOne,
-    PrimaryGeneratedColumn,
   } from 'typeorm';
   import { ResumeModel } from './resume.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
   
   @Entity()
-  export class AchievementModel {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  export class AchievementModel extends BaseUuidModel {
   
     @Column()
     title: string;

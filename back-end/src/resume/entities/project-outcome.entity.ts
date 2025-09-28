@@ -1,10 +1,9 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { ProjectModel } from './project.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class ProjectOutcomeModel {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class ProjectOutcomeModel extends BaseUuidModel {
 
   @Column()
   task: string;

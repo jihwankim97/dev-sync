@@ -1,11 +1,10 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { ProjectModel } from './project.entity';
+import { BaseModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class SkillModel {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class SkillModel extends BaseModel {
 
   @Column()
   name: string;

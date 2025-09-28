@@ -1,9 +1,8 @@
-import { IsString, IsNotEmpty, } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, } from 'class-validator';
 
 export class CreateOutcomeDto {
  
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   id: string;
 
   @IsString()

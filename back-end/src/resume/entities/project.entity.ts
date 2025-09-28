@@ -5,16 +5,14 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { ProjectOutcomeModel } from './project-outcome.entity';
 import { SkillModel } from './skill.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class ProjectModel {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class ProjectModel extends BaseUuidModel {
 
   @Column()
   name: string;
