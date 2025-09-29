@@ -129,7 +129,7 @@ export const EditResumePage = () => {
       .set(opt)
       .from(element)
       .save()
-      .catch((err) => console.error(err));
+      .catch((err: any) => console.error(err));
   };
 
   const [open, setOpen] = useState(false);

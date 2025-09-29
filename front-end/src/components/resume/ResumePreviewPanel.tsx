@@ -382,34 +382,6 @@ export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
                         {i.description}
                       </p>
 
-                      {/* 기술 스택 */}
-                      {i.skills?.length > 0 && (
-                        <div
-                          css={css`
-                            display: flex;
-                            flex-wrap: wrap;
-                            gap: 6px;
-                            margin-bottom: 12px;
-                          `}
-                        >
-                          {i.skills.map((skill, sIdx) => (
-                            <span
-                              key={sIdx}
-                              css={css`
-                                font-size: 13px;
-                                padding: 4px 10px;
-                                border-radius: 9999px;
-                                // background: #e0f2fe; /* 파란색 계열 */
-                                color: #465a80;
-                                font-weight: 500;
-                              `}
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
                       {/* 한일 & 성과 */}
                       {i.outcomes.map((t: OutcomeTypeSection, oIdx: number) => (
                         <div

@@ -28,11 +28,10 @@ interface Props {
 export const CareerSection = ({
   section,
   isEditing,
-  setSections,
   onEdit,
   onSave,
 }: Props) => {
-  const { SaveSection, localSection, handleArrayItemChange, DeleteSection } = useLocalSection(
+  const { SaveSection, localSection, handleArrayItemChange, DeleteSection, errors } = useLocalSection(
     section,
     onSave
   );
@@ -46,7 +45,7 @@ export const CareerSection = ({
       sectionType={section.type}
       onDelete={DeleteSection}
     >
-      {localSection.items.map((section) => (
+      {localSection.items.map((section, idx) => (
         <div key={section.id}>
           {isEditing ? (
             <div
@@ -76,7 +75,9 @@ export const CareerSection = ({
                     )
                   }
                   placeholder="회사명을 입력하세요"
-                  label="회사 명"
+                  label="회사 명 *"
+                  error={errors[`items_${idx}_company`] && !section.company}
+                  helperText={errors[`items_${idx}_company`] ? "필수값을 적어주세요." : ""}
                 />
                 <TextField
                   multiline
@@ -90,11 +91,13 @@ export const CareerSection = ({
                       e.target.value
                     )
                   }
-                  label="직무"
+                  label="직무 *"
+                  error={errors[`items_${idx}_position`] && !section.position}
+                  helperText={errors[`items_${idx}_position`] ? "필수값을 적어주세요." : ""}
                 />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    label="입사년월"
+                    label="입사년월 *"
                     css={textFieldStyle}
                     value={section.startDate ? dayjs(section.startDate) : null}
                     onChange={(newValue) => {
@@ -107,6 +110,12 @@ export const CareerSection = ({
                           formattedDate
                         );
                       }
+                    }}
+                    slotProps={{
+                      textField: {
+                        error: errors[`items_${idx}_startDate`] && !section.startDate,
+                        helperText: errors[`items_${idx}_startDate`] ? "필수값을 적어주세요." : "",
+                      },
                     }}
                   />
                   <DatePicker
@@ -134,7 +143,7 @@ export const CareerSection = ({
               >
                 <TextField
                   multiline
-                  label="담당업무"
+                  label="담당업무 *"
                   css={css`
                     width: 100%;
                     box-sizing: border-box;
@@ -148,6 +157,8 @@ export const CareerSection = ({
                       e.target.value
                     )
                   }
+                  error={errors[`items_${idx}_description`] && !section.description}
+                  helperText={errors[`items_${idx}_description`] ? "필수값을 적어주세요." : ""}
                 />
               </div>
             </>

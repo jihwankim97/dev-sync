@@ -34,7 +34,7 @@ export const AchievementSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection, handleArrayItemChange, DeleteSection } =
+  const { SaveSection, localSection, handleArrayItemChange, DeleteSection, errors } =
     useLocalSection(section, onSave);
   return (
     <SectionWrapper
@@ -45,7 +45,7 @@ export const AchievementSection = ({
       sectionType={section.type}
       onDelete={DeleteSection}
     >
-      {localSection.items.map((section) => (
+      {localSection.items.map((section, idx) => (
         <div
           css={css`
             // padding: 2rem;
@@ -62,7 +62,7 @@ export const AchievementSection = ({
                 `}
               >
                 <TextField
-                  label="항목명"
+                  label="항목명 *"
                   value={section.title}
                   security=""
                   onChange={(e) =>
@@ -73,12 +73,14 @@ export const AchievementSection = ({
                       e.target.value
                     )
                   }
+                  error={errors[`items_${idx}_title`] && !section.title}
+                  helperText={errors[`items_${idx}_title`] ? "필수값을 적어주세요." : ""}
                   fullWidth
                   size="small"
                   margin="dense"
                 />
                 <TextField
-                  label="발행기관"
+                  label="발행기관 *"
                   value={section.organization}
                   onChange={(e) =>
                     handleArrayItemChange(
@@ -88,6 +90,8 @@ export const AchievementSection = ({
                       e.target.value
                     )
                   }
+                  error={errors[`items_${idx}_organization`] && !section.organization}
+                  helperText={errors[`items_${idx}_organization`] ? "필수값을 적어주세요." : ""}
                   fullWidth
                   size="small"
                   margin="dense"
@@ -96,7 +100,7 @@ export const AchievementSection = ({
               <div>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    label="취득일"
+                    label="취득일 *"
                     value={section.date ? dayjs(section.date) : null}
                     onChange={(newValue) => {
                       if (newValue) {
@@ -113,6 +117,8 @@ export const AchievementSection = ({
                       textField: {
                         fullWidth: true,
                         size: "small",
+                        error: errors[`items_${idx}_date`] && !section.date ? true : false,
+                        helperText: errors[`items_${idx}_date`] ? "필수값을 적어주세요." : "",
                       },
                     }}
                   />
