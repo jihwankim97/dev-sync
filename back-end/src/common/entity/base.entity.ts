@@ -27,15 +27,15 @@ export abstract class BaseUuidModel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
-  @Exclude()
-  createdAt: Date;
+  // @CreateDateColumn()
+  // @Exclude()
+  // createdAt: Date;
 
-  @UpdateDateColumn()
-  @Exclude()
-  updatedAt: Date;
+  // @UpdateDateColumn()
+  // @Exclude()
+  // updatedAt: Date;
 
-  @VersionColumn()
-  @Exclude()
-  version: number;
+  // @VersionColumn()
+  // @Exclude()
+  // version: number;
 }
