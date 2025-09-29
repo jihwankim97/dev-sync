@@ -2,18 +2,9 @@ import { ResumeSection } from "../types/resume.type";
 
 export async function updateSectionAPI(section: ResumeSection, resumeId: string) {
 
-    let sectionData;
-    if (["profile", "introduction"].includes(section.type)) {
-        const { id, ...withoutId } = section;
-        sectionData = withoutId
-    }
-    if (sectionData && sectionData.type === "profile") {
-        const githubUrl = "https://github.com/" + sectionData.githubUrl;
-        sectionData = { ...sectionData, githubUrl };
+    let sectionData: ResumeSection = section;
 
-    }
-    sectionData = section;
-    console.log(sectionData, "보내는 데이터")
+
     let url = `http://localhost:3000/resumes/${resumeId}`;
     switch (section.type) {
         case "profile":

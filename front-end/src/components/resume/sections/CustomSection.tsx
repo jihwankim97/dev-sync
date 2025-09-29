@@ -27,7 +27,7 @@ export const CustomSection = ({
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection, DeleteSection } = useLocalSection(
+  const { handleChange, SaveSection, localSection, DeleteSection, errors } = useLocalSection(
     section,
     onSave
   );
@@ -48,6 +48,8 @@ export const CustomSection = ({
             }}
             placeholder="섹션 제목을 입력하세요"
             fullWidth
+            error={!!errors.title && !localSection.title}
+            helperText={errors.title ? "필수값을 적어주세요." : ""}
           />
         ) : (
           <Typography variant="h5">
@@ -73,6 +75,8 @@ export const CustomSection = ({
               handleChange("description", e.target.value);
             }}
             minRows={4}
+            error={!!errors.description && !localSection.description}
+            helperText={errors.description ? "필수값을 적어주세요." : ""}
           />
         </>
       ) : (

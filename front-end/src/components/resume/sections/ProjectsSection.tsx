@@ -27,11 +27,10 @@ interface Props {
 export const ProjectsSection = ({
   section,
   isEditing,
-  setSections,
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection, handleArrayItemChange } =
+  const { SaveSection, localSection, handleArrayItemChange, errors } =
     useLocalSection(section, onSave);
 
   return (
@@ -42,7 +41,7 @@ export const ProjectsSection = ({
       onSave={SaveSection}
       sectionType={section.type}
     >
-      {localSection.items.map((project) => (
+      {localSection.items.map((project, idx) => (
         <div key={project.id} css={{ marginBottom: "2rem" }}>
           {isEditing ? (
             <section
@@ -63,13 +62,11 @@ export const ProjectsSection = ({
               >
                 <div
                   css={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
                     gap: "1rem",
                   }}
                 >
                   <TextField
-                    label="프로젝트명"
+                    label="프로젝트명 *"
                     value={project.name}
                     fullWidth
                     onChange={(e) =>
@@ -82,24 +79,8 @@ export const ProjectsSection = ({
                     }
                     size="small"
                     margin="dense"
-                  />
-                  <TextField
-                    label="사용 기술"
-                    value={project.skills?.join(", ")}
-                    fullWidth
-                    size="small"
-                    onChange={(e) =>
-                      handleArrayItemChange(
-                        "items",
-                        project.id,
-                        "skills",
-                        e.target.value
-                      )
-                    }
-                    margin="dense"
-                    multiline
-                    minRows={2}
-                    placeholder="예: React, TypeScript, NestJS"
+                    error={errors[`items_${idx}_name`] && !project.name}
+                    helperText={errors[`items_${idx}_name`] ? "필수값을 적어주세요." : ""}
                   />
                 </div>
                 <div
@@ -110,7 +91,7 @@ export const ProjectsSection = ({
                   }}
                 >
                   <TextField
-                    label="시작일"
+                    label="시작일 *"
                     value={project.startDate}
                     onChange={(e) =>
                       handleArrayItemChange(
@@ -120,6 +101,8 @@ export const ProjectsSection = ({
                         e.target.value
                       )
                     }
+                    error={errors[`items_${idx}_startDate`] && !project.startDate}
+                    helperText={errors[`items_${idx}_startDate`] ? "필수값을 적어주세요." : ""}
                     fullWidth
                     size="small"
                     margin="dense"
@@ -141,7 +124,7 @@ export const ProjectsSection = ({
                   />
                 </div>
                 <TextField
-                  label="설명"
+                  label="설명 *"
                   value={project.description}
                   onChange={(e) =>
                     handleArrayItemChange(
@@ -156,6 +139,8 @@ export const ProjectsSection = ({
                   margin="dense"
                   multiline
                   minRows={3}
+                  error={errors[`items_${idx}_description`] && !project.description}
+                  helperText={errors[`items_${idx}_description`] ? "필수값을 적어주세요." : ""}
                 />
                 {project.outcomes.length > 0 && (
                   <div
@@ -175,9 +160,9 @@ export const ProjectsSection = ({
                       관련 성과
                     </Typography>
 
-                    {project.outcomes.map((outcome) => (
+                    {project.outcomes.map((outcome, oIdx) => (
                       <div
-                        key={outcome.id}
+                        key={oIdx}
                         css={{
                           borderRadius: "8px",
                           padding: "1rem",
@@ -187,7 +172,7 @@ export const ProjectsSection = ({
                         }}
                       >
                         <TextField
-                          label="한 일"
+                          label="한 일 *"
                           value={outcome.task}
                           onChange={(e) =>
                             handleArrayItemChange(
@@ -201,6 +186,8 @@ export const ProjectsSection = ({
                               )
                             )
                           }
+                          error={errors[`items_${idx}_outcomes_${oIdx}_task`] && !outcome.task}
+                          helperText={errors[`items_${idx}_outcomes_${oIdx}_task`] ? "필수값을 적어주세요." : ""}
                           fullWidth
                           size="small"
                           margin="dense"
@@ -211,7 +198,7 @@ export const ProjectsSection = ({
                           }}
                         />
                         <TextField
-                          label="성과"
+                          label="성과 *"
                           value={outcome.result}
                           sx={{
                             backgroundColor: "#fff",
@@ -228,6 +215,8 @@ export const ProjectsSection = ({
                               )
                             )
                           }
+                          error={errors[`items_${idx}_outcomes_${oIdx}_result`] && !outcome.result}
+                          helperText={errors[`items_${idx}_outcomes_${oIdx}_result`] ? "필수값을 적어주세요." : ""}
                           fullWidth
                           size="small"
                           margin="dense"
@@ -249,8 +238,6 @@ export const ProjectsSection = ({
               <Typography>
                 기간: {project.startDate} ~ {project.endDate}
               </Typography>
-              <Typography>사용 기술: {project.skills.join(", ")}</Typography>
-
               {project.outcomes.length > 0 && (
                 <div css={{ marginTop: "1rem" }}>
                   <Typography

@@ -16,7 +16,6 @@ export type ResumeSection =
   | CareersTypeSection
   | AchievementsTypeSection
   | ProjectTypeSection
-  | OutcomeTypeSection
   | IntroductionTypeSection
   | CustomTypeSection
   | ProjectsTypeSection;
@@ -65,18 +64,11 @@ export type CareersTypeSection = {
   id: string;
   type: "careers";
   items: CareerItem[];
-  // company: string;
-  // position: string;
-  // startDate: string;
-  // endDate: string;
-  // isCurrent: boolean;
-  // description: string;
-  // technologies: string[];
 };
 
 export type CareerItem = {
   id: string;
-  type: "career";
+  // type: "career";
   company: string;
   position: string;
   startDate: string;
@@ -89,15 +81,11 @@ export type AchievementsTypeSection = {
   id: string;
   type: "achievements";
   items: AchievementItem[];
-  // title: string;
-  // organization: string;
-  // date: string;
-  // description?: string;
+
 };
 
 export type AchievementItem = {
   id: string;
-  type: "achievement";
   title: string;
   organization: string;
   date: string;
@@ -111,7 +99,6 @@ export type ProjectTypeSection = {
   description: string;
   startDate: string;
   endDate?: string;
-  skills: string[];
   outcomes: OutcomeTypeSection[];
 };
 
@@ -123,7 +110,6 @@ export type ProjectsTypeSection = {
 
 export type OutcomeTypeSection = {
   id: string;
-  type: "outcome";
   task: string;
   result: string;
 };

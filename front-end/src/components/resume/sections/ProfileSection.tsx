@@ -96,6 +96,7 @@ export const ProfileSection = ({
               onChange={(v) => {
                 handleChange("email", v);
               }}
+              error={errors.email}
             />
             <ProfileFieldInput
               label="전화번호 *"
@@ -105,6 +106,8 @@ export const ProfileSection = ({
                 handleChange("phoneNumber", v);
               }}
               placeholder="전화번호를 입력하세요"
+              error={errors.phoneNumber}
+
             />
             <ProfileFieldInput
               label="Github-URL"
@@ -138,7 +141,6 @@ export const ProfileSection = ({
               handleChange("address", v);
             }}
             error={errors.address}
-
           />
         </>
       ) : (

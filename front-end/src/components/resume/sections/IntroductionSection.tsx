@@ -30,11 +30,10 @@ interface Props {
 export const IntroductionSection = ({
   section,
   isEditing,
-  setSections,
   onEdit,
   onSave,
 }: Props) => {
-  const { handleChange, SaveSection, localSection } = useLocalSection(
+  const { handleChange, SaveSection, localSection, errors } = useLocalSection(
     section,
     onSave
   );
@@ -55,6 +54,8 @@ export const IntroductionSection = ({
             onChange={(e) => {
               handleChange("headline", e.target.value);
             }}
+            error={!!errors.headline && !localSection.headline}
+            helperText={errors.headline ? "필수값을 적어주세요." : ""}
             placeholder="제목을 입력하세요"
           />
           <TextField
@@ -65,6 +66,8 @@ export const IntroductionSection = ({
               handleChange("description", e.target.value);
             }}
             placeholder="자기소개를 입력하세요"
+            error={!!errors.description && !localSection.description}
+            helperText={errors.description ? "필수값을 적어주세요." : ""}
           />
         </>
       ) : (

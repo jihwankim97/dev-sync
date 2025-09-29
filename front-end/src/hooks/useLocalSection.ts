@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { removeSection, updateResume, updateResumeSection } from "../redux/resumeSlice";
+import { removeSection, updateResumeSection } from "../redux/resumeSlice";
 import type { OutcomeTypeSection, ResumeSection } from "../types/resume.type";
 import dayjs from "dayjs";
 import { useAppDispatch } from "./useAppDispatch";
 import { useDispatch, useSelector } from "react-redux";
+import { validateRequiredFields } from "../utils/validateSectionFields";
 
 
 export const useLocalSection = <T extends ResumeSection>(
@@ -55,7 +56,15 @@ export const useLocalSection = <T extends ResumeSection>(
   );
   const removeTempPrefix = (id: string) => id.startsWith("temp-") ? id.slice(5) : id;
 
+
   const SaveSection = async () => {
+    const fieldErrors = validateRequiredFields(localSection);
+    console.log(fieldErrors, "필수값 체크 결과")
+    if (Object.keys(fieldErrors).length > 0) {
+      console.log("필수값 체크 에러:", fieldErrors);
+      setErrors(fieldErrors);
+      return;
+    }
     // 타입이 careers, achievements, custom인 경우 id에서 temp- 제거
     let sectionToSave: any = localSection;
     if (
@@ -73,12 +82,7 @@ export const useLocalSection = <T extends ResumeSection>(
       setErrors({}); // 성공 시 에러 초기화
       onSave();
     } catch (error: any) {
-      const fieldErrors: { [key: string]: boolean } = {};
 
-      error.forEach((err: { field: string }) => {
-        fieldErrors[err.field] = true; // true면 빨간 테두리
-      });
-      setErrors(fieldErrors);
     }
   }
   const DeleteSection = async () => {

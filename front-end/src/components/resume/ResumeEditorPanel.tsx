@@ -40,7 +40,7 @@ export const ResumeEditorPanel = ({
       onSave: () => onSave(section.id),
     };
 
-    switch (section.type) {
+    switch (section?.type) {
       case "profile":
         return (
           <ProfileSection key={section.id} section={section} {...common} />
