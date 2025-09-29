@@ -64,7 +64,6 @@ export class ResumeGenerationService {
       }),
     );
     const familiar = familiarRaw.filter(Boolean);
-
     await this.resumeService.saveBlock(resume.id, {
       type: "skills",
       strongSkillIds: strengths.map((s) => s.id),
@@ -72,21 +71,6 @@ export class ResumeGenerationService {
     });
 
     const projects = resumeData.projects;
-
-    for (const project of resumeData.projects) {
-      const matchedSkillIds = (
-        await Promise.all(
-          (project.skills || []).map(async (skillName) => {
-            const [result] = await this.resumeService.searchSkills(skillName);
-
-            return result ? result.id : undefined;
-          }),
-        )
-      ).filter(Boolean);
-
-      project.skills = matchedSkillIds;
-    }
-
     await this.resumeService.saveBlock(
       resume.id,
       {
@@ -121,7 +105,6 @@ Using the following GitHub profile data, generate a structured JSON object for a
       "description": "", // Brief description of the project in Korean.
       "startDate": "", // Start date of the project (if available).
       "endDate": "", // End date of the project (if available).
-      "skills": [], // List of skill IDs used in the project.
       "outcomes": [
         {
           "task": "", // A short title in Korean summarizing the task or achievement (e.g., "구글 인증 구현").
