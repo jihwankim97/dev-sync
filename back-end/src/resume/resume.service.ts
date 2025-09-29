@@ -505,7 +505,7 @@ export class ResumeService {
   async getProjectsByResumeId(resumeId: string) {
     const projects = await this.projectRepository.find({
       where: { resume: { id: resumeId } },
-      relations: ['skills', 'outcomes'],
+      relations: ['outcomes'],
     });
 
     if (!projects) {
@@ -566,39 +566,32 @@ export class ResumeService {
   ): Promise<ProjectModel> {
     const resume = await this.getResume(resumeId);
 
-    const skillEntities = await this.skillRepository.find({
-      where: { id: In(projectData.skills) },
-    });
 
     let project = await this.projectRepository.findOne({
       where: { id: projectData.id, resume: { id: resume.id } },
-      relations: ['skills', 'outcomes'],
+      relations: ['outcomes'],
     });
 
     if (!project) {
       project = this.projectRepository.create({
         ...projectData,
         resume,
-        skills: skillEntities,
       });
     } else {
       Object.assign(project, {
         ...projectData,
-        skills: skillEntities,
       });
     }
 
     project = await this.projectRepository.save(project);
 
-    await this.syncProjectSkills(
-      project.id,
-      projectData.skills.map((skill) => skill.id),
-    );
+    await this.projectRepository.save(project);
+
     await this.syncProjectOutcomes(project.id, projectData.outcomes);
 
     return this.projectRepository.findOne({
       where: { id: project.id },
-      relations: ['skills', 'outcomes'],
+      relations: ['outcomes'],
     });
   }
 
@@ -707,45 +700,6 @@ export class ResumeService {
     }
 
     return { id: 'skills', type: 'skills', strengths, familiars };
-  }
-
-  async syncProjectSkills(
-    projectId: string,
-    skillIds: number[],
-  ): Promise<void> {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      relations: ['skills'],
-    });
-
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found.`);
-    }
-
-    const currentSkills = project.skills ?? [];
-    const currentSkillIds = currentSkills.map((skill) => skill.id);
-
-    const toRemove = currentSkills.filter(
-      (skill) => !skillIds.includes(skill.id),
-    );
-
-    if (toRemove.length > 0) {
-      project.skills = currentSkills.filter((skill) =>
-        skillIds.includes(skill.id),
-      );
-    }
-
-    const newSkillIds = skillIds.filter((id) => !currentSkillIds.includes(id));
-
-    if (newSkillIds.length > 0) {
-      const newSkills = await this.skillRepository.findBy({
-        id: In(newSkillIds),
-      });
-
-      project.skills = [...(project.skills || []), ...newSkills];
-    }
-
-    await this.projectRepository.save(project);
   }
 
   async setSkillsForResume(
