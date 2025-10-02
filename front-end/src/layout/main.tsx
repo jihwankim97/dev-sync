@@ -15,7 +15,7 @@ import { ResumeIntroPage } from "../page/resume/ResumeIntroPage.tsx";
 import { ResumeListPage } from "../page/resume/ResumeListPage.tsx";
 import { store, persistor } from "../redux/store.ts";
 import App from "./App.tsx";
-import { ResumeSetupLayout } from "./ResumeSetupLayout .tsx";
+import { ResumeSetupLayout } from "./resume/ResumeSetupLayout .tsx";
 import "./index.css";
 import { PersistGate } from "redux-persist/integration/react";
 

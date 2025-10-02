@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import { Button, CircularProgress } from "@mui/material";
 import { useEffect } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import type { ResumeContextType } from "../../layout/ResumeSetupLayout ";
+import type { ResumeContextType } from "../../layout/resume/ResumeSetupLayout ";
 
 const btnStyle = css`
   display: flex;

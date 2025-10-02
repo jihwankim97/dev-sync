@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ResumeData } from "../../types/resume.type";
 import { useDispatch } from "react-redux";
 import { updateOrder } from "../../redux/resumeSlice";
+import { ConfirmDialog } from "../../layout/resume/ConfirmDialogLayout";
 
 interface Props {
   order: ResumeData["order"];
@@ -31,6 +32,8 @@ export const SectionOrderManager = ({
   Props) => {
   const [localOrder, setLocalOrder] = useState(order);
   const initialOrderRef = useRef<string[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -45,7 +48,6 @@ export const SectionOrderManager = ({
     newOrder.splice(result.destination.index, 0, removed);
     setLocalOrder(newOrder);
   };
-
 
 
 
@@ -86,14 +88,12 @@ export const SectionOrderManager = ({
                   const entity = entities.find((i) => (i.type === id || i.id === id));
                   if (
                     !entity ||
-                    entity.type === "project" ||
-                    entity.type === "outcome"
-                  ) {
+                    entity.type === "project") {
                     return;
                   }
                   const label =
                     entity.type === "custom"
-                      ? entity.title
+                      ? (entity.title === "" ? "사용자 정의 섹션" : entity.title)
                       : (
                         {
                           profile: "기본 정보",
@@ -154,14 +154,24 @@ export const SectionOrderManager = ({
             variant="outlined"
             onClick={() => setLocalOrder(initialOrderRef.current)}
           >
-            취소
+            이전으로
           </Button>
           <Button
             variant="contained"
-            onClick={() => dispatch(updateOrder(localOrder))}
+            onClick={() => setConfirmOpen(true)}
           >
             확인
           </Button>
+          <ConfirmDialog
+            open={confirmOpen}
+            title="저장 확인"
+            message="변경 사항을 저장하시겠습니까?"
+            onConfirm={() => {
+              dispatch(updateOrder(localOrder))
+              setConfirmOpen(false);
+            }}
+            onCancel={() => setConfirmOpen(false)}
+          />
         </div>
       </Paper>
     </Fade>
