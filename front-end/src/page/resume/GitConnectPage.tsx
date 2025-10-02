@@ -3,7 +3,7 @@ import { Button, CircularProgress } from "@mui/material";
 import { useCallback, useEffect } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import GitRepoList from "../../components/gitRepoList/GitRepoList";
-import type { ResumeContextType } from "../../layout/ResumeSetupLayout ";
+import type { ResumeContextType } from "../../layout/resume/ResumeSetupLayout ";
 import { useDispatch } from "react-redux";
 import { setResume } from "../../redux/resumeSlice";
 export const GitConnectPage = () => {

@@ -10,7 +10,7 @@ import {
   contentWrapperStyle,
   headerStyle,
   titleStyle,
-} from "../styles/resumeCommonStyle";
+} from "../../styles/resumeCommonStyle";
 
 
 export interface ResumeContextType {

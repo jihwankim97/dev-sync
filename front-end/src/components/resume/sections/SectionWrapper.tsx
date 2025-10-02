@@ -1,7 +1,8 @@
 import { css } from "@emotion/react";
 import { Button, Typography } from "@mui/material";
 import { sectionBar } from "../../../styles/resumeLayerStyle";
-import React from "react";
+import React, { useState } from "react";
+import { ConfirmDialog } from "../../../layout/resume/ConfirmDialogLayout";
 
 const contentStyle = css`
   border: 1.5px solid #dbdbdb;
@@ -32,6 +33,7 @@ export const SectionWrapper = ({
   sectionType?: string;
   children: React.ReactNode;
 }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <div css={contentStyle}>
@@ -51,8 +53,19 @@ export const SectionWrapper = ({
           (sectionType === "custom" ||
             sectionType === "careers" ||
             sectionType === "achievements") && (
-            <Button onClick={onDelete}>삭제</Button>
+            <Button onClick={() => setConfirmOpen(true)}>삭제</Button>
           )}
+        <ConfirmDialog
+          open={confirmOpen}
+          title="삭제 확인"
+          message="정말 삭제하시겠습니까?"
+          onConfirm={() => {
+            onDelete && onDelete();
+            setConfirmOpen(false)
+
+          }}
+          onCancel={() => setConfirmOpen(false)}
+        />
         <Button
           css={css`
             margin-left: auto;
