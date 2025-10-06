@@ -2,7 +2,8 @@
 import { css } from "@emotion/react";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { useState } from "react";
-import logo from "../../assets/logo2.png";
+import logo from "../../assets/one_logo.png";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   onDownloadPdf: () => void;
@@ -12,7 +13,7 @@ interface Props {
 export const ResumeOptionBar = ({ onDownloadPdf, setTheme }: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
+  const navigate = useNavigate();
   const handleThemeClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -51,9 +52,11 @@ export const ResumeOptionBar = ({ onDownloadPdf, setTheme }: Props) => {
           src={logo}
           alt="로고"
           css={css`
-            height: 65px;
+            margin-left: 10px;
+            height: 23px;
             cursor: pointer;
           `}
+          onClick={() => navigate("/")}
         />
       </div>
 

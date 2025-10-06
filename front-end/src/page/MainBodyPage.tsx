@@ -46,7 +46,7 @@ export const MainBodyPage = () => {
         </div>
         <motion.div>
           <motion.div className="img-main">
-            <img src={homepage} alt="포트폴리오 미리보기" />
+            <img src={homepage} alt="코딩하는 이미지" loading="lazy" decoding="async" />
           </motion.div>
         </motion.div>
       </section>
@@ -68,7 +68,7 @@ export const MainBodyPage = () => {
             animate={inView2 ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0 }}
           >
-            <img src={findImg3} className="card_img" />
+            <img src={findImg3} className="card_img" loading="lazy" decoding="async" />
             <h3>이직러</h3>
             <p>코딩은 자신 있지만, 이력서 작성이 막막하셨나요?</p>
             <span>AI가 GitHub를 분석해 이력서를 빠르게 자동 생성합니다.</span>
@@ -79,7 +79,7 @@ export const MainBodyPage = () => {
             animate={inView2 ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0 }}
           >
-            <img src={findImg1} className="card_img" />
+            <img src={findImg1} className="card_img" loading="lazy" decoding="async" />
             <h3>졸업 예정자</h3>
             <p>학교 프로젝트를 어떻게 정리해야 할지 모르겠다면?</p>
             <span>포트폴리오용 정리된 프로젝트 요약을 제공합니다.</span>
@@ -90,7 +90,7 @@ export const MainBodyPage = () => {
             animate={inView2 ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0 }}
           >
-            <img src={findImg2} className="card_img" />
+            <img src={findImg2} className="card_img" loading="lazy" decoding="async" />
             <h3>주니어 개발자</h3>
             <p>블로그는 많은데 이력서에 쓸 말이 없다면?</p>
             <span>블로그 기반 성장기 자동 분석 & 정리!</span>

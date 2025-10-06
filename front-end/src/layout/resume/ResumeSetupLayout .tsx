@@ -11,6 +11,7 @@ import {
   headerStyle,
   titleStyle,
 } from "../../styles/resumeCommonStyle";
+import logo from "../../assets/white_logo.png";
 
 
 export interface ResumeContextType {
@@ -60,7 +61,9 @@ export const ResumeSetupLayout = () => {
       <div css={blueBackgroundStyle} />
       <div css={contentWrapperStyle}>
         <header css={headerStyle}>
-          <h2>DevSync</h2>
+          {/* <h2>DevSync</h2>
+           */}
+          <img src={logo} alt="로고" css={css` height: 25px; margin: 20px 10px; cursor: pointer; `} onClick={() => navigate("/")} />
           <Button
             css={css`
               color: #ffffff;

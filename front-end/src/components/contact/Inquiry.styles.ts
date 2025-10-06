@@ -7,7 +7,7 @@ export const container = css`
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+  background: #ffffff;
   font-family: "Arial", sans-serif;
 `;
 

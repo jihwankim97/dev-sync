@@ -1,12 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-} from "@mui/material";
+// MUI 제거, emotion css와 HTML로 대체
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import useFetchCategories from "../../api/FetchCategories";
@@ -37,10 +31,10 @@ export const CommunityLayout = () => {
       category === "자유게시판"
         ? "/community/general"
         : category === "질문게시판"
-        ? "/community/question"
-        : category === "공지사항"
-        ? "/community/notice"
-        : "/inquiry"
+          ? "/community/question"
+          : category === "공지사항"
+            ? "/community/notice"
+            : "/inquiry"
     );
   };
 
@@ -48,63 +42,66 @@ export const CommunityLayout = () => {
     <div
       css={css`
         display: flex;
-        padding: 4rem 7rem;
+        padding-top: 3rem;
+
       `}
     >
-      <Drawer
-        variant="permanent"
+      <nav
         css={css`
-          position: absolute; /* 고정 위치 */
-          & .MuiDrawer-paper {
-            width: 11em;
-            background-color: #f7f7f8;
-            border-right: 1px solid #ddd;
-            margin-top: 70px;
-          }
+          width: 200px;
+          min-height: 80vh;
+          border-right: 1px solid #ddd;
         `}
       >
-        <List>
-          {categories.map((categories) => (
-            <ListItem key={categories.category_id} disablePadding>
-              <ListItemButton
+        <ul css={css`list-style: none; margin: 0; padding: 0;`}>
+          {categories.map((cat) => (
+            <li key={cat.category_id}>
+              <button
                 css={css`
-                  color: ${category === categories.category
-                    ? "#134498f5"
-                    : "#888"};
-                  background: ${category === categories.category
-                    ? "rgba(102, 184, 250, 0.13)"
-                    : "transparent"};
+                  width: 100%;
+                  padding: 0rem 0rem 2rem 3rem;
+                  text-align: left;
+                  border: none;
+                  background: none;
+                  font-weight: bold;
+                  color: ${category === cat.category ? "#2264d6f5" : "#6d6d6dff"};
+                  font-size: 1rem;
+                  cursor: pointer;
+                  transition: background 0.2s;
                   &:hover {
-                    background: rgba(202, 201, 201, 0.252);
+                    color: #8d8d8df5;
                   }
                 `}
-                onClick={() => handleCategory(categories.category)}
+                onClick={() => handleCategory(cat.category)}
               >
-                <ListItemText primary={categories.category} />
-              </ListItemButton>
-            </ListItem>
+                {cat.category}
+              </button>
+            </li>
           ))}
-        </List>
-      </Drawer>
+        </ul>
+      </nav>
 
       {/* 오른쪽 컨텐츠 영역 */}
       <div
         css={css`
-          margin-left: 180px; /*·사이드바 공간 확보 */
-          padding: 2rem;
-          width: 65%;
+          padding: 0 3rem;
+          max-width: 1000px;
+          margin-right: auto;
+          box-sizing: border-box;
+          width: 100%;
         `}
       >
         <CommunityAction category={category} setPostList={setPostList} />
         {/* 게시물 영역 */}
         <div
-          css={css`
-            margin-top: 1rem;
-          `}
         >
           <Outlet context={{ setPostList, postList }} />
         </div>
       </div>
+      <div css={css`width: 100%;        
+      max-width: 200px;
+      box-sizing: border-box;
+`}></div>
     </div>
   );
 };

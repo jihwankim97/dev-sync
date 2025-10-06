@@ -1,19 +1,26 @@
+// 공통 버튼 스타일
+const dsButtonStyle = css`
+  background: #3369c7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(51, 105, 199, 0.08);
+  transition: background 0.2s;
+  &:hover {
+    background: #254e8e;
+  }
+  @media (max-width: 700px) {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.7rem;
+    min-width: 70px;
+    font-weight: 400;
+  }
+`;
 import { css } from "@emotion/react";
-import {
-  Alert,
-  Collapse,
-  Divider,
-  FormControl,
-  InputAdornment,
-  MenuItem,
-  Select,
-} from "@mui/material";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import {
   useEffect,
@@ -23,6 +30,10 @@ import {
 } from "react";
 import { fetchUserInfo } from "../api/UserApi";
 import type { userInfo } from "../types/resume.type";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Avatar, InputAdornment, TextField } from "@mui/material";
 
 const initialState: userInfo = {
   id: 0,
@@ -35,7 +46,7 @@ const initialState: userInfo = {
   universityName: "",
   departmentName: "",
   educationLevel: "",
-  birthDate: "s",
+  birthDate: "",
   phoneNumber: "1012345678",
 };
 
@@ -43,30 +54,48 @@ const initialState: userInfo = {
 const containerStyle = css`
   padding: 4rem 8rem 3rem 8rem;
   display: flex;
+  background-color: #ffffffff;
   @media (max-width: 768px) {
     flex-direction: column;
+    padding: 2rem;
+    border: 2px solid red;
   }
 `;
 
 const sectionStyle = css`
   border-radius: 0.5rem;
-  background-color: #ffffff;
+  background-color: #fdfdfdff;
   flex-grow: 1;
   padding: 1.4rem;
-  box-shadow: 0px 1px 3px rgba(134, 134, 134, 0.2);
+  border: 0.5px solid #e0e0e0;
   width: 60%;
+    @media (max-width: 768px) {
+    width: 95%;
+    padding:0.8rem;
+  }
+
 `;
 
 const headerStyle = css`
   width: 40%;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: bold;
+  color: #313131ff;
 `;
 
 const buttonGroupStyle = css`
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  
+  button {
+
+    @media (max-width: 700px) {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.7rem;
+      min-width: 70px;
+    }
+  }
 `;
 
 const labelStyle = css`
@@ -85,12 +114,20 @@ const LongLabelStyle = css`
 `;
 
 const customTextFieldStyle = css`
-  background-color: #f9f9f9;
-  width: 75%;
+  background-color: #ffffffff;
+  width: 73%;
+`;
+
+const flexRowStyle = css`
+  display: flex;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 `;
 
 const longTextFieldStyle = css`
-  background-color: #f9f9f9;
+  background-color: #ffffffff;
   width: 88.5%;
 `;
 
@@ -112,7 +149,6 @@ export const CustomTextField = ({
     error={!value}
     value={value || ""}
     onChange={(e) => onChange(e.target.value)} // 입력값 변경 처리
-    size="small"
     css={customTextFieldStyle}
   />
 );
@@ -143,7 +179,6 @@ export const UserPage = () => {
     open: boolean;
   }>({ type: "", open: false });
 
-  console.log(userData);
   useEffect(() => {
     fetchUserInfo()
       .then((data) => {
@@ -154,6 +189,22 @@ export const UserPage = () => {
         // setLoading(false);
       });
   }, []);
+
+  const InfoAlert = ({ message }: { message: string }) => (
+    <div
+      css={css`
+      background: #e3f7e3;
+      color: #348638ff;
+      border-radius: 4px;
+      padding: 0.7rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    `}
+    >
+      {message}
+    </div>
+  );
+
 
   const handlePreviewChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     const file = event.target.files?.[0];
@@ -197,7 +248,7 @@ export const UserPage = () => {
   const handleSave = async () => {
     const {
       id: _user_id,
-      profileImage: _profile_image,
+      profileImage: _profileImage,
       createdDt: _createdDt,
       ...rest
     } = userData;
@@ -237,9 +288,10 @@ export const UserPage = () => {
       <div css={containerStyle}>
         <div css={headerStyle}>Profile</div>
         <div css={sectionStyle}>
-          <Collapse in={alertUpdate.type === "profile"}>
-            <Alert severity="success">프로필이 업데이트 되었습니다.</Alert>
-          </Collapse>
+          {/* Alert & Collapse 대체 */}
+          {alertUpdate.type === "profile" && (
+            <InfoAlert message="프로필이 업데이트 되었습니다." />
+          )}
           <div css={labelStyle}>Image</div>
           <div
             css={css`
@@ -260,46 +312,30 @@ export const UserPage = () => {
               type="file"
               onChange={handlePreviewChange}
             />
-            <Button
-              css={css`
-                margin: 1.5rem;
-              `}
-              size="small"
-              variant="contained"
-              onClick={() => document.getElementById("fileInput")!.click()}
-            >
+            <button css={dsButtonStyle} style={{ margin: "1.5rem" }} onClick={() => document.getElementById("fileInput")!.click()}>
               파일 선택
-            </Button>
+            </button>
           </div>
           <div css={buttonGroupStyle}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="medium"
-              onClick={updateProfileImage}
-            >
-              Save
-            </Button>
+            <button css={dsButtonStyle} onClick={updateProfileImage}>Save</button>
           </div>
         </div>
       </div>
-      <Divider
+      <hr
         css={css`
           width: 80%;
           margin: auto;
+          border: none;
+          border-top: 1.5px solid #e0e0e0;
         `}
       />
       <div css={containerStyle}>
         <div css={headerStyle}>Account Information</div>
         <div css={sectionStyle}>
-          <Collapse in={alertUpdate.type === "user"}>
-            <Alert severity="success">유저 정보가 업데이트 되었습니다.</Alert>
-          </Collapse>
-          <div
-            css={css`
-              display: flex;
-            `}
-          >
+          {alertUpdate.type === "user" && (
+            <InfoAlert message="유저 정보가 업데이트 되었습니다." />
+          )}
+          <div css={flexRowStyle}>
             <div css={labelStyle}>
               Name
               <CustomTextField
@@ -321,11 +357,7 @@ export const UserPage = () => {
               />
             </div>
           </div>
-          <div
-            css={css`
-              display: flex;
-            `}
-          >
+          <div css={flexRowStyle}>
             <div css={labelStyle}>
               GitHub
               <CustomTextField
@@ -346,12 +378,8 @@ export const UserPage = () => {
                 }}
               />
             </div>
-          </div>{" "}
-          <div
-            css={css`
-              display: flex;
-            `}
-          >
+          </div>
+          <div css={flexRowStyle}>
             <div css={labelStyle}>
               BirthDay
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -381,7 +409,6 @@ export const UserPage = () => {
               <TextField
                 placeholder="01012341234"
                 variant="outlined"
-                size="small"
                 error={!userData.phoneNumber}
                 css={longTextFieldStyle}
                 value={userData.phoneNumber}
@@ -399,29 +426,24 @@ export const UserPage = () => {
             </div>
           </div>
           <div css={buttonGroupStyle}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="medium"
-              onClick={handleSave}
-            >
-              Save
-            </Button>
+            <button css={dsButtonStyle} onClick={handleSave}>Save</button>
           </div>
         </div>
       </div>
-      <Divider
+      <hr
         css={css`
           width: 80%;
           margin: auto;
+          border: none;
+          border-top: 1.5px solid #e0e0e0;
         `}
       />
       <div css={containerStyle}>
         <div css={headerStyle}>Career Information</div>
         <div css={sectionStyle}>
-          <Collapse in={alertUpdate.type === "user"}>
-            <Alert severity="success">정보가 업데이트 되었습니다.</Alert>
-          </Collapse>
+          {alertUpdate.type === "user" && (
+            <InfoAlert message="정보가 업데이트 되었습니다." />
+          )}
           <div
             css={css`
               display: flex;
@@ -431,67 +453,69 @@ export const UserPage = () => {
           >
             <div css={labelStyle}>
               Education
-              <FormControl sx={{ width: "45%" }}>
-                <Select
-                  displayEmpty
-                  size="small"
-                  value={userData.educationLevel || ""}
-                  onChange={(e) =>
-                    changeValue("educationLevel", e.target.value)
-                  }
-                >
-                  <MenuItem value="" disabled>
-                    학력 구분 선택
-                  </MenuItem>
-                  <MenuItem value="초등학교 졸업">초등학교 졸업</MenuItem>
-                  <MenuItem value="중학교 졸업">중학교 졸업</MenuItem>
-                  <MenuItem value="고등학교 졸업">고등학교 졸업</MenuItem>
-                  <MenuItem value="대학교대학원 이상 졸업">
-                    대학교·대학원 이상 졸업
-                  </MenuItem>
-                </Select>
-              </FormControl>
+              <select
+                css={css`
+                  width: 45%;
+                  padding: 1rem;
+                  border-radius: 4px;
+                  border: 1px solid #ccc;
+                  background: #ffffffff;
+                  font-size: 1rem;
+                  
+                `}
+                value={userData.educationLevel || ""}
+                onChange={(e) => changeValue("educationLevel", e.target.value)}
+              >
+                <option value="" disabled>
+                  학력 구분 선택
+                </option>
+                <option value="초등학교 졸업">초등학교 졸업</option>
+                <option value="중학교 졸업">중학교 졸업</option>
+                <option value="고등학교 졸업">고등학교 졸업</option>
+                <option value="대학교대학원 이상 졸업">대학교·대학원 이상 졸업</option>
+              </select>
             </div>
             {userData.educationLevel === "대학교대학원 이상 졸업" && (
               <>
                 <div css={labelStyle}>
                   Univ
-                  <TextField
+                  <input
+                    type="text"
                     placeholder="학교명을 입력하세요"
-                    variant="outlined"
                     value={userData.universityName}
-                    size="small"
-                    sx={{ width: "45%" }}
-                    onChange={(e) =>
-                      changeValue("universityName", e.target.value)
-                    }
+                    css={css`
+                      width: 45%;
+                      padding: 0.5rem;
+                      border-radius: 4px;
+                      border: 1px solid #ccc;
+                      background: #f9f9f9;
+                      font-size: 1rem;
+                    `}
+                    onChange={(e) => changeValue("universityName", e.target.value)}
                   />
                 </div>
                 <div css={labelStyle}>
                   Major
-                  <TextField
+                  <input
+                    type="text"
                     placeholder="학과명을 입력하세요"
-                    variant="outlined"
                     value={userData.departmentName}
-                    size="small"
-                    sx={{ width: "45%" }}
-                    onChange={(e) =>
-                      changeValue("departmentName", e.target.value)
-                    }
+                    css={css`
+                      width: 45%;
+                      padding: 0.5rem;
+                      border-radius: 4px;
+                      border: 1px solid #ccc;
+                      background: #f9f9f9;
+                      font-size: 1rem;
+                    `}
+                    onChange={(e) => changeValue("departmentName", e.target.value)}
                   />
                 </div>
               </>
             )}
           </div>
           <div css={buttonGroupStyle}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="medium"
-              onClick={handleSave}
-            >
-              Save
-            </Button>
+            <button css={dsButtonStyle} onClick={handleSave}>Save</button>
           </div>
         </div>
       </div>
