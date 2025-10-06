@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  UpdateDateColumn,
 } from 'typeorm';
 import { IntroductionModel } from './introduction.entity';
 import { SkillModel } from './skill.entity';
@@ -26,16 +27,10 @@ export class ResumeModel extends BaseUuidModel {
   @ManyToOne(() => User, (user) => user.resumes, { onDelete: 'CASCADE' })
   author: User;
 
-  @OneToOne(() => IntroductionModel, (introduction) => introduction.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => IntroductionModel, (introduction) => introduction.resume)
   introduction: IntroductionModel;
 
-  @OneToOne(() => ProfileModel, (profile) => profile.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => ProfileModel, (profile) => profile.resume)
   profile: ProfileModel;
 
   @ManyToMany(() => SkillModel, (skill) => skill.strongResumes)
@@ -54,36 +49,21 @@ export class ResumeModel extends BaseUuidModel {
   })
   famSkills: SkillModel[];
 
-  @OneToMany(() => ProjectModel, (project) => project.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => ProjectModel, (project) => project.resume)
   projects: ProjectModel[];
 
-  @OneToMany(() => CareerModel, (career) => career.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
+  @OneToMany(() => CareerModel, (career) => career.resume)
   careers: CareerModel[];
 
-  @OneToMany(() => AchievementModel, (achievement) => achievement.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
+  @OneToMany(() => AchievementModel, (achievement) => achievement.resume)
   achievements: AchievementModel[];
 
-  @OneToMany(() => CustomModel, (custom) => custom.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
+  @OneToMany(() => CustomModel, (custom) => custom.resume)
   customs: CustomModel[];
 
-  @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume)
   blockOrders: OrderModel[];
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

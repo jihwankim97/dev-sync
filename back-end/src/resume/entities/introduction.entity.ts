@@ -13,7 +13,10 @@ export class IntroductionModel extends BaseUuidModel {
   @IsString()
   description: string;
 
-  @OneToOne(() => ResumeModel, (resume) => resume.introduction)
+  @OneToOne(() => ResumeModel, (resume) => resume.introduction, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   resume: ResumeModel;
 }

@@ -81,7 +81,7 @@ export class ResumeController {
   @Get()
   @UseGuards(AuthenticatedGuard)
   async getAllResumes(@Request() req) {
-    return this.resumeService.getResumes(req.user.id); // 전체 조회
+    return this.resumeService.getResumes(req.user.id);
   }
 
   @Get(':id')
@@ -108,7 +108,7 @@ export class ResumeController {
 
   @Post(':id/introductions')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createIntroduction(
     @Param('id') id: string,
     @Body() createIntroductionDto: CreateIntroductionDto,
@@ -124,7 +124,7 @@ export class ResumeController {
 
   @Post(':id/profiles')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createProfile(
     @Param('id') id: string,
     @Body() profileDto: CreateProfileDto,
@@ -140,7 +140,7 @@ export class ResumeController {
 
   @Post(':id/projects')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createProject(
     @Param('id') id: string,
     @Body() createProjectsDto: CreateProjectsWidthOutcomesDto,
@@ -156,7 +156,7 @@ export class ResumeController {
 
   @Post(':id/skills')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createSkills(
     @Param('id') id: string,
     @Body() createSkillsDto: CreateSkillsDto,
@@ -177,7 +177,7 @@ export class ResumeController {
 
   @Post(':id/achievements')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createAchievements(
     @Param('id') id: string,
     @Body() createAchievementsDto: CreateAchievementsDto,
@@ -193,7 +193,7 @@ export class ResumeController {
 
   @Post(':id/careers')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createCareers(
     @Param('id') id: string,
     @Body() createCareersDto: CreateCareersDto,
@@ -209,7 +209,7 @@ export class ResumeController {
 
   @Post(':id/customs')
   @UseGuards(AuthenticatedGuard)
-  @UseFilters(UpsertResumeEntityDtoFilter) 
+  @UseFilters(UpsertResumeEntityDtoFilter)
   async createCustom(
     @Param('id') id: string,
     @Body() createCustomDto: CreateCustomDto,

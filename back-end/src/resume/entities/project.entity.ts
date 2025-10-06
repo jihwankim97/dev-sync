@@ -17,7 +17,10 @@ export class ProjectModel extends BaseUuidModel {
   @Column({ nullable: true, name: 'end_date' })
   endDate: Date;
 
-  @ManyToOne(() => ResumeModel, (resume) => resume.projects)
+  @ManyToOne(() => ResumeModel, (resume) => resume.projects, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   resume: ResumeModel;
 
   @OneToMany(() => ProjectOutcomeModel, (outcome) => outcome.project, {

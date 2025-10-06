@@ -10,6 +10,10 @@ export class CustomModel extends BaseUuidModel {
   @Column()
   description: string;
 
-  @ManyToOne(() => ResumeModel, (resume) => resume.customs)
+  @ManyToOne(() => ResumeModel, (resume) => resume.customs, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   resume: ResumeModel;
 }

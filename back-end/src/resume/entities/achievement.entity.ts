@@ -16,6 +16,10 @@ export class AchievementModel extends BaseUuidModel {
   @Column({ nullable: true })
   description: string;
 
-  @ManyToOne(() => ResumeModel, (resume) => resume.achievements)
+  @ManyToOne(() => ResumeModel, (resume) => resume.achievements, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   resume: ResumeModel;
 }

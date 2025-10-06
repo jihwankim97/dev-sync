@@ -4,6 +4,8 @@ import { CreateProjectDto } from './create-project.dto';
 import { ResumeBlockType } from '../enum/resume-type.enum';
 
 export class CreateProjectsWidthOutcomesDto {
+  @IsEnum(ResumeBlockType)
+  id: ResumeBlockType.PROJECTS;
 
   @IsEnum(ResumeBlockType)
   type: ResumeBlockType.PROJECTS;
