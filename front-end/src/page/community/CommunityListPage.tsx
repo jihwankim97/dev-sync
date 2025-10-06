@@ -49,18 +49,18 @@ export const CommunityListPage = () => {
 
   useEffect(() => {
     if (category !== "") {
-      fetch(`http://localhost:3000/posts/categories/${category}`)
+      fetch(`http://localhost:3000/post/categories/${category}`)
         .then((res) => res.json())
         .then((data) => {
           // HTML 태그 제거 후 상태 저장
           const cleanedData = data
-            .map((post: any) => ({
+            .map((post: PostType) => ({
               ...post,
               content: post.content,
             }))
             .sort(
-              (a: { post_id: number }, b: { post_id: number }) =>
-                b.post_id - a.post_id
+              (a: { postId: number }, b: { postId: number }) =>
+                b.postId - a.postId
             );
           setPostList(cleanedData);
         })
@@ -79,7 +79,7 @@ export const CommunityListPage = () => {
   const increaseViewCount = async (postId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/posts/${postId}/view`,
+        `http://localhost:3000/post/${postId}/view`,
         {
           method: "PATCH",
           credentials: "include",

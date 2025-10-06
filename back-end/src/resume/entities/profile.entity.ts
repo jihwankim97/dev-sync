@@ -1,22 +1,16 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { BaseUuidModel } from 'src/common/entity/base.entity';
 
-@Entity()
+@Entity('resume_profile')
 export class ProfileModel extends BaseUuidModel {
-
   @Column()
   name: string;
 
   @Column()
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'phone_number' })
   phoneNumber: number;
 
   @Column({ nullable: true })
@@ -25,10 +19,10 @@ export class ProfileModel extends BaseUuidModel {
   @Column({ nullable: true })
   education: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'github_url' })
   githubUrl: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'blog_url' })
   blogUrl: string;
 
   @OneToOne(() => ResumeModel, (resume) => resume.profile)

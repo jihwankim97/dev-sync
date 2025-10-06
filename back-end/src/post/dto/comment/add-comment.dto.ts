@@ -1,15 +1,12 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min, ValidateIf } from 'class-validator';
 import { ValidateLength } from 'src/common/decorators/validate-length.decorator';
 
 export class AddCommentDto {
-  @IsInt()
-  @Min(1)
-  post_id: number;
-
   @IsOptional()
+  @ValidateIf((o) => o.parentId !== null)
   @IsInt()
   @Min(1)
-  parent_id?: number;
+  parentId?: number | null;
 
   @IsString()
   @ValidateLength('COMMENT_CONTENT')

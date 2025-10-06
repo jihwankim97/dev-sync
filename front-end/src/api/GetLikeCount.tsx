@@ -1,7 +1,7 @@
 export const GetLikeCount = async (postId: number) => {
   try {
     const response = await fetch(
-      `http://localhost:3000/posts/${postId}/likes/count`,
+      `http://localhost:3000/post/${postId}/likes/count`,
       {
         credentials: "include",
       }

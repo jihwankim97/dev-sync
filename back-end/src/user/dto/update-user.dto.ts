@@ -22,7 +22,7 @@ export class UpdateUserDto {
   birthDate?: Date;
 
   @IsNumber()
-  phone_number?: number;
+  phoneNumber?: number;
 
   @IsString()
   @IsOptional()
@@ -46,5 +46,5 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  profile_image?: string;
+  profileImage?: string;
 }

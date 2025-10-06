@@ -192,7 +192,7 @@ export const WritePostPage = () => {
         formData.append("files", file);
       });
       try {
-        const response = await fetch("http://localhost:3000/posts/upload", {
+        const response = await fetch("http://localhost:3000/post/upload", {
           method: "POST",
           body: formData,
           credentials: "include",
@@ -259,7 +259,7 @@ export const WritePostPage = () => {
   };
 
   const handleSave = async (contentData: string, postId: number) => {
-    const response = await fetch("http://localhost:3000/posts", {
+    const response = await fetch("http://localhost:3000/post", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -268,7 +268,7 @@ export const WritePostPage = () => {
       credentials: "include",
 
       body: JSON.stringify({
-        post_id: postId,
+        postId: postId,
         title: title,
         content: contentData, // 여기서 바로 받은 데이터 사용
         category: selectedCategory,
@@ -281,7 +281,7 @@ export const WritePostPage = () => {
         ...result,
         viewCount: result.viewCount + 1,
       };
-      navigate(`/community/post/${result.post_id}`, { state: updatedPost });
+      navigate(`/community/post/${result.postId}`, { state: updatedPost });
       console.log("이미지 업로드 성공");
     } else {
       const error = await response.json();

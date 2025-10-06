@@ -33,11 +33,11 @@ export type ProfileTypeSection = {
 };
 
 export type userInfo = {
-  user_id: number;
+  id: number;
   email: string;
   name: string;
-  phone_number: number;
-  profile_image: string;
+  phoneNumber: string;
+  profileImage: string;
   createdDt: string;
   githubUrl: string;
   blogUrl: string;
@@ -81,7 +81,6 @@ export type AchievementsTypeSection = {
   id: string;
   type: "achievements";
   items: AchievementItem[];
-
 };
 
 export type AchievementItem = {

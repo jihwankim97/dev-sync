@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PostsController } from './posts.controller';
-import { PostsService } from './posts.service';
+import { PostsController } from './post.controller';
+import { PostsService } from './post.service';
 import { CategoryService } from './category.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -12,9 +12,11 @@ import { Like } from './entities/like.entity';
 import { Comment } from './entities/comment.entity';
 import { UploadService } from 'src/upload/upload.service';
 
-
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Category, User, Like, Comment]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Post, Category, User, Like, Comment]),
+    UserModule,
+  ],
   controllers: [PostsController],
   providers: [PostsService, CategoryService, UploadService],
 })

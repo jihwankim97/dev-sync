@@ -6,7 +6,7 @@ import {
 import * as nodemailer from 'nodemailer';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ContactModel } from './entity/contact.entity';
+import { Contact } from './entity/contact.entity';
 import { Repository } from 'typeorm';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -15,14 +15,12 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ContactService {
   constructor(
-    @InjectRepository(ContactModel)
-    private readonly contactRepository: Repository<ContactModel>,
+    @InjectRepository(Contact)
+    private readonly contactRepository: Repository<Contact>,
     private readonly configService: ConfigService,
   ) {}
 
   async sendInquiryEmail(dto: CreateContactDto): Promise<string> {
-    // SMTP Transporter 설정
-
     const newContact = this.createContact(dto);
 
     if (!newContact) {
@@ -62,15 +60,18 @@ export class ContactService {
   }
 
   async createContact(dto: CreateContactDto) {
-    const hashPwd = await bcrypt.hash(
-      dto.password,
-      parseInt(this.configService.get<string>('HASH_ROUNDS')),
-    );
+    const hashPwd = dto.password
+      ? await bcrypt.hash(
+          dto.password,
+          parseInt(this.configService.get<string>('HASH_ROUNDS')),
+        )
+      : null;
 
     const contact = this.contactRepository.create({
       ...dto,
       password: hashPwd,
     });
+
     return await this.contactRepository.save(contact);
   }
 
@@ -78,24 +79,9 @@ export class ContactService {
     return await this.contactRepository.find({ order: { createdAt: 'DESC' } });
   }
 
-  async getContactList() {
+  async getContactListByEmail(user_email?: string) {
     const contacts = await this.contactRepository.find({
-      select: ['id', 'name', 'title', 'createdAt', 'password'],
-      order: { createdAt: 'DESC' },
-    });
-
-    return contacts.map((c) => ({
-      id: c.id,
-      name: c.name,
-      title: c.title,
-      createdAt: c.createdAt,
-      isPrivate: !!c.password,
-    }));
-  }
-
-  async getContactListByEmail(user_email: string) {
-    const contacts = await this.contactRepository.find({
-      where: { email: user_email },
+      where: user_email ? { email: user_email } : {},
       select: ['id', 'name', 'title', 'createdAt', 'password'],
       order: { createdAt: 'DESC' },
     });
@@ -104,13 +90,19 @@ export class ContactService {
       throw new NotFoundException('해당 이메일로 작성된 문의글이 없습니다.');
     }
 
-    return contacts.map((c) => ({
-      id: c.id,
-      name: c.name,
-      title: c.title,
-      createdAt: c.createdAt,
-      isPrivate: !!c.password,
-    }));
+    return contacts.map((c) =>
+      c.password
+        ? {
+            isPrivate: true,
+          }
+        : {
+            id: c.id,
+            name: c.name,
+            title: c.title,
+            createdAt: c.createdAt,
+            isPrivate: false,
+          },
+    );
   }
 
   async getContactById(id: number, password?: string) {
@@ -164,7 +156,7 @@ export class ContactService {
     if (isPrivate) {
       if (!password) throw new UnauthorizedException('비밀번호가 필요합니다.');
 
-      const isMatch = await bcrypt.compare(password, contact.password);
+      const isMatch = password === contact.password;
       if (!isMatch)
         throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
     }

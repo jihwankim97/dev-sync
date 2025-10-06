@@ -37,7 +37,7 @@ const CommentLayout = memo(
     editTargetId: number | null;
   }) => {
     const [userData, setUserData] = useState<userInfo>();
-    const userId = userData?.user_id;
+    const userId = userData?.id;
     const location = useLocation();
     const postId = location.state.post_id; // `navigate`에서 전달된 데이터
     const textRef = useRef<HTMLInputElement | null>(null);
@@ -103,7 +103,7 @@ const CommentLayout = memo(
           {comment.parent && (
             <div
               css={css`
-                padding-right: ;
+                padding-right:;
               `}
             >
               <SubdirectoryArrowRightIcon />
@@ -290,7 +290,7 @@ export const CommentPost = () => {
   }, []);
 
   if (userData) {
-    userId = userData.user_id;
+    userId = userData.id;
   }
 
   useEffect(() => {

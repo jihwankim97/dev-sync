@@ -90,8 +90,7 @@ export const ResumeListPage = () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const result = await response.json();
-    console.log(result)
-
+    console.log(result);
   };
 
   useEffect(() => {
@@ -106,7 +105,7 @@ export const ResumeListPage = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log(data)
+        console.log(data);
         setResumes(data);
       } catch (error) {
         console.error("이력서 리스트 가져오기 실패:", error);
@@ -119,7 +118,7 @@ export const ResumeListPage = () => {
   const handleEntryResume = async (id: string) => {
     const result = await GetExistResume(id);
 
-    console.log(result)
+    console.log(result);
     navigate(`/resume/${result.id}/editor`);
     dispatch(setResume(result));
   };
@@ -173,10 +172,16 @@ export const ResumeListPage = () => {
                   },
                 }}
               >
-                <MenuItem onClick={() => selectedId && handleEntryResume(selectedId)}>
+                <MenuItem
+                  onClick={() => selectedId && handleEntryResume(selectedId)}
+                >
                   수정하기
                 </MenuItem>
-                <MenuItem onClick={() => selectedId && handleDelete(selectedId)}>삭제하기 </MenuItem>
+                <MenuItem
+                  onClick={() => selectedId && handleDelete(selectedId)}
+                >
+                  삭제하기{" "}
+                </MenuItem>
               </Menu>
 
               <CardContent>
@@ -246,6 +251,6 @@ export const ResumeListPage = () => {
           </Grid>
         ))}
       </Grid>
-    </Box >
+    </Box>
   );
 };

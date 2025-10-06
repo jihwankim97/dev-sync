@@ -1,6 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { BaseModel } from './entity/base.entity';
-import { FindManyOptions, FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsOrder,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BasePaginationDto } from './dto/base-pagination.dto';
 import { FILTER_MAPPER } from './const/filter-mapper.const';
@@ -8,11 +13,9 @@ import { ENV_HOST_KEY, ENV_PROTOCOL_KEY } from './const/env-keys.const';
 
 @Injectable()
 export class CommonService {
+  constructor(private readonly configService: ConfigService) {}
 
-    constructor(private readonly configService: ConfigService) {}
-
-
-    private async cursorPaginate<T extends BaseModel>(
+  private async cursorPaginate<T extends BaseModel>(
     dto: BasePaginationDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {},

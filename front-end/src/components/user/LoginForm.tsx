@@ -8,7 +8,7 @@ const LoginForm = () => {
   const dispatch = useDispatch();
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:3000/auth/google"; // 백엔드로 리디렉션
+    window.location.href = "http://localhost:3000/auth/google";
   };
 
   return (

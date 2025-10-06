@@ -15,6 +15,7 @@ import { Comment } from './entities/comment.entity';
 import { UserService } from 'src/user/user.service';
 import { UploadService } from 'src/upload/upload.service';
 import { extname } from 'path';
+import { UpdatePostDto } from './dto/post/update-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -46,7 +47,7 @@ export class PostsService {
   // 카테고리 ID로 단일 카테고리 조회
   private async findCategoryById(category_id: number) {
     const category = await this.categoryRepository.findOne({
-      where: { category_id },
+      where: { id: category_id },
     });
     if (!category) {
       throw new NotFoundException(
@@ -65,7 +66,7 @@ export class PostsService {
     const posts = await this.postRepository.find({
       where: {
         category: {
-          category_id: category.category_id,
+          id: category.id,
         },
       },
       relations: ['user', 'category'],
@@ -76,16 +77,16 @@ export class PostsService {
 
     const processedPosts = await Promise.all(
       posts.map(async (post) => {
-        const { user, post_id } = post;
+        const { user, id } = post;
         const slimUser = {
-          user_id: user.user_id,
+          id: user.id,
           email: user.email,
           name: user.name,
-          profile_image: user.profile_image,
+          profile_image: user.profileImage,
         };
 
-        const likecount = await this.getLikeCount(post_id);
-        const commentcount = await this.getCommentCount(post_id);
+        const likecount = await this.getLikeCount(id);
+        const commentcount = await this.getCommentCount(id);
 
         return {
           ...post,
@@ -108,16 +109,16 @@ export class PostsService {
 
     const processedPosts = await Promise.all(
       posts.map(async (post) => {
-        const { user, post_id } = post;
+        const { user, id } = post;
         const slimUser = {
-          user_id: user.user_id,
+          id: user.id,
           email: user.email,
           name: user.name,
-          profile_image: user.profile_image,
+          profile_image: user.profileImage,
         };
 
-        const likecount = await this.getLikeCount(post_id);
-        const commentcount = await this.getCommentCount(post_id);
+        const likecount = await this.getLikeCount(id);
+        const commentcount = await this.getCommentCount(id);
 
         return {
           ...post,
@@ -134,39 +135,38 @@ export class PostsService {
   // 게시글 ID로 조회
   private async findPostById(post_id: number) {
     const post = await this.postRepository.findOne({
-      where: { post_id },
+      where: { id: post_id },
       relations: ['user'],
     });
-  
+
     if (!post) {
       throw new NotFoundException(
         `ID가 ${post_id}인 게시글을 찾을 수 없습니다.`,
       );
     }
-  
+
     return post;
   }
-  
 
   // 유저 아이디로 게시글 조회
   async getPostsByUserId(user_id: number) {
     const posts = await this.postRepository.find({
-      where: { user: { user_id } },
+      where: { user: { id: user_id } },
       relations: ['user', 'category'],
     });
 
     const processedPosts = await Promise.all(
       posts.map(async (post) => {
-        const { user, post_id } = post;
+        const { user, id } = post;
         const slimUser = {
-          user_id: user.user_id,
+          id: user.id,
           email: user.email,
           name: user.name,
-          profile_image: user.profile_image,
+          profile_image: user.profileImage,
         };
 
-        const likecount = await this.getLikeCount(post_id);
-        const commentcount = await this.getCommentCount(post_id);
+        const likecount = await this.getLikeCount(id);
+        const commentcount = await this.getCommentCount(id);
 
         return {
           ...post,
@@ -182,7 +182,7 @@ export class PostsService {
 
   //게시글 파일 업로드드
   async uploadPostFiles(user_id: number, files: Express.Multer.File[]) {
-    const user = await this.userRepository.findOne({ where: { user_id } });
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
     if (!user) {
       throw new NotFoundException(
         `ID가 ${user_id}인 사용자를 찾을 수 없습니다.`,
@@ -204,7 +204,7 @@ export class PostsService {
       category: defaultCategory,
     });
     const savedPost = await this.postRepository.save(newPost);
-    const postId = savedPost.post_id.toString();
+    const postId = savedPost.id.toString();
 
     const uploadPath = `./uploads/${postId}`;
     const fileUrls = {};
@@ -231,7 +231,7 @@ export class PostsService {
     content: string,
     category_name: string,
   ) {
-    const user = await this.userRepository.findOne({ where: { user_id } });
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
     if (!user) {
       throw new NotFoundException(
         `ID가 ${user_id}인 사용자를 찾을 수 없습니다.`,
@@ -245,7 +245,7 @@ export class PostsService {
       );
     }
 
-    const post = await this.postRepository.findOne({ where: { post_id } });
+    const post = await this.postRepository.findOne({ where: { id: post_id } });
     if (!post) {
       throw new NotFoundException(
         `ID가 ${post_id}인 게시글을 찾을 수 없습니다.`,
@@ -258,14 +258,14 @@ export class PostsService {
 
     const updatedPost = await this.postRepository.save(post);
 
-    const likecount = await this.getLikeCount(post.post_id);
-    const comments = await this.getComment(post.post_id, 1);
+    const likecount = await this.getLikeCount(post.id);
+    const comments = await this.getComment(post.id, 1);
 
     const slimUser = {
-      user_id: user.user_id,
+      id: user.id,
       email: user.email,
       name: user.name,
-      profile_image: user.profile_image,
+      profile_image: user.profileImage,
     };
 
     return {
@@ -291,17 +291,13 @@ export class PostsService {
   //게시글 업데이트
   async updatePost(
     user_id: number, // 요청한 유저의 ID
-    updates: {
-      post_id: number;
-      category?: string;
-      title?: string;
-      content?: string;
-    },
+    post_id: number,
+    updates: UpdatePostDto,
   ) {
-    const post = await this.findPostById(updates.post_id);
+    const post = await this.findPostById(post_id);
 
     // 작성자인지 확인
-    if (post.user.user_id !== user_id) {
+    if (post.user.id !== user_id) {
       throw new BadRequestException('수정 권한이 없습니다.');
     }
 
@@ -328,14 +324,14 @@ export class PostsService {
 
     const updatedPost = await this.postRepository.save(post);
 
-    const likecount = await this.getLikeCount(post.post_id);
-    const comments = await this.getComment(post.post_id, 1);
-    const user = await this.userRepository.findOne({ where: { user_id } });
+    const likecount = await this.getLikeCount(post.id);
+    const comments = await this.getComment(post.id, 1);
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
     const slimUser = {
-      user_id: user.user_id,
+      id: user.id,
       email: user.email,
       name: user.name,
-      profile_image: user.profile_image,
+      profile_image: user.profileImage,
     };
 
     return {
@@ -354,14 +350,13 @@ export class PostsService {
     });
   }
 
-
   //검색어로 게시글 조회
   async searchPosts(keyword: string, category: string, type: string = 'all') {
     const query = this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.category', 'category');
-  
+
     if (type === 'title') {
       query.where('post.title LIKE :keyword', { keyword: `%${keyword}%` });
     } else if (type === 'content') {
@@ -372,25 +367,25 @@ export class PostsService {
         keyword: `%${keyword}%`,
       });
     }
-  
+
     if (category) {
       query.andWhere('category.category = :category', { category });
     }
-  
+
     const posts = await query.orderBy('post.createdAt', 'DESC').getMany();
-  
+
     const processedPosts = await Promise.all(
       posts.map(async (post) => {
-        const likecount = await this.getLikeCount(post.post_id);
-        const commentcount = await this.getCommentCount(post.post_id);
-  
+        const likecount = await this.getLikeCount(post.id);
+        const commentcount = await this.getCommentCount(post.id);
+
         const slimUser = {
-          user_id: post.user.user_id,
+          id: post.user.id,
           email: post.user.email,
           name: post.user.name,
-          profile_image: post.user.profile_image,
+          profile_image: post.user.profileImage,
         };
-  
+
         return {
           ...post,
           user: slimUser,
@@ -399,41 +394,41 @@ export class PostsService {
         };
       }),
     );
-  
+
     return processedPosts;
   }
-  
 
   //-----------------------------------like----------------------------------------------------
 
-  async getLike(user_id: number, post_id: number) {
-    return await this.likeRepository.findOne({
-      where: { user: { user_id }, post: { post_id } },
+  async getLike(user_id: number, post_id: number): Promise<boolean> {
+    const like = await this.likeRepository.findOne({
+      where: { user: { id: user_id }, post: { id: post_id } },
     });
+    return !!like;
   }
   async getLikeCount(post_id: number) {
-    return await this.likeRepository.count({ where: { post: { post_id } } });
+    return await this.likeRepository.count({
+      where: { post: { id: post_id } },
+    });
   }
 
   async toggleLike(user_id: number, post_id: number) {
     const existingLike = await this.getLike(user_id, post_id);
 
     if (existingLike) {
-      // 2️⃣ 이미 좋아요가 존재하면 삭제
-      await this.removelike(user_id, post_id);
+      return await this.removelike(user_id, post_id);
     } else {
-      // 3️⃣ 좋아요 추가
       return await this.addlike(user_id, post_id);
     }
   }
 
   private async addlike(user_id: number, post_id: number) {
-    const user = await this.userRepository.findOne({ where: { user_id } });
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
     if (!user) {
       throw new Error('해당 유저가 존재하지 않음');
     }
 
-    const post = await this.postRepository.findOne({ where: { post_id } });
+    const post = await this.postRepository.findOne({ where: { id: post_id } });
     if (!post) {
       throw new Error('해당 게시물이 존재하지 않음');
     }
@@ -449,7 +444,7 @@ export class PostsService {
 
   private async removelike(user_id: number, post_id: number) {
     const like = await this.likeRepository.findOne({
-      where: { user: { user_id }, post: { post_id } },
+      where: { user: { id: user_id }, post: { id: post_id } },
     });
 
     if (!like) {
@@ -465,28 +460,28 @@ export class PostsService {
 
   async getComment(post_id: number, page: number) {
     const comments = await this.commentRepository.find({
-      where: { post: { post_id } },
-      relations: ['user_id', 'parent'],
+      where: { post: { id: post_id } },
+      relations: ['author', 'parent'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * 20,
       take: 20,
     });
 
     return comments.map((comment) => ({
-      comment_id: comment.comment_id,
+      id: comment.id,
       comment: comment.comment,
       createdAt: comment.createdAt,
-      user_id: comment.user_id?.user_id,
-      user_name: comment.user_id?.name,
-      profile_image: comment.user_id?.profile_image,
-      parent: comment.parent?.comment_id ?? null,
+      author: comment.author?.id,
+      user_name: comment.author?.name,
+      profile_image: comment.author?.profileImage,
+      parent: comment.parent?.id ?? null,
     }));
   }
 
-  //전체 댓글의 개수 조회회
+  //전체 댓글의 개수 조회
   async getCommentCount(post_id: number): Promise<number> {
     return await this.commentRepository.count({
-      where: { post: { post_id } },
+      where: { post: { id: post_id } },
     });
   }
 
@@ -506,19 +501,19 @@ export class PostsService {
     let parentComment = null;
     if (parent_id) {
       parentComment = await this.commentRepository.findOne({
-        where: { comment_id: parent_id },
+        where: { id: parent_id },
       });
       if (!parentComment) throw new Error('부모 댓글이 존재하지 않음');
     }
 
     const newComment = this.commentRepository.create({
-      user_id: user,
+      author: user,
       post: post,
       parent: parentComment,
       comment,
     });
 
-    return await this.commentRepository.save(newComment);
+    return await !!this.commentRepository.save(newComment);
   }
 
   //댓글 삭제
@@ -527,7 +522,7 @@ export class PostsService {
     if (!user) throw new Error('해당 유저가 존재하지 않음');
 
     const target = await this.commentRepository.findOne({
-      where: { comment_id, user_id: { user_id } },
+      where: { id: comment_id, author: { id: user_id } },
     });
 
     if (!target)
@@ -542,7 +537,7 @@ export class PostsService {
     if (!user) throw new Error('해당 유저가 존재하지 않음');
 
     const target = await this.commentRepository.findOne({
-      where: { comment_id, user_id: { user_id } },
+      where: { id: comment_id, author: { id: user_id } },
     });
 
     if (!target)

@@ -7,13 +7,13 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ResumeModule } from './resume/resume.module';
 import { ContactModule } from './contact/contact.module';
-import { PostsModule } from './posts/posts.module';
+import { PostsModule } from './post/post.module';
 import { UploadModule } from './upload/upload.module';
 import { User } from './user/entity/user.entity';
-import { Post } from './posts/entities/post.entity';
-import { Category } from './posts/entities/category.entity';
-import { Like } from './posts/entities/like.entity';
-import { Comment } from './posts/entities/comment.entity';
+import { Post } from './post/entities/post.entity';
+import { Category } from './post/entities/category.entity';
+import { Like } from './post/entities/like.entity';
+import { Comment } from './post/entities/comment.entity';
 import { CommonModule } from './common/common.module';
 import { BaseModel } from './common/entity/base.entity';
 import { IntroductionModel } from './resume/entities/introduction.entity';
@@ -21,7 +21,7 @@ import { ProjectModel } from './resume/entities/project.entity';
 import { SkillModel } from './resume/entities/skill.entity';
 import { ResumeModel } from './resume/entities/resume.entity';
 import { ProjectOutcomeModel } from './resume/entities/project-outcome.entity';
-import { ContactModel } from './contact/entity/contact.entity';
+import { Contact } from './contact/entity/contact.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import * as Joi from 'joi';
 import { ProfileModel } from './resume/entities/profile.entity';
@@ -65,7 +65,7 @@ import { OrderModel } from './resume/entities/order.entity';
           SkillModel,
           ResumeModel,
           ProjectOutcomeModel,
-          ContactModel,
+          Contact,
           ProfileModel,
           CareerModel,
           AchievementModel,

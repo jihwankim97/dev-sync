@@ -1,26 +1,21 @@
-import {
-    Column,
-    Entity,
-    ManyToOne,
-  } from 'typeorm';
-  import { ResumeModel } from './resume.entity';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import { ResumeModel } from './resume.entity';
 import { BaseUuidModel } from 'src/common/entity/base.entity';
-  
-  @Entity()
-  export class AchievementModel extends BaseUuidModel {
-  
-    @Column()
-    title: string;
-  
-    @Column({ nullable: true })
-    organization: string;
-  
-    @Column()
-    date: Date;
-  
-    @Column({ nullable: true })
-    description: string;
-  
-    @ManyToOne(() => ResumeModel, (resume) => resume.achievements)
-    resume: ResumeModel;
-  }
+
+@Entity('resume_achievement')
+export class AchievementModel extends BaseUuidModel {
+  @Column()
+  title: string;
+
+  @Column({ nullable: true })
+  organization: string;
+
+  @Column()
+  date: Date;
+
+  @Column({ nullable: true })
+  description: string;
+
+  @ManyToOne(() => ResumeModel, (resume) => resume.achievements)
+  resume: ResumeModel;
+}

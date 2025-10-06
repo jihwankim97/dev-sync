@@ -1,17 +1,10 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { IsString } from 'class-validator';
 import { BaseUuidModel } from 'src/common/entity/base.entity';
 
-@Entity()
+@Entity('resume_introduction')
 export class IntroductionModel extends BaseUuidModel {
-
-
   @Column()
   @IsString()
   headline: string;

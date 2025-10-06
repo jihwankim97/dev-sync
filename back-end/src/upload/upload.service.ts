@@ -22,7 +22,7 @@ export class UploadService {
       `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
     const filePath = join(uploadPath, finalFilename);
 
-    writeFileSync(filePath, file.buffer);
+    writeFileSync(filePath, file.buffer as any);
 
     return `http://localhost:3000/uploads/${uploadPath.replace('./uploads/', '')}/${finalFilename}`;
   }

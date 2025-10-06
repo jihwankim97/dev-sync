@@ -14,8 +14,9 @@ export const POST_VALIDATION = {
 // 댓글 관련 검증 상수
 export const COMMENT_VALIDATION = {
   CONTENT: {
+    MIN_LENGTH: 1,
     MAX_LENGTH: 1000,
-    MESSAGE: '댓글은 최대 1,000자까지 입력 가능합니다.',
+    MESSAGE: '댓글은 1자 이상 1,000자 이하여야 합니다.',
   },
 } as const;
 

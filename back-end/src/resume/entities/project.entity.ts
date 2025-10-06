@@ -1,31 +1,27 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { ResumeModel } from './resume.entity';
 import { ProjectOutcomeModel } from './project-outcome.entity';
 import { BaseUuidModel } from 'src/common/entity/base.entity';
 
-@Entity()
+@Entity('resume_project')
 export class ProjectModel extends BaseUuidModel {
-
   @Column()
   name: string;
 
   @Column()
   description: string;
 
-  @Column()
+  @Column({ name: 'start_date' })
   startDate: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'end_date' })
   endDate: Date;
 
   @ManyToOne(() => ResumeModel, (resume) => resume.projects)
   resume: ResumeModel;
 
-  @OneToMany(() => ProjectOutcomeModel, (outcome) => outcome.project, { cascade: true })
+  @OneToMany(() => ProjectOutcomeModel, (outcome) => outcome.project, {
+    cascade: true,
+  })
   outcomes: ProjectOutcomeModel[];
 }

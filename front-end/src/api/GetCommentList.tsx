@@ -6,7 +6,7 @@ export const GetCommentList = async (
 ) => {
   try {
     const response = await fetch(
-      `http://localhost:3000/posts/comment/${postId}?page=${page}`,
+      `http://localhost:3000/post/comment/${postId}?page=${page}`,
       {
         method: "GET",
         headers: {

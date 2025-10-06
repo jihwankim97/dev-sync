@@ -43,7 +43,7 @@ export const ReadPostPage = () => {
   const checkLikeStatus = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/posts/${post.post_id}/likes/status`,
+        `http://localhost:3000/post/${post.post_id}/likes/status`,
         {
           method: "GET",
           credentials: "include",
