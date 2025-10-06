@@ -1,9 +1,4 @@
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 import { ValidateLength } from 'src/common/decorators/validate-length.decorator';
 
 export class CreateContactDto {

@@ -25,18 +25,18 @@ import { fetchUserInfo } from "../api/UserApi";
 import type { userInfo } from "../types/resume.type";
 
 const initialState: userInfo = {
-  user_id: 0,
+  id: 0,
   createdDt: "",
   name: "",
   email: "",
   githubUrl: "",
   blogUrl: "",
-  profile_image: "",
+  profileImage: "",
   universityName: "",
   departmentName: "",
   educationLevel: "",
   birthDate: "s",
-  phone_number: 1012345678,
+  phoneNumber: "1012345678",
 };
 
 // 공통 스타일 정의
@@ -136,7 +136,7 @@ export const UserPage = () => {
   const [userData, setUserData] = useReducer(reducer, initialState);
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined); // 선택된 파일 상태
   const [previewImage, setPreviewImage] = useState(
-    userData?.profile_image || ""
+    userData?.profileImage || ""
   );
   const [alertUpdate, setAlertUpdate] = useState<{
     type: string;
@@ -196,8 +196,8 @@ export const UserPage = () => {
 
   const handleSave = async () => {
     const {
-      user_id: _user_id,
-      profile_image: _profile_image,
+      id: _user_id,
+      profileImage: _profile_image,
       createdDt: _createdDt,
       ...rest
     } = userData;
@@ -223,10 +223,10 @@ export const UserPage = () => {
   };
 
   useEffect(() => {
-    if (userData?.profile_image) {
-      setPreviewImage(userData.profile_image);
+    if (userData?.profileImage) {
+      setPreviewImage(userData.profileImage);
     }
-  }, [userData?.profile_image]);
+  }, [userData?.profileImage]);
 
   const changeValue = (section: keyof userInfo, data: string | number) => {
     setUserData({ type: "SET_FIELD", field: section, value: data });
@@ -382,11 +382,11 @@ export const UserPage = () => {
                 placeholder="01012341234"
                 variant="outlined"
                 size="small"
-                error={!userData.phone_number}
+                error={!userData.phoneNumber}
                 css={longTextFieldStyle}
-                value={userData.phone_number}
+                value={userData.phoneNumber}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  changeValue("phone_number", Number(e.target.value));
+                  changeValue("phoneNumber", Number(e.target.value));
                 }}
                 slotProps={{
                   input: {

@@ -37,7 +37,7 @@ const CommunityAction = ({ category, setPostList }: CommunityActionsProps) => {
     if (!keyword.trim()) return;
 
     const response = await fetch(
-      `http://localhost:3000/posts/search?keyword=${encodeURIComponent(
+      `http://localhost:3000/post/search?keyword=${encodeURIComponent(
         keyword
       )}&category=${encodeURIComponent(category)}&type=${searchType}`
     );

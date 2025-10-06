@@ -1,8 +1,7 @@
 export const RemoveComment = async (commentId: string) => {
-  console.log(commentId);
   try {
     const response = await fetch(
-      `http://localhost:3000/posts/comment/${commentId}`,
+      `http://localhost:3000/post/comment/${commentId}`,
       {
         method: "DELETE",
         credentials: "include", // 인증된 요청을 위해 쿠키 포함

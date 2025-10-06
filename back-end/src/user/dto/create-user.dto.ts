@@ -13,5 +13,5 @@ export class CreateUserDto {
 
   @IsString()
   @ValidateLength('USER_NAME')
-  username: string;
+  name: string;
 }

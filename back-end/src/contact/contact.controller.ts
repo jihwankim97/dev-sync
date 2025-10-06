@@ -23,10 +23,7 @@ export class ContactController {
 
   @Get()
   async getContacts(@Query('email') email?: string) {
-    if (email) {
-      return this.contactService.getContactListByEmail(email);
-    }
-    return this.contactService.getContactList();
+    return this.contactService.getContactListByEmail(email);
   }
 
   @Get(':id')
@@ -38,10 +35,7 @@ export class ContactController {
   }
 
   @Patch(':id')
-  async updateContact(
-    @Param('id') id: number,
-    @Body() dto: UpdateContactDto,
-  ) {
+  async updateContact(@Param('id') id: number, @Body() dto: UpdateContactDto) {
     return this.contactService.updateContact(id, dto);
   }
 

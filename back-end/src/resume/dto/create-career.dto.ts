@@ -11,11 +11,11 @@ export class CreateCareerDto {
   position: string;
 
   @IsDateString()
-  start_date: string;
+  startDate: string;
 
   @IsOptional()
   @IsDateString()
-  end_date?: string;
+  endDate?: string;
 
   @IsString()
   description: string;

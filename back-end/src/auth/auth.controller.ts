@@ -1,4 +1,11 @@
-import { Controller, Get, Request, Response, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Request,
+  Response,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
 
 import { GoogleAuthGuard } from './auth.guard';
 import { AuthExceptionFilter } from './auth-exception.filter';
@@ -19,6 +26,11 @@ export class AuthController {
   }
 
   @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @UseFilters(AuthExceptionFilter)
+  async googleAuth() {}
+
+  @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   @UseFilters(AuthExceptionFilter)
   async googleAuthRedirect(@Request() req, @Response() res) {

@@ -303,8 +303,8 @@ export class ResumeService {
 
   getResumes(id: number): Promise<ResumeModel[]> {
     return this.resumeRepository.find({
-      where: { author: { user_id: id } },
-      relations: ['profile', 'str_skills', 'fam_skills'],
+      where: { author: { id: id } },
+      relations: ['profile', 'strSkills', 'famSkills'],
     });
   }
 
@@ -566,7 +566,6 @@ export class ResumeService {
   ): Promise<ProjectModel> {
     const resume = await this.getResume(resumeId);
 
-
     let project = await this.projectRepository.findOne({
       where: { id: projectData.id, resume: { id: resume.id } },
       relations: ['outcomes'],
@@ -715,22 +714,19 @@ export class ResumeService {
       }),
     ]);
 
-    resume.str_skills = strongSkills;
-    resume.fam_skills = familiarSkills;
+    resume.strSkills = strongSkills;
+    resume.famSkills = familiarSkills;
 
     return await this.resumeRepository.save(resume);
   }
 
   async removeSkills(resumeId: string) {
     const resume = await this.getResume(resumeId);
-    
 
-    resume.str_skills = [];
-    resume.fam_skills = [];
-    
+    resume.strSkills = [];
+    resume.famSkills = [];
 
     await this.resumeRepository.save(resume);
-  
 
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.SKILLS);
   }

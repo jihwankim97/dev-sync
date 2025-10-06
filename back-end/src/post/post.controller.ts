@@ -15,7 +15,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PostsService } from './posts.service';
+import { PostsService } from './post.service';
 import { GetPostsByCategoryDto } from './dto/category/get-posts-by-category.dto';
 import { GetPostsByUserIdDto } from './dto/post/get-posts-by-user-id.dto';
 import { UserService } from 'src/user/user.service';
@@ -27,7 +27,7 @@ import { AuthenticatedGuard } from 'src/auth/auth.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { GetSearchPostsDto } from './dto/post/get-search-post.dto';
 
-@Controller('posts')
+@Controller('post')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
@@ -59,7 +59,7 @@ export class PostsController {
     if (!user) {
       throw new NotFoundException('유저를 찾을 수 없습니다.');
     }
-    return await this.postsService.getPostsByUserId(user.user_id);
+    return await this.postsService.getPostsByUserId(user.id);
   }
 
   // 조회수 상위 n개 게시글 조회
@@ -86,7 +86,7 @@ export class PostsController {
       const user = req.user;
       // 게시글 생성 및 파일 업로드
       const result = await this.postsService.uploadPostFiles(
-        user.user_id,
+        user.id,
         files.files || [],
       );
 
@@ -108,7 +108,7 @@ export class PostsController {
   async createPost(@Body() createPostDto: CreatePostDto, @Request() req) {
     const user = req.user;
 
-    const { title, content, category, post_id } = createPostDto;
+    const { title, content, category, postId } = createPostDto;
     const category_data = await this.postsService.getCategoryByName(category);
     if (!category_data) {
       throw new NotFoundException(`카테고리 '${name}'을(를) 찾을 수 없습니다.`);
@@ -116,8 +116,8 @@ export class PostsController {
 
     try {
       return await this.postsService.createPost(
-        user.user_id,
-        post_id,
+        user.id,
+        postId,
         title,
         content,
         category,
@@ -138,12 +138,16 @@ export class PostsController {
   }
 
   // 게시글 수정
-  @Patch()
+  @Patch('/:id')
   @UseGuards(AuthenticatedGuard)
-  async updatePost(@Body() updatePostDto: UpdatePostDto, @Request() req) {
+  async updatePost(
+    @Param('id', ParseIntPipe) post_id: number,
+    @Body() updatePostDto: UpdatePostDto,
+    @Request() req,
+  ) {
     const user = req.user;
 
-    return await this.postsService.updatePost(user.user_id, updatePostDto);
+    return await this.postsService.updatePost(user.id, post_id, updatePostDto);
   }
 
   // 게시글 조회수 증가
@@ -166,8 +170,7 @@ export class PostsController {
     @Request() req,
   ) {
     const user = req.user;
-
-    const like = await this.postsService.getLike(user.user_id, post_id);
+    const like = await this.postsService.getLike(user.id, post_id);
     return like;
   }
 
@@ -177,13 +180,13 @@ export class PostsController {
   async toggleLike(@Param('id', ParseIntPipe) post_id: number, @Request() req) {
     const user = req.user;
 
-    return await this.postsService.toggleLike(user.user_id, post_id);
+    return await this.postsService.toggleLike(user.id, post_id);
   }
 
   // 특정 게시글의 댓글 조회
-  @Get('/comment/:post_id')
+  @Get('/comment/:id')
   async getComments(
-    @Param('post_id') post_id: number,
+    @Param('id') post_id: number,
     @Query('page') page: number = 1, // 기본값 1
   ) {
     const comments = await this.postsService.getComment(post_id, page);
@@ -193,51 +196,48 @@ export class PostsController {
   }
 
   // 댓글 생성
-  @Post('/comment')
+  @Post('/comment/:id')
   @UseGuards(AuthenticatedGuard)
-  async addComment(@Body() addCommentDto: AddCommentDto, @Request() req) {
+  async addComment(
+    @Param('id') post_id: number,
+    @Body() addCommentDto: AddCommentDto,
+    @Request() req,
+  ) {
     const user = req.user;
 
-    const { post_id, parent_id, comment } = addCommentDto;
+    const { parentId, comment } = addCommentDto;
 
-    try {
-      return await this.postsService.addComment(
-        user.user_id,
-        post_id,
-        parent_id,
-        comment,
-      );
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : '댓글 작성 실패',
-      );
-    }
+    return await this.postsService.addComment(
+      user.id,
+      post_id,
+      parentId,
+      comment,
+    );
   }
+
   // 댓글 수정
-  @Patch('/comment')
+  @Patch('/comment/:id')
   @UseGuards(AuthenticatedGuard)
   async updateComment(
+    @Param('id') comment_id: number,
     @Body() updateCommentDto: UpdateCommentDto,
     @Request() req,
   ) {
     const user = req.user;
 
-    const { comment_id, comment } = updateCommentDto;
-    return await this.postsService.updateComment(
-      user.user_id,
-      comment_id,
-      comment,
-    );
+    const { comment } = updateCommentDto;
+    return await this.postsService.updateComment(user.id, comment_id, comment);
   }
+
   // 댓글 삭제
-  @Delete('/comment/:comment_id')
+  @Delete('/comment/:id')
   @UseGuards(AuthenticatedGuard)
   async deleteComment(
-    @Param('comment_id', ParseIntPipe) comment_id: number,
+    @Param('id', ParseIntPipe) comment_id: number,
     @Request() req,
   ) {
     const user = req.user;
 
-    return await this.postsService.deleteComment(user.user_id, comment_id);
+    return await this.postsService.deleteComment(user.id, comment_id);
   }
 }

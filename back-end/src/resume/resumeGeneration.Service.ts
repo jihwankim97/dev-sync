@@ -18,9 +18,7 @@ export class ResumeGenerationService {
     });
   }
 
-
   async generateResume(profileData: string, userId: number) {
-
     const resumeData = JSON.parse(await this.callResumeCompletion(profileData));
 
     const user = await this.userService.getUserById(userId);
@@ -34,17 +32,17 @@ export class ResumeGenerationService {
     );
 
     await this.resumeService.saveBlock(resume.id, {
-      type: "profile",
+      type: 'profile',
       name: user.name,
       email: user.email,
-      phoneNumber: user.phone_number,
+      phoneNumber: user.phoneNumber,
       education: user.educationLevel,
       githubUrl: `https://github.com/${user.githubUrl}`,
       blogUrl: user.blogUrl,
     });
 
     await this.resumeService.saveBlock(resume.id, {
-      type: "introduction",
+      type: 'introduction',
       headline: resumeData.introduction.headline,
       description: resumeData.introduction.description,
     });
@@ -65,24 +63,18 @@ export class ResumeGenerationService {
     );
     const familiar = familiarRaw.filter(Boolean);
     await this.resumeService.saveBlock(resume.id, {
-      type: "skills",
+      type: 'skills',
       strongSkillIds: strengths.map((s) => s.id),
       familiarSkillIds: familiar.map((s) => s.id),
     });
 
     const projects = resumeData.projects;
-    await this.resumeService.saveBlock(
-      resume.id,
-      {
-        type: "projects",
-        items: projects,
-      },
-    );
-
-
+    await this.resumeService.saveBlock(resume.id, {
+      type: 'projects',
+      items: projects,
+    });
 
     return this.resumeService.getResumeDetails(resume.id);
-
   }
 
   async callResumeCompletion(profileData: string): Promise<string> {
@@ -145,7 +137,7 @@ ${profileData}
       const response = await this.openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500, 
+        max_tokens: 1500,
         temperature: 0.7,
       });
 

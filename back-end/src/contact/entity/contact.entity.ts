@@ -1,18 +1,10 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
 
 import { Exclude } from 'class-transformer';
+import { BaseModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class ContactModel {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Contact extends BaseModel {
   @Column()
   name: string;
 
@@ -25,15 +17,9 @@ export class ContactModel {
   @Column()
   content: string;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude({
     toPlainOnly: true,
   })
   password: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updateAt: Date;
 }

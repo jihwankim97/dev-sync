@@ -24,6 +24,6 @@ export class UpdateContactDto {
 
   @IsOptional()
   @IsString()
-  @Length(4, 4, { message: '비밀번호는 정확히 4자리여야 합니다.'})
+  @Length(4, 4, { message: '비밀번호는 정확히 4자리여야 합니다.' })
   password?: string;
 }

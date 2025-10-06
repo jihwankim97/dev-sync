@@ -1,4 +1,4 @@
-import {  BaseUuidModel } from 'src/common/entity/base.entity';
+import { BaseUuidModel } from 'src/common/entity/base.entity';
 import { User } from 'src/user/entity/user.entity';
 import {
   Column,
@@ -18,19 +18,24 @@ import { AchievementModel } from './achievement.entity';
 import { CustomModel } from './custom.entity';
 import { OrderModel } from './order.entity';
 
-@Entity()
+@Entity('resume')
 export class ResumeModel extends BaseUuidModel {
-
   @Column()
   title: string;
 
   @ManyToOne(() => User, (user) => user.resumes, { onDelete: 'CASCADE' })
   author: User;
 
-  @OneToOne(() => IntroductionModel, (introduction) => introduction.resume, { cascade: true, onDelete: 'CASCADE' })
+  @OneToOne(() => IntroductionModel, (introduction) => introduction.resume, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   introduction: IntroductionModel;
 
-  @OneToOne(() => ProfileModel, (profile) => profile.resume, { cascade: true, onDelete: 'CASCADE' })
+  @OneToOne(() => ProfileModel, (profile) => profile.resume, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   profile: ProfileModel;
 
   @ManyToMany(() => SkillModel, (skill) => skill.strongResumes)
@@ -39,7 +44,7 @@ export class ResumeModel extends BaseUuidModel {
     joinColumn: { name: 'resume_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'skill_id', referencedColumnName: 'id' },
   })
-  str_skills: SkillModel[];
+  strSkills: SkillModel[];
 
   @ManyToMany(() => SkillModel, (skill) => skill.familiarResumes)
   @JoinTable({
@@ -47,35 +52,38 @@ export class ResumeModel extends BaseUuidModel {
     joinColumn: { name: 'resume_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'skill_id', referencedColumnName: 'id' },
   })
-  fam_skills: SkillModel[];
+  famSkills: SkillModel[];
 
-  @OneToMany(() => ProjectModel, (project) => project.resume, { cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(() => ProjectModel, (project) => project.resume, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   projects: ProjectModel[];
 
-  @OneToMany(() => CareerModel, (career) => career.resume, { 
-    cascade: true, 
+  @OneToMany(() => CareerModel, (career) => career.resume, {
+    cascade: true,
     onDelete: 'CASCADE',
-    nullable: true 
+    nullable: true,
   })
   careers: CareerModel[];
 
-  @OneToMany(() => AchievementModel, (achievement) => achievement.resume, { 
-    cascade: true, 
+  @OneToMany(() => AchievementModel, (achievement) => achievement.resume, {
+    cascade: true,
     onDelete: 'CASCADE',
-    nullable: true 
+    nullable: true,
   })
   achievements: AchievementModel[];
 
-  @OneToMany(() => CustomModel, (custom) => custom.resume, { 
-    cascade: true, 
+  @OneToMany(() => CustomModel, (custom) => custom.resume, {
+    cascade: true,
     onDelete: 'CASCADE',
-    nullable: true 
+    nullable: true,
   })
   customs: CustomModel[];
 
-  @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume, { 
-    cascade: true, 
-    onDelete: 'CASCADE' 
+  @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume, {
+    cascade: true,
+    onDelete: 'CASCADE',
   })
   blockOrders: OrderModel[];
 }
