@@ -1,15 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import MenuIcon from "@mui/icons-material/Menu";
-import {
-  AppBar,
-  Box,
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  Toolbar,
-} from "@mui/material";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -56,132 +47,248 @@ const Header = () => {
 
   return (
     <>
-      <AppBar
-        position="fixed"
-        sx={{
-          bgcolor: "rgba(255, 255, 255, 0.8)",
-          backdropFilter: "blur(5px)",
-          boxShadow: "none",
-          color: "black",
-          top: 0,
-          zIndex: 1000,
-          borderBottom: 1,
-          borderColor: "#d2d1d1",
-          height: "70px",
-        }}
+      <header
+        css={css`
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          width: 100vw;
+          z-index: 1000;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(5px);
+          border-bottom: 1px solid #d2d1d1;
+          height: 80px;
+        `}
       >
-        <Toolbar
-          sx={{
-            minHeight: "70px",
-            px: 2,
-            display: "flex",
-            alignItems: "center",
-            position: "relative", // 로고를 중앙 정렬하기 위한 기준
-          }}
+        <div
+          css={css`
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            box-sizing: border-box;
+            padding: 0 1rem;
+          `}
         >
-          <div css={containerStyle}>
-            {/* 모바일용 햄버거 메뉴 (왼쪽) */}
-            <Box sx={{ display: { xs: "flex", md: "none" }, zIndex: 2 }}>
-              <IconButton onClick={handleMenuClick}>
-                <MenuIcon sx={{ color: "#3369c7" }} />
-              </IconButton>
-            </Box>
-
-            {/* 로고 */}
-            <Box
-              sx={{
-                position: { xs: "absolute", md: "static" },
-                left: { xs: "50%", md: "auto" },
-                transform: { xs: "translateX(-50%)", md: "none" },
-                zIndex: 1,
-              }}
+          {/* 모바일용 햄버거 메뉴 (왼쪽) */}
+          <div
+            css={css`
+              display: none;
+              @media (max-width: 900px) {
+                display: flex;
+                z-index: 2;
+              }
+            `}
+          >
+            <button
+              css={css`
+                background: none;
+                border: none;
+                padding: 0.5rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+              `}
+              onClick={handleMenuClick}
             >
-              <img
-                src={logo}
-                alt="로고"
-                css={css`
-                  height: 70px;
-                  cursor: pointer;
-                `}
-                onClick={() => navigate("/")}
-              />
-            </Box>
-
-            {/* PC 메뉴 (중앙) */}
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                flexGrow: 1,
-                ml: 3,
-              }}
-            >
-              <Button
-                onClick={() => handleNavigate("/resume")}
-                sx={{ color: "#3369c7", fontSize: "1.1rem" }}
-              >
-                이력서
-              </Button>
-              <Button
-                onClick={() => navigate("/inquiry")}
-                sx={{ color: "#3369c7", fontSize: "1.1rem" }}
-              >
-                문의
-              </Button>
-              <Button
-                onClick={() => navigate("/community/general")}
-                sx={{ color: "#3369c7", fontSize: "1.1rem" }}
-              >
-                커뮤니티
-              </Button>
-            </Box>
-
-            {/* 로그인 or 프로필 (오른쪽) */}
-            <Box sx={{ ml: "auto", display: "flex", alignItems: "center" }}>
-              {!isLogin ? (
-                <Button variant="contained" onClick={handleOpenLogin}>
-                  로그인
-                </Button>
-              ) : (
-                <ProfileButton />
-              )}
-            </Box>
+              <MenuIcon sx={{ color: "#3369c7" }} />
+            </button>
           </div>
-        </Toolbar>
+
+          {/* 로고 */}
+          <div
+            css={css`
+              position: static;
+              left: auto;
+              transform: none;
+              z-index: 1;
+              // margin: 0 1rem;
+              @media (max-width: 900px) {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+              }
+            `}
+          >
+            <img
+              src={logo}
+              alt="로고"
+              css={css`
+                height: 45px;
+                cursor: pointer;
+                transition: filter 0.2s;
+                &:hover {
+                  filter: brightness(0.85);
+                }
+              `}
+              onClick={() => navigate("/")}
+            />
+          </div>
+
+          {/* PC 메뉴 (중앙) */}
+          <nav
+            css={css`
+              display: flex;
+              flex-grow: 1;
+              margin-left: 2rem;
+              @media (max-width: 900px) {
+                display: none;
+              }
+            `}
+          >
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                margin-right: 1.5rem;
+                cursor: pointer;
+              `}
+              onClick={() => handleNavigate("/resume")}
+            >
+              이력서
+            </button>
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                margin-right: 1.5rem;
+                cursor: pointer;
+              `}
+              onClick={() => navigate("/inquiry")}
+            >
+              문의
+            </button>
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                margin-right: 1.5rem;
+                cursor: pointer;
+              `}
+              onClick={() => navigate("/community/general")}
+            >
+              커뮤니티
+            </button>
+          </nav>
+
+          {/* 로그인 or 프로필 (오른쪽) */}
+          <div
+            css={css`
+              margin-left: auto;
+              display: flex;
+              align-items: center;
+              margin-right: 1rem;
+
+            `}
+          >
+            {!isLogin ? (
+              <button
+                css={css`
+                  background: #3369c7;
+                  color: #fff;
+                  border: none;
+                  border-radius: 5px;
+                  padding: 0.5rem 1.2rem;
+                  font-size: 1rem;
+                  cursor: pointer;
+                  font-weight: bold;
+                  box-shadow: 0 2px 8px rgba(51, 105, 199, 0.08);
+                  transition: background 0.2s;
+                  &:hover {
+                    background: #254e8e;
+                  }
+                `}
+                onClick={handleOpenLogin}
+              >
+                로그인
+              </button>
+            ) : (
+              <ProfileButton />
+            )}
+          </div>
+        </div>
 
         {/* 모바일용 메뉴 드롭다운 */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-        >
-          <MenuItem
-            onClick={() => {
-              handleNavigate("/resume");
-              handleMenuClose();
-            }}
+        {anchorEl && (
+          <div
+            css={css`
+              position: absolute;
+              top: 70px;
+              left: 0;
+              width: 100vw;
+              background: #fff;
+              box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+              z-index: 2000;
+              display: flex;
+              flex-direction: column;
+            `}
           >
-            이력서
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              navigate("/inquiry");
-              handleMenuClose();
-            }}
-          >
-            문의
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              navigate("/community/general");
-              handleMenuClose();
-            }}
-          >
-            커뮤니티
-          </MenuItem>
-        </Menu>
-      </AppBar>
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                padding: 1rem;
+                text-align: left;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+              `}
+              onClick={() => {
+                handleNavigate("/resume");
+                handleMenuClose();
+              }}
+            >
+              이력서
+            </button>
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                padding: 1rem;
+                text-align: left;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+              `}
+              onClick={() => {
+                navigate("/inquiry");
+                handleMenuClose();
+              }}
+            >
+              문의
+            </button>
+            <button
+              css={css`
+                background: none;
+                border: none;
+                color: #3369c7;
+                font-size: 1.1rem;
+                padding: 1rem;
+                text-align: left;
+                cursor: pointer;
+              `}
+              onClick={() => {
+                navigate("/community/general");
+                handleMenuClose();
+              }}
+            >
+              커뮤니티
+            </button>
+          </div>
+        )}
+      </header>
       {/* 로그인 모달 */}
       <LoginForm />
     </>
