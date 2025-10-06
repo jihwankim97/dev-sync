@@ -19,6 +19,7 @@ export class OrderModel extends BaseUuidModel {
   blockId: string; // 커스텀 블록의 경우에만 사용
 
   @ManyToOne(() => ResumeModel, (resume) => resume.blockOrders, {
+    cascade: true,
     onDelete: 'CASCADE',
   })
   resume: ResumeModel;

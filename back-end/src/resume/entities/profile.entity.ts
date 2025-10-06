@@ -25,7 +25,10 @@ export class ProfileModel extends BaseUuidModel {
   @Column({ nullable: true, name: 'blog_url' })
   blogUrl: string;
 
-  @OneToOne(() => ResumeModel, (resume) => resume.profile)
+  @OneToOne(() => ResumeModel, (resume) => resume.profile, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   resume: ResumeModel;
 }

@@ -19,6 +19,10 @@ export class CareerModel extends BaseUuidModel {
   @Column()
   description: string;
 
-  @ManyToOne(() => ResumeModel, (resume) => resume.careers)
+  @ManyToOne(() => ResumeModel, (resume) => resume.careers, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   resume: ResumeModel;
 }

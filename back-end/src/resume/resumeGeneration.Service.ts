@@ -74,7 +74,7 @@ export class ResumeGenerationService {
       items: projects,
     });
 
-    return this.resumeService.getResumeDetails(resume.id);
+    return await this.resumeService.getResumeDetails(resume.id);
   }
 
   async callResumeCompletion(profileData: string): Promise<string> {
