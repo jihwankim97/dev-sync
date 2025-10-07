@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
 type PostType = {
-  post_id: number;
+  id: number;
   title: string;
   content: string;
   viewCount: number;
@@ -95,19 +95,19 @@ export const CommunityListPage = () => {
   };
 
   const handleListClick = async (post: {
-    post_id: number;
+    id: number;
     title: string;
     content: string;
     viewCount: number;
   }) => {
     // console.log(post);
-    await increaseViewCount(post.post_id);
+    await increaseViewCount(post.id);
 
     const updatedPost = {
       ...post,
       viewCount: post.viewCount + 1,
     };
-    navigate(`/community/post/${post.post_id}`, { state: updatedPost });
+    navigate(`/community/post/${post.id}`, { state: updatedPost });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -122,6 +122,8 @@ export const CommunityListPage = () => {
     currentPage * postsPerPage
   );
 
+  console.log(paginatedPosts)
+
   return (
     <>
       <List
@@ -129,31 +131,12 @@ export const CommunityListPage = () => {
           bgcolor: "background.paper",
         }}
       >
-        {paginatedPosts.map((post) => (
-          <div key={post.post_id}>
+        {paginatedPosts.map((post, index) => (
+          <div key={`${post.id} - ${index}`}>
             <ListItem onClick={() => handleListClick(post)}>
               <ListItemText
                 primary={post.title}
                 secondary={removeTag(post.content) || ""}
-                // primaryTypographyProps={{
-                //   sx: {
-                //     fontSize: "1rem",
-                //     fontWeight: "bold",
-                //     whiteSpace: "nowrap",
-                //     overflow: "hidden",
-                //     textOverflow: "ellipsis",
-                //   },
-                // }}
-                // secondaryTypographyProps={{
-                //   sx: {
-                //     fontSize: "0.8rem",
-                //     fontColor: "#454545",
-                //     whiteSpace: "nowrap",
-                //     overflow: "hidden",
-                //     textOverflow: "ellipsis",
-                //     padding: "5px 0px 15px 0px",
-                //   },
-                // }}
               />
               <Box
                 sx={{

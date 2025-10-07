@@ -218,8 +218,7 @@ export const ResumePreviewPanel = forwardRef<HTMLDivElement, Props>(
                       `}
                     >
                       <div css={styleTheme.careerLeft}>
-                        {section.startDate} ~{" "}
-                        {/* {section.isCurrent ? "현재" : section.endDate} */}
+                        {section.startDate} ~ {section.endDate === "" ? "재직중" : section.endDate}
                       </div>
                       <div
                         css={css`

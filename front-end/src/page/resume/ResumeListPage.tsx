@@ -45,6 +45,7 @@ export const ResumeListPage = () => {
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [ListUpdate, setListUpdate] = useState(false);
 
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
@@ -61,7 +62,6 @@ export const ResumeListPage = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log(data);
       dispatch(setResume(data));
     } catch (error) {
       console.error("이력서 가져오기 실패:", error);
@@ -90,7 +90,7 @@ export const ResumeListPage = () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const result = await response.json();
-    console.log(result);
+    setListUpdate(!ListUpdate);
   };
 
   useEffect(() => {
@@ -105,7 +105,6 @@ export const ResumeListPage = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log(data);
         setResumes(data);
       } catch (error) {
         console.error("이력서 리스트 가져오기 실패:", error);
@@ -113,15 +112,15 @@ export const ResumeListPage = () => {
     };
 
     fetchResumes();
-  }, []);
+  }, [ListUpdate]);
 
   const handleEntryResume = async (id: string) => {
     const result = await GetExistResume(id);
 
-    console.log(result);
     navigate(`/resume/${result.id}/editor`);
     dispatch(setResume(result));
   };
+
 
   return (
     <Box
@@ -136,8 +135,8 @@ export const ResumeListPage = () => {
       </Typography>
       <Divider sx={{ mb: 3 }} />
       <Grid container spacing={4}>
-        {resumes.map((resume) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={resume.id}>
+        {resumes.map((resume, index) => (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={resume.id ?? `resume-${index}`}>
             <Card
               variant="outlined"
               css={css`
@@ -206,7 +205,7 @@ export const ResumeListPage = () => {
                     color: #767676;
                   `}
                 >
-                  {resume.updateAt.split("T")[0]} 수정
+                  {resume?.updateAt?.split("T")[0]}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -232,7 +231,10 @@ export const ResumeListPage = () => {
                   sx={{ gap: 1 }}
                   flexWrap="wrap"
                 >
-                  {[...resume.fam_skills, ...resume.str_skills].map(
+                  {[
+                    ...(Array.isArray(resume?.fam_skills) ? resume.fam_skills : []),
+                    ...(Array.isArray(resume?.str_skills) ? resume.str_skills : [])
+                  ].map(
                     (
                       skill: { id: string; icon: string; name: string },
                       idx

@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import type {
   ResumeData,
   CareersTypeSection,
@@ -35,6 +35,7 @@ export const CareerSection = ({
     section,
     onSave
   );
+  const [isCurrentArr, setIsCurrentArr] = useState<boolean[]>(localSection.items.map(() => false));
 
   return (
     <SectionWrapper
@@ -54,8 +55,35 @@ export const CareerSection = ({
                 display: flex;
               `}
             >
-              {/* <Switch checked={section.isCurrent} /> */}
-              <Typography>재직중</Typography>
+              <label
+                css={css`
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                `}
+              >
+                <input
+                  type="checkbox"
+                  checked={isCurrentArr[idx]}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newArr = [...isCurrentArr];
+                    newArr[idx] = checked;
+                    setIsCurrentArr(newArr);
+                    if (checked) {
+                      handleArrayItemChange(
+                        "items",
+                        section.id,
+                        "endDate",
+                        ""
+                      );
+                    }
+                  }}
+                  style={{ accentColor: '#1976d2', width: '18px', height: '18px' }}
+                />
+                <span>재직중</span>
+              </label>
             </div>
           ) : null}
 
@@ -121,6 +149,7 @@ export const CareerSection = ({
                   <DatePicker
                     label="퇴사년월"
                     css={textFieldStyle}
+                    disabled={isCurrentArr[idx]}
                     value={section.endDate ? dayjs(section.endDate) : null}
                     onChange={(newValue) => {
                       if (newValue) {

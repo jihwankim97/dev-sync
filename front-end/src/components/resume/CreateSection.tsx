@@ -13,7 +13,6 @@ import type {
   AchievementsTypeSection,
   CareerItem,
   CareersTypeSection,
-  ResumeData,
 } from "../../types/resume.type";
 import { addResume } from "../../redux/resumeSlice";
 import { useDispatch } from "react-redux";
@@ -27,8 +26,6 @@ const sectionTemplates = {
     startDate: "",
     endDate: "",
     description: "",
-    isCurrent: false,
-    technologies: [] as string[],
   },
   achievement: {
     id: "",
@@ -46,11 +43,6 @@ const sectionTemplates = {
   },
 } as const;
 
-interface GitResumeProps {
-  sections: ResumeData;
-  setSections?: Dispatch<SetStateAction<ResumeData>>;
-}
-
 export const CreateSection = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const dispatch = useDispatch();
@@ -64,32 +56,32 @@ export const CreateSection = () => {
     if (type === "career" || type === "achievement") {
       const sectionKey = type === "career" ? "careers" : "achievements";
 
-      // 새 item 생성
-      const newItem: CareerItem | AchievementItem =
-        type === "career"
-          ? {
-            id: crypto.randomUUID(),
-            type: "career",
-            company: "",
-            position: "",
-            startDate: "",
-            endDate: "",
-            description: "",
-          }
-          : {
-            id: crypto.randomUUID(),
-            type: "achievement",
-            title: "",
-            organization: "",
-            date: "",
-            description: "",
-          };
-
       dispatch(
         addResume((draft) => {
           const existingSection = draft.entities.find(
             (s) => s.type === sectionKey
           ) as CareersTypeSection | AchievementsTypeSection | undefined;
+
+          const newItem: CareerItem | AchievementItem = (() => {
+            if (type === "career") {
+              return {
+                id: crypto.randomUUID(),
+                company: "",
+                position: "",
+                startDate: "",
+                endDate: " ",
+                description: "",
+              };
+            } else {
+              return {
+                id: crypto.randomUUID(),
+                title: "",
+                organization: "",
+                date: "",
+                description: "",
+              };
+            }
+          })();
 
           if (existingSection) {
             // 기존 섹션에 items 추가
@@ -103,12 +95,12 @@ export const CreateSection = () => {
             const newSection =
               type === "career"
                 ? {
-                  id: "temp-" + crypto.randomUUID(),
+                  id: "temp-careers",
                   type: "careers" as const,
                   items: [newItem as CareerItem],
                 }
                 : {
-                  id: crypto.randomUUID(),
+                  id: "temp-achievements",
                   type: "achievements" as const,
                   items: [newItem as AchievementItem],
                 };

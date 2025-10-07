@@ -54,8 +54,8 @@ export const CommunityLayout = () => {
         `}
       >
         <ul css={css`list-style: none; margin: 0; padding: 0;`}>
-          {categories.map((cat) => (
-            <li key={cat.category_id}>
+          {categories.map((cat, index) => (
+            <li key={index}>
               <button
                 css={css`
                   width: 100%;

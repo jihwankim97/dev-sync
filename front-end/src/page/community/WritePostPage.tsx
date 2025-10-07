@@ -238,14 +238,14 @@ export const WritePostPage = () => {
           const result = await EditContentSave({
             title: title,
             content: quill.root.innerHTML,
-            postId: location.state.post_id,
+            postId: location.state.id,
             category: selectedCategory,
           });
           const updatedPost = {
             ...result,
             viewCount: result.viewCount + 1,
           };
-          navigate(`/community/post/${result.post_id}`, { state: updatedPost });
+          navigate(`/community/post/${result.id}`, { state: updatedPost });
         } else {
           // 최종 업데이트된 HTML을 적용 (quill 에디터에 다시 삽입)
 

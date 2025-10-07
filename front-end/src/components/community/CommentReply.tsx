@@ -1,12 +1,14 @@
 /** @jsxImportSource @emotion/react */
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import { Button, css, Divider, TextField } from "@mui/material";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { GetCommentList } from "../../api/GetCommentList";
 import { SendComment } from "../../api/SendComment";
 import { useEvent } from "../../hooks/useEvent";
+import { fetchUserInfo } from "../../api/UserApi";
+import { userInfo } from "../../types/resume.type";
 
 export const CommentReply = ({
   parentId,
@@ -22,14 +24,33 @@ export const CommentReply = ({
   setReplying: any;
 }) => {
   const location = useLocation();
-  const userId = useSelector((state: any) => state.login.loginInfo.user_id);
-  const postId = location.state.post_id; // `navigate`에서 전달된 데이터
+  // const userId = useSelector((state: any) => state.login.loginInfo.user_id);
+  const postId = location.state.id; // `navigate`에서 전달된 데이터
   const textRef = useRef<HTMLInputElement | null>(null);
+  const [userData, setUserData] = useState<userInfo>();
+  let userId: number | undefined = undefined;
+  if (userData) {
+    userId = userData.id;
+  }
+
+  useEffect(() => {
+    fetchUserInfo()
+      .then((data) => {
+        setUserData(data);
+      })
+      .catch((err) => {
+        console.log(err.message || "알 수 없는 에러");
+      });
+  }, []);
+
+  console.log()
 
   const replyComment = useEvent(async (value: any) => {
-    await SendComment(value, parentId, userId, postId);
-    setPage(1);
-    GetCommentList(1, postId, setComments, setTotalPages);
+    if (typeof userId === "number") {
+      await SendComment(value, parentId, userId, postId);
+      setPage(1);
+      GetCommentList(1, postId, setComments, setTotalPages);
+    }
   });
 
   const onChangeTextField = () => {
