@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { RemovePost } from "../../api/RemovePost";
 
-export const DeletePostDlalog = ({
+export const DeletePostDialog = ({
   open,
   setOpen,
   postId,
@@ -25,6 +25,7 @@ export const DeletePostDlalog = ({
   };
 
   const handleDelete = async () => {
+    console.log(postId);
     await RemovePost(postId);
     setOpen(false);
     navigate(-1);

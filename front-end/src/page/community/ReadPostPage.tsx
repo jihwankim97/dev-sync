@@ -5,12 +5,11 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { Button, css, Divider, Typography } from "@mui/material";
 import DOMPurify from "dompurify";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { GetLikeCount } from "../../api/GetLikeCount";
 import { ToggleLike } from "../../api/ToggleLike";
 import { CommentPost } from "../../components/community/CommentPost";
-import { DeletePostDlalog } from "../../components/community/DeletePostDialog";
+import { DeletePostDialog } from "../../components/community/DeletePostDialog";
 import { OptionBar } from "../../components/community/OptionBar";
 import type { userInfo } from "../../types/resume.type";
 import { fetchUserInfo } from "../../api/UserApi";
@@ -20,11 +19,9 @@ export const ReadPostPage = () => {
   const navigate = useNavigate();
   const [likeCount, setLikeCount] = useState<number>(0);
   const [liked, setLiked] = useState(false);
-  // const userId = useSelector((state: any) => state.login.loginInfo.user_id);
   const [userData, setUserData] = useState<userInfo>();
   const [open, setOpen] = useState(false);
   const post = location.state; // `navigate`에서 전달된 데이터
-  // if (!post) return null; // post가 없으면 렌더링 막기
   const [date, time] = post.createdAt.split("T");
   const formmatTime = time.substring(0, 5);
   //xss 방지를 위한 데이터 처리
@@ -43,7 +40,7 @@ export const ReadPostPage = () => {
   const checkLikeStatus = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/post/${post.post_id}/likes/status`,
+        `http://localhost:3000/post/${post.id}/likes/status`,
         {
           method: "GET",
           credentials: "include",
@@ -52,8 +49,8 @@ export const ReadPostPage = () => {
       if (!response.ok) throw new Error("Failed to check like status");
 
       const value = await response.text();
-      const like = value === "" ? false : true;
-      return like;
+      console.log("value", value);
+      return value;
     } catch (error) {
       console.error(error);
       return false;
@@ -61,10 +58,11 @@ export const ReadPostPage = () => {
   };
 
   useEffect(() => {
-    if (post.post_id) {
+    if (post.id) {
       const checkLike = async () => {
         const status = await checkLikeStatus();
-        if (status) {
+        console.log("status", status);
+        if (status === "true") {
           setLiked(true);
         } else {
           setLiked(false);
@@ -75,7 +73,7 @@ export const ReadPostPage = () => {
   }, []);
 
   const count = async () => {
-    const data = await GetLikeCount(post.post_id);
+    const data = await GetLikeCount(post.id);
     setLikeCount(data);
   };
 
@@ -86,7 +84,7 @@ export const ReadPostPage = () => {
 
   const handleButton = async () => {
     setLiked(!liked);
-    await ToggleLike(post.post_id);
+    await ToggleLike(post.id);
     count();
   };
 
@@ -100,10 +98,9 @@ export const ReadPostPage = () => {
       edit: true,
       from: post.category.category,
     };
-    navigate(`/post/${post.post_id}/edit`, { state: updatedPost });
+    navigate(`/post/${post.id}/edit`, { state: updatedPost });
   };
 
-  console.log("리드 포스트", post.content);
 
   return (
     <>
@@ -140,7 +137,7 @@ export const ReadPostPage = () => {
                 {post.title}
               </div>
               <div>
-                {post?.user?.user_id === userData?.user_id && (
+                {post?.user?.id === userData?.id && (
                   <OptionBar
                     deleteClick={handleDelete}
                     editClick={handleEditPost}
@@ -241,7 +238,7 @@ export const ReadPostPage = () => {
         <CommentPost />
         {/* </div> */}
       </div>
-      <DeletePostDlalog open={open} setOpen={setOpen} postId={post.post_id} />
+      <DeletePostDialog open={open} setOpen={setOpen} postId={post.id} />
     </>
   );
 };

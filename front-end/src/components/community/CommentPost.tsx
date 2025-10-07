@@ -38,8 +38,9 @@ const CommentLayout = memo(
   }) => {
     const [userData, setUserData] = useState<userInfo>();
     const userId = userData?.id;
+    const userName = userData?.name;
     const location = useLocation();
-    const postId = location.state.post_id; // `navigate`에서 전달된 데이터
+    const postId = location.state.id; // `navigate`에서 전달된 데이터
     const textRef = useRef<HTMLInputElement | null>(null);
     const isLogin = useSelector((state: RootState) => state.login.loggedIn);
     const dispatch = useDispatch();
@@ -60,20 +61,20 @@ const CommentLayout = memo(
     }, []);
 
     const handleDeleteComment = async () => {
-      await RemoveComment(comment.comment_id);
+      await RemoveComment(comment.id);
 
-      GetCommentList(1, postId, setComments, setTotalPages);
+      await GetCommentList(1, postId, setComments, setTotalPages);
     };
     const handleEdit = () => {
-      setEditTargetId(comment.comment_id);
+      setEditTargetId(comment.id);
     };
 
-    const isEditing = editTargetId === comment.comment_id;
+    const isEditing = editTargetId === comment.id;
 
     const handleEditSave = async () => {
       if (textRef.current != undefined) {
         console.log(textRef.current.value);
-        await EditComment(textRef?.current?.value, comment.comment_id);
+        await EditComment(textRef?.current?.value, comment.id);
         setEditTargetId(null);
         await GetCommentList(1, postId, setComments, setTotalPages);
       }
@@ -85,7 +86,7 @@ const CommentLayout = memo(
       } else {
         setReplying({
           isReplying: !replying.isReplying,
-          parent_id: comment.comment_id,
+          parent_id: comment.id,
         });
       }
     };
@@ -103,7 +104,7 @@ const CommentLayout = memo(
           {comment.parent && (
             <div
               css={css`
-                padding-right:;
+                padding-right: 4px;
               `}
             >
               <SubdirectoryArrowRightIcon />
@@ -160,7 +161,7 @@ const CommentLayout = memo(
                   </div>
                 </div>
               </div>
-              {comment.user_id === userId && (
+              {comment.user_name === userName && (
                 <OptionBar
                   deleteClick={handleDeleteComment}
                   editClick={handleEdit}
@@ -247,10 +248,10 @@ const CommentLayout = memo(
         {/* 답글이 있으면 재귀적으로 렌더링 */}
         {comment.replies && comment.replies.length > 0 && (
           <div>
-            {comment.replies.map((reply: any) => (
+            {comment.replies.map((reply: any, index: number) => (
               <CommentLayout
                 setPage={setPage}
-                key={reply.comment_id}
+                key={reply.comment_id ?? `reply-${index}`}
                 comment={reply}
                 comments={comments}
                 setComments={setComments}
@@ -271,7 +272,7 @@ export const CommentPost = () => {
   const [userData, setUserData] = useState<userInfo>();
 
   const location = useLocation();
-  const postId = location.state.post_id; // `navigate`에서 전달된 데이터
+  const postId = location.state.id; // `navigate`에서 전달된 데이터
   const [comments, setComments] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -294,12 +295,15 @@ export const CommentPost = () => {
   }
 
   useEffect(() => {
+    console.log('useEffect', comments)
+  }, [comments])
+
+  useEffect(() => {
     GetCommentList(page, postId, setComments, setTotalPages);
   }, [page]);
 
   //댓글 입력시 이벤트 처리
   const eventComment = useEvent(async (value: any) => {
-    console.log(value, userId, postId);
     await SendComment(value, null, userId, postId);
     //댓글 추가후 첫페이지로 이동 및 댓글 가져오기
     await GetCommentList(1, postId, setComments, setTotalPages);
@@ -324,7 +328,7 @@ export const CommentPost = () => {
   const commentPage = Math.ceil(totalPages / 20);
 
   const groupComments = CommentGroup(comments);
-
+  console.log('groupComments', groupComments)
   return (
     <>
       <div
@@ -384,9 +388,9 @@ export const CommentPost = () => {
         </Button>
       </div>
       {/* 댓글 그룹화된 데이터 출력 */}
-      {groupComments.map((rootComment) => (
+      {groupComments.map((rootComment, index) => (
         <CommentLayout
-          key={rootComment.comment_id}
+          key={rootComment.comment_id ?? `comment-${index}`}
           comment={rootComment}
           comments={comments}
           setComments={setComments}

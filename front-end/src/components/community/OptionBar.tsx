@@ -57,10 +57,9 @@ export const OptionBar = ({
       >
         <div
           css={css`
-                        width: 4rem;
-                        height: 5.3rem;
+                        width: auto;
+                        height: auto;
                         font-size: 0.9rem;
-                        },
                       `}
         >
           <div>
