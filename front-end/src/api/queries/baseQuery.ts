@@ -1,25 +1,44 @@
 //api 호출시 공통 함수
-
 export async function request<T>({
   method,
   body,
   url,
+  responseType,
 }: {
-  method: string;
+  method?: string;
   body?: T;
   url: string;
+  responseType?: "json" | "text" | "boolean";
 }) {
-  const response = await fetch(url, {
+  console.log(url);
+  let fetchOptions: RequestInit = {
     method,
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  };
 
+  if (body instanceof FormData) {
+    fetchOptions.body = body;
+  } else if (body) {
+    fetchOptions.body = JSON.stringify(body);
+    fetchOptions.headers = { "Content-Type": "application/json" };
+  }
+
+  const response = await fetch(url, fetchOptions);
+
+  if (url.includes("/auth/logout")) {
+    console.log("Logged out");
+    return true;
+  }
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "API 요청 실패");
   }
 
+  if (responseType === "text") {
+    return response.text();
+  }
+  if (responseType === "boolean") {
+    return true;
+  }
   return response.json();
 }
