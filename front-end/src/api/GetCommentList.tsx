@@ -23,6 +23,7 @@ export const GetCommentList = async (
       ...comment,
       isDeleted: false,
     }));
+    
     setComments(updatedComments);
 
     // setComments(data.comments);

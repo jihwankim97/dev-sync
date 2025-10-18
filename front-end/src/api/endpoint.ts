@@ -1,8 +1,11 @@
-const BASE_URL = import.meta.env.BASE_URL;
-export const ENDPOINTS = 
-{
-   post : (postId : number) => `${BASE_URL}/${postId}`,
-   resume : (resumeId :number) =>`${BASE_URL}/${resumeId}`,
-   user : (userId : number) => `${BASE_URL}/${userId}`,
-   base : () => `${BASE_URL}`
-}
+const BASE_URL = `${import.meta.env.VITE_API_PROTOCOL}://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}`;
+console.log("BASE_URL:", BASE_URL);
+export const ENDPOINTS = {
+  post: (postId: string) => `${BASE_URL}/${postId}`,
+  comment: (postId: string) => `${BASE_URL}/post/comment/${postId}`,
+  resume: (resumeId: number) => `${BASE_URL}/${resumeId}`,
+  user: () => `${BASE_URL}/user`,
+  userId: (userId: string) => `${BASE_URL}/user/${userId}`,
+  base: () => `${BASE_URL}`,
+  auth: (state: string) => `${BASE_URL}/auth/${state}`,
+};

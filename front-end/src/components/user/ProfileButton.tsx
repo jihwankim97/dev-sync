@@ -1,12 +1,25 @@
 import { Avatar, Menu, MenuItem } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logoutUser } from "../../api/auth";
+import { request } from "../../api/queries/baseQuery";
+import { ENDPOINTS } from "../../api/endpoint";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
 
 const ProfileButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
+
+  const logoutMutation = useMutation({
+    mutationFn: () => request({ method: "GET", url: ENDPOINTS.auth("logout") }),
+    onSuccess: () => {
+      window.location.href = "/";
+    },
+    onError: (error: any) => {
+      console.error("로그아웃 실패:", error);
+    },
+  });
 
   const handleClick = () => {
     navigate("/Users"); // 새로운 경로로 이동
@@ -20,12 +33,10 @@ const ProfileButton = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = async () => {
-    const isLogout = await logoutUser();
-    if (isLogout) {
-      window.location.href = "/"; // 로그아웃 후 리디렉션
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
+
 
   return (
     <>

@@ -2,10 +2,14 @@ import { css } from "@emotion/react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { StrictMode, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { setloggedIn } from "../redux/loginSlice";
 import { Outlet } from "react-router-dom";
 import "devicon/devicon.min.css";
+import { userKeys } from "../api/queryKeys";
+import { ENDPOINTS } from "../api/endpoint";
+import { request } from "../api/queries/baseQuery";
 
 const layoutStyle = css`
   display: flex;
@@ -48,19 +52,19 @@ const innerContentStyle = css`
 function App() {
   const dispatch = useDispatch();
 
+  const { data } = useQuery<string>({
+    queryKey: [userKeys.auth("login")],
+    queryFn: () =>
+      request({ method: "GET", url: ENDPOINTS.auth("status"), responseType: "text" })
+  });
+
   useEffect(() => {
-    fetch("http://localhost:3000/auth/status", {
-      credentials: "include",
-    })
-      .then((response) => response.text())
-      .then((data) => {
-        if (data === "Not authenticated") {
-          dispatch(setloggedIn(false));
-        } else {
-          dispatch(setloggedIn(true));
-        }
-      });
-  }, []);
+    if (data === "Not authenticated") {
+      dispatch(setloggedIn(false)); // 로그인 상태 false로 설정
+    } else {
+      dispatch(setloggedIn(true)); // 로그인 상태 true로 설정
+    }
+  }, [data]);
 
   return (
     <div css={layoutStyle}>
