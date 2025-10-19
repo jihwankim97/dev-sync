@@ -1,4 +1,5 @@
-import { IsString, IsDateString, IsOptional, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsUUID, IsDate } from 'class-validator';
 
 export class CreateAchievementDto {
   @IsUUID()
@@ -11,8 +12,9 @@ export class CreateAchievementDto {
   @IsString()
   organization?: string;
 
-  @IsDateString()
-  date: string;
+  @Type(() => Date)
+  @IsDate()
+  date: Date;
 
   @IsOptional()
   @IsString()

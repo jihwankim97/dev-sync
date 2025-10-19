@@ -4,7 +4,7 @@ import { BaseModel } from 'src/common/entity/base.entity';
 
 @Entity()
 export class SkillModel extends BaseModel {
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column({ nullable: true })

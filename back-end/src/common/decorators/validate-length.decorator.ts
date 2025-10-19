@@ -4,6 +4,7 @@ import {
   POST_VALIDATION,
   COMMENT_VALIDATION,
 } from '../const/validation.const';
+import { BadRequestException } from '@nestjs/common';
 
 export function ValidateLength(
   fieldType:
@@ -54,6 +55,6 @@ function getValidationConfig(fieldType: string) {
     case 'COMMENT_CONTENT':
       return COMMENT_VALIDATION.CONTENT;
     default:
-      throw new Error(`Unknown field type: ${fieldType}`);
+      throw new BadRequestException(`알 수 없는 필드 타입: ${fieldType}`);
   }
 }

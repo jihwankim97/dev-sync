@@ -1,6 +1,6 @@
 import {
   IsArray,
-  IsDateString,
+  IsDate,
   IsOptional,
   IsString,
   IsUUID,
@@ -10,7 +10,6 @@ import { CreateOutcomeDto } from './create-project-outcome.dto';
 import { Type } from 'class-transformer';
 
 export class CreateProjectDto {
-
   @IsUUID()
   id: string;
 
@@ -20,15 +19,16 @@ export class CreateProjectDto {
   @IsString()
   description: string;
 
-  @IsDateString()
-  startDate: string;
+  @Type(() => Date)
+  @IsDate()
+  startDate: Date;
 
+  @Type(() => Date)
+  @IsDate()
   @IsOptional()
-  @IsDateString()
-  endDate?: string;
+  endDate?: Date;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateOutcomeDto)
   outcomes: CreateOutcomeDto[];
 }

@@ -24,7 +24,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     const { name, emails } = profile;
 
     const email = emails[0].value;
-    let user: User = await this.userService.getUser(email);
+    let user: User = await this.userService.findByEmail(email);
     if (!user) {
       user = await this.userService.findByEmailOrSave(
         email,

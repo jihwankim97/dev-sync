@@ -117,7 +117,7 @@ export class CommonService {
     const split = key.split('__');
 
     if (split.length !== 2 && split.length !== 3) {
-      throw new BadRequestException(`Invalid key format: ${key}`);
+      throw new BadRequestException(`잘못된 키 형식: ${key}`);
     }
 
     if (split.length === 2) {

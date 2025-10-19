@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsIn } from 'class-validator';
 import { POST_CATEGORY_VALUES } from 'src/post/enum/post-category.enum';
 
-export class GetSearchPostsDto {
+export class SearchPostDto {
   @IsString()
   keyword: string;
 
