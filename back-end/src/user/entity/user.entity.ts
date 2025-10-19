@@ -35,7 +35,7 @@ export class User extends BaseModel {
   @Column({ nullable: true, name: 'department_name' })
   departmentName: string;
 
-  @OneToMany(() => Post, (post) => post.user)
+  @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
 
   @OneToMany(() => ResumeModel, (resume) => resume.author)

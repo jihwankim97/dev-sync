@@ -16,7 +16,7 @@ export class OrderModel extends BaseUuidModel {
   blockType: ResumeBlockType;
 
   @Column({ nullable: true, name: 'block_id' })
-  blockId: string; // 커스텀 블록의 경우에만 사용
+  blockId: string;
 
   @ManyToOne(() => ResumeModel, (resume) => resume.blockOrders, {
     cascade: true,

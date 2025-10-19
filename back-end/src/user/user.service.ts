@@ -5,60 +5,47 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
 
-  // 사용자 조회
-  async getUser(email: string) {
-    return await this.userRepository.findOne({ where: { email } });
+  async findOne(userId: number) {
+    return this.userRepository.findOne({ where: { id: userId } });
   }
 
-  async getUserById(user_id: number) {
-    return await this.userRepository.findOne({ where: { id: user_id } });
-  }
-
-  // 사용자 업데이트 (프로필 이미지 포함)
-  async updateUser(updateUserDto: Partial<UpdateUserDto>) {
-    const email = updateUserDto.email;
-
-    if (!email) {
-      throw new HttpException('이메일이 필요합니다.', HttpStatus.BAD_REQUEST);
-    }
-
+  async findByEmail(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
 
-    if (!user) {
+    return user;
+  }
+
+  async update(email: string, updateUserDto: Partial<UpdateUserDto>) {
+    if (Object.keys(updateUserDto).length === 0) {
+      throw new HttpException(
+        '업데이트할 데이터가 없습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const result = await this.userRepository.update({ email }, updateUserDto);
+
+    if (result.affected === 0)
       throw new HttpException(
         '사용자를 찾을 수 없습니다.',
         HttpStatus.NOT_FOUND,
       );
-    }
-
-    const { profileImage, ...restDto } = updateUserDto;
-    user.profileImage = profileImage;
-    Object.assign(user, restDto);
-
-    return this.userRepository.save(user);
+    return this.userRepository.findOne({ where: { email } });
   }
 
   async updateProfile(email: string, file?: Express.Multer.File) {
-    if (!email) {
-      throw new HttpException('이메일이 필요합니다.', HttpStatus.BAD_REQUEST);
-    }
+    const user = await this.findByEmail(email);
 
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new HttpException(
-        '사용자를 찾을 수 없습니다.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    // 파일이 있는 경우에만 프로필 이미지 URL 업데이트
     if (file) {
       const uniqueFilename = `${uuidv4()}.png`;
       const newPath = `./uploads/${uniqueFilename}`;
@@ -68,11 +55,9 @@ export class UserService {
       }
 
       if (file.buffer) {
-        // 버퍼로 파일을 저장하고 새로운 이미지 URL 설정
         fs.writeFileSync(newPath, file.buffer as any);
-        user.profileImage = `http://localhost:3000/uploads/${uniqueFilename}`;
+        user.profileImage = `${this.configService.get('BASE_URL')}/uploads/${uniqueFilename}`;
       } else {
-        console.error('파일 버퍼가 존재하지 않습니다.');
         throw new HttpException(
           '파일 전송 실패',
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -88,21 +73,27 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  // 이메일로 사용자 조회 후 없으면 저장
-  async findByEmailOrSave(email, name) {
-    const foundUser = await this.getUser(email);
-    if (foundUser) {
-      return foundUser;
-    }
-    const newUser = this.userRepository.create({
-      email,
-      name,
-    });
-    return this.userRepository.save(newUser);
+  async findByEmailOrSave(email: string, name: string): Promise<User> {
+    await this.userRepository.upsert(
+      { email, name },
+      {
+        conflictPaths: ['email'],
+        skipUpdateIfNoValuesChanged: true,
+      },
+    );
+
+    return this.userRepository.findOne({ where: { email } });
   }
 
-  // 사용자 삭제
-  async deleteUser(email: any) {
-    return await this.userRepository.delete({ email });
+  async remove(email: string) {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new HttpException(
+        '사용자를 찾을 수 없습니다.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    await this.userRepository.remove(user);
+    return { message: '사용자가 삭제되었습니다.', email: user.email };
   }
 }

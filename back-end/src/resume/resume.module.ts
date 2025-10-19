@@ -16,10 +16,14 @@ import { AchievementModel } from './entities/achievement.entity';
 import { CareerModel } from './entities/career.entity';
 import { CustomModel } from './entities/custom.entity';
 import { OrderModel } from './entities/order.entity';
+import { githubRepoService } from './github-repo.service';
+import { CommonModule } from 'src/common/common.module';
+import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
 
 @Module({
   imports: [
     UserModule,
+    CommonModule,
     TypeOrmModule.forFeature([
       ResumeModel,
       IntroductionModel,
@@ -39,6 +43,9 @@ import { OrderModel } from './entities/order.entity';
     ResumeService,
     ResumeGenerationService,
     SkillSeederService,
+    githubRepoService,
+    ResumeOwnershipGuard,
   ],
+  exports: [ResumeService],
 })
 export class ResumeModule {}

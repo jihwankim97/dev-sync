@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -21,10 +22,10 @@ export class ContactService {
   ) {}
 
   async sendInquiryEmail(dto: CreateContactDto): Promise<string> {
-    const newContact = this.createContact(dto);
+    const newContact = await this.createContact(dto);
 
     if (!newContact) {
-      throw new Error('Failed to create contact record');
+      throw new BadRequestException('문의글 생성에 실패했습니다.');
     }
 
     const transporter = nodemailer.createTransport({
@@ -35,7 +36,6 @@ export class ContactService {
       },
     });
 
-    // 이메일 옵션
     const mailOptions = {
       from: `"Contact Manager System" <${this.configService.get<string>('ADMIN_EMAIL_MK')}>`,
       to: this.configService.get<string>('ADMIN_EMAIL_MK'),
@@ -48,14 +48,14 @@ export class ContactService {
       `,
     };
 
-    // 이메일 전송
     try {
       const info = await transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.messageId);
-      return `Email sent successfully: ${info.messageId}`;
+
+      return `이메일이 성공적으로 전송되었습니다. ${info.messageId}`;
     } catch (error) {
-      console.error('Failed to send email:', error.message || error);
-      throw new Error(`Failed to send email: ${error.message}`);
+      throw new BadRequestException(
+        `이메일 전송에 실패했습니다: ${error.message}`,
+      );
     }
   }
 
@@ -72,11 +72,11 @@ export class ContactService {
       password: hashPwd,
     });
 
-    return await this.contactRepository.save(contact);
+    return this.contactRepository.save(contact);
   }
 
   async getContacts() {
-    return await this.contactRepository.find({ order: { createdAt: 'DESC' } });
+    return this.contactRepository.find({ order: { createdAt: 'DESC' } });
   }
 
   async getContactListByEmail(user_email?: string) {
@@ -90,9 +90,12 @@ export class ContactService {
       throw new NotFoundException('해당 이메일로 작성된 문의글이 없습니다.');
     }
 
-    return contacts.map((c) =>
-      c.password
+    return contacts.map((c) => {
+      const hasPassword = !!c.password;
+
+      return hasPassword
         ? {
+            id: c.id,
             isPrivate: true,
           }
         : {
@@ -101,8 +104,8 @@ export class ContactService {
             title: c.title,
             createdAt: c.createdAt,
             isPrivate: false,
-          },
-    );
+          };
+    });
   }
 
   async getContactById(id: number, password?: string) {
@@ -112,16 +115,7 @@ export class ContactService {
       throw new NotFoundException('해당 문의글을 찾을 수 없습니다.');
     }
 
-    const isPrivate = !!contact.password;
-
-    if (isPrivate) {
-      if (!password) throw new UnauthorizedException('비밀번호가 필요합니다.');
-
-      const isMatch = await bcrypt.compare(password, contact.password);
-      if (!isMatch)
-        throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
-    }
-
+    await this.validatePassword(contact, password);
     return contact;
   }
 
@@ -132,16 +126,14 @@ export class ContactService {
       throw new NotFoundException('문의글을 찾을 수 없습니다.');
     }
 
-    const isPrivate = !!contact.password;
+    await this.validatePassword(contact, dto.password);
 
-    if (isPrivate) {
-      const isMatch = await bcrypt.compare(dto.password, contact.password);
-      if (!isMatch)
-        throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
-    }
+    const updated = this.contactRepository.merge(contact, {
+      title: dto.title,
+      content: dto.content,
+    });
 
-    const updated = this.contactRepository.merge(contact, dto);
-    return await this.contactRepository.save(updated);
+    return this.contactRepository.save(updated);
   }
 
   async deleteContact(id: number, password?: string) {
@@ -151,17 +143,26 @@ export class ContactService {
       throw new NotFoundException('문의글을 찾을 수 없습니다.');
     }
 
-    const isPrivate = !!contact.password;
+    await this.validatePassword(contact, password);
 
-    if (isPrivate) {
-      if (!password) throw new UnauthorizedException('비밀번호가 필요합니다.');
-
-      const isMatch = password === contact.password;
-      if (!isMatch)
-        throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+    const result = await this.contactRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('문의글을 찾을 수 없습니다.');
     }
 
-    await this.contactRepository.delete(id);
     return { message: '문의글이 삭제되었습니다.' };
+  }
+
+  private async validatePassword(contact: Contact, password?: string) {
+    if (!contact.password) return;
+
+    if (!password) {
+      throw new UnauthorizedException('비밀번호가 필요합니다.');
+    }
+
+    const isMatch = await bcrypt.compare(password, contact.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+    }
   }
 }

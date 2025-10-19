@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-import axios from 'axios';
-import { UserService } from 'src/user/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResumeModel } from './entities/resume.entity';
-import { ILike, In, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { IntroductionModel } from './entities/introduction.entity';
 import { CreateIntroductionDto } from './dto/create-introduction.dto';
 import { SkillModel } from './entities/skill.entity';
@@ -16,7 +13,6 @@ import { CreateOutcomeDto } from './dto/create-project-outcome.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateProjectsWidthOutcomesDto } from './dto/create-projects-width-outcomes.dto';
 import { CreateSkillsDto } from './dto/create-skills.dto';
-import { ConfigService } from '@nestjs/config';
 import { CareerModel } from './entities/career.entity';
 import { AchievementModel } from './entities/achievement.entity';
 import { CreateAchievementsDto } from './dto/create-achievements.dto';
@@ -26,13 +22,13 @@ import { CreateCustomDto } from './dto/create-custom.dto';
 import { OrderModel } from './entities/order.entity';
 import { UpdateBlockOrdersDto } from './dto/update-block-orders.dto';
 import { ResumeBlockType } from './enum/resume-type.enum';
+import { User } from 'src/user/entity/user.entity';
+import { CreateCareerDto } from './dto/create-career.dto';
+import { CreateAchievementDto } from './dto/create-achievement.dto';
 
 @Injectable()
 export class ResumeService {
-  // GitHub API를 통해 레포지토리 리스트 가져오기
-
   constructor(
-    private readonly userService: UserService,
     @InjectRepository(ResumeModel)
     private readonly resumeRepository: Repository<ResumeModel>,
     @InjectRepository(IntroductionModel)
@@ -45,7 +41,6 @@ export class ResumeService {
     private readonly projectOutcomeRepository: Repository<ProjectOutcomeModel>,
     @InjectRepository(ProfileModel)
     private readonly profileRepository: Repository<ProfileModel>,
-    private readonly configService: ConfigService,
     @InjectRepository(CareerModel)
     private readonly careerRepository: Repository<CareerModel>,
     @InjectRepository(AchievementModel)
@@ -55,204 +50,6 @@ export class ResumeService {
     @InjectRepository(OrderModel)
     private readonly blockOrderRepository: Repository<OrderModel>,
   ) {}
-
-  // GITHUB 인증 헤더 생성 함수
-  private getAuthHeaders() {
-    return {
-      Authorization: `Bearer ${this.configService.get<string>('GITHUB_TOKEN')}`,
-      Accept: 'application/vnd.github.v3+json',
-    };
-  }
-
-  async getGitHubData(name: string, email: string) {
-    const userinfo = [];
-
-    const user = await this.userService.getUser(email);
-
-    const username = user.githubUrl.split('/').pop();
-
-    // 모든 레포지토리 가져오기
-    const repositories = await this.getUserRepositories(username);
-
-    // 레포지토리를 크기순으로 내림차순 정렬 후 최대 7개 선택
-    const topRepositories = repositories
-      .sort((a, b) => b.size - a.size)
-      .slice(0, 7);
-
-    // 상위 7개의 레포지토리에 대해 정보 수집
-    for (const repository of topRepositories) {
-      const repoInfo = {
-        name: repository.name,
-        description: repository.description,
-        language: repository.language,
-        size: repository.size,
-        stargazers_count: repository.stargazers_count,
-        forks_count: repository.forks_count,
-        html_url: repository.html_url,
-        readme_content:
-          !repository.description &&
-          (await this.getReadmeContent(username, repository.name)),
-      };
-
-      const additionalData = await this.getAdditionalRepositoryData(
-        username,
-        repository.name,
-      );
-      userinfo.push({ ...repoInfo, ...additionalData });
-    }
-
-    if (userinfo.length === 0) {
-      throw new Error('No repositories found for the user');
-    }
-
-    return userinfo;
-  }
-
-  async getUserRepositories(username: string) {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/users/${username}/repos`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.configService.get<string>('GITHUB_TOKEN')}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        },
-      );
-      return response.data; // 레포지토리 리스트 반환
-    } catch (error) {
-      console.error(
-        'Error fetching GitHub repositories:',
-        error.response?.data || error.message,
-      );
-      throw new Error('Failed to fetch GitHub repositories');
-    }
-  }
-
-  // README 파일을 가져오는 함수
-  async getReadmeContent(username: string, repoName: string) {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/repos/${username}/${repoName}/contents/README.md`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.configService.get<string>('GITHUB_TOKEN')}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        },
-      );
-
-      const content = Buffer.from(response.data.content, 'base64').toString(
-        'utf-8',
-      );
-
-      let cleanedText = content.replace(/<\/?[^>]+(>|$)/g, '\n');
-
-      cleanedText = cleanedText.replace(/!\[.*?\]\(.*?\)/g, '');
-
-      cleanedText = cleanedText.replace(/\\n\s*\+/g, '');
-
-      cleanedText = cleanedText.replace(/\s+/g, ' ');
-
-      cleanedText = cleanedText.replace(/\n+/g, '\n');
-
-      return cleanedText.trim();
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        return 'README not available';
-      } else {
-        console.error(
-          `Error fetching README for ${repoName}:`,
-          error.response?.data || error.message,
-        );
-        return 'Error fetching README';
-      }
-    }
-  }
-
-  async getAdditionalRepositoryData(username: string, repositoryName: string) {
-    const pp: any = {};
-
-    try {
-      const commitMessages = await axios.get(
-        `https://api.github.com/repos/${username}/${repositoryName}/commits`,
-        {
-          headers: this.getAuthHeaders(),
-        },
-      );
-
-      // username에 해당하는 사용자의 커밋만 필터링
-      pp.recent_commit_messages = commitMessages.data
-        .filter((commit) => commit.author && commit.author.login === username) // username 필터링
-        .map((commit) => {
-          let message = commit.commit.message;
-          message = message.replace(/\n\s*\+/g, '');
-          message = message.replace(/\s+/g, ' ');
-          message = message.replace(/\n+/g, '\n');
-          return message.trim();
-        })
-        .filter((message, index, self) => {
-          // 불필요한 메시지를 제거
-          const ignorePattern =
-            /^(merge( branch)?|update|initial commit|release|resolve|bump|create readme|fix conflicts)/i;
-          if (ignorePattern.test(message)) return false;
-
-          // 중복 메시지 제거
-          return self.indexOf(message) === index;
-        })
-        .filter((message) => {
-          // 의미 없는 커밋 메시지 제거 (너무 짧은 메시지)
-          return message.length > 10;
-        });
-
-      // 기여자 정보
-      const contributorsData = await axios.get(
-        `https://api.github.com/repos/${username}/${repositoryName}/contributors`,
-        {
-          headers: this.getAuthHeaders(),
-        },
-      );
-      const userContributions = contributorsData.data.find(
-        (contributor) => contributor.login === username,
-      );
-      pp.contributions = userContributions
-        ? userContributions.contributions
-        : 0;
-
-      // 풀 리퀘스트
-      const pullRequests = await axios.get(
-        `https://api.github.com/repos/${username}/${repositoryName}/pulls`,
-        {
-          headers: this.getAuthHeaders(),
-        },
-      );
-      pp.recent_pull_requests = pullRequests.data.slice(0, 3).map((pr) => ({
-        title: pr.title,
-        created_at: pr.created_at,
-        status: pr.state,
-      }));
-
-      // 릴리즈 정보
-      const releasesData = await axios.get(
-        `https://api.github.com/repos/${username}/${repositoryName}/releases`,
-        {
-          headers: this.getAuthHeaders(),
-        },
-      );
-      pp.latest_release =
-        releasesData.data.length > 0 ? releasesData.data[0].name : 'No release';
-    } catch (error) {
-      console.error(
-        'Error fetching repository data:',
-        error.response?.data || error.message,
-      );
-      throw new Error('Failed to fetch repository data');
-    }
-
-    return pp;
-  }
-
-  //resume CRUD
 
   async saveBlock(resumeId: string, dto: any) {
     const { type, ...entityData } = dto;
@@ -271,56 +68,50 @@ export class ResumeService {
         blockType = ResumeBlockType.PROFILE;
         break;
       case 'projects':
-        result = await this.syncProjectsForResume(resumeId, entityData);
+        result = await this.syncProjects(resumeId, entityData);
         blockType = ResumeBlockType.PROJECTS;
         break;
       case 'skills':
-        result = await this.setSkillsForResume(resumeId, entityData);
+        result = await this.upsertSkills(resumeId, entityData);
         blockType = ResumeBlockType.SKILLS;
         break;
       case 'careers':
-        result = await this.upsertCareer(resumeId, entityData);
+        result = await this.syncCareers(resumeId, entityData);
         blockType = ResumeBlockType.CAREERS;
         break;
       case 'achievements':
-        result = await this.upsertAchievement(resumeId, entityData);
+        result = await this.syncAchievements(resumeId, entityData);
         blockType = ResumeBlockType.ACHIEVEMENTS;
         break;
       case 'custom':
         result = await this.upsertCustom(resumeId, entityData);
         blockType = ResumeBlockType.CUSTOM;
-        blockId = entityData.id; // 커스텀 블록의 경우 ID가 있음
+        blockId = entityData.id;
         break;
     }
 
-    // 블록 순서에 추가 (이미 존재하는지 확인 후 추가)
-    if (result) {
+    if (result && (!Array.isArray(result) || result.length > 0)) {
       await this.addBlockToOrderIfNotExists(resumeId, blockType, blockId);
     }
 
     return result;
   }
 
-  getResumes(id: number): Promise<ResumeModel[]> {
+  findAll(id: number) {
     return this.resumeRepository.find({
       where: { author: { id: id } },
       relations: ['profile', 'strSkills', 'famSkills'],
     });
   }
 
-  private async getResume(id: string): Promise<ResumeModel> {
-    const resume = await this.resumeRepository.findOne({
+  private async findOne(id: string) {
+    return this.resumeRepository.findOne({
       where: { id },
     });
-    if (!resume) {
-      throw new NotFoundException(`Resume with ID ${id} not found.`);
-    }
-    return resume;
   }
 
-  async getResumeDetails(id: string) {
+  async findDetail(id: string) {
     const resume = await this.resumeRepository.findOne({ where: { id } });
-    if (!resume) throw new NotFoundException();
 
     const [
       profile,
@@ -332,14 +123,14 @@ export class ResumeService {
       customs,
       blockOrders,
     ] = await Promise.all([
-      this.getProfile(resume.id),
-      this.getIntroduction(resume.id),
-      this.getSkillsByResumeId(resume.id),
-      this.getProjectsByResumeId(resume.id),
-      this.getCareersByResumeId(resume.id),
-      this.getAchievementsByResumeId(resume.id),
-      this.getCustomsByResumeId(resume.id),
-      this.getBlockOrders(resume.id),
+      this.findProfile(resume.id),
+      this.findIntroduction(resume.id),
+      this.findSkills(resume.id),
+      this.findProjects(resume.id),
+      this.findCareers(resume.id),
+      this.findAchievements(resume.id),
+      this.findCustoms(resume.id),
+      this.findBlockOrders(resume.id),
     ]);
 
     const entities = [];
@@ -352,25 +143,20 @@ export class ResumeService {
       entities.push(introduction);
     }
 
-    if (skills && skills.strengths.length > 0) {
+    if (skills) {
       entities.push(skills);
     }
     if (projects && projects.items.length > 0) {
       entities.push(projects);
     }
-    if (careers && careers.items.length > 0) entities.push(careers);
-    if (achievements && achievements.items.length > 0)
+    if (careers && careers.items.length > 0) {
+      entities.push(careers);
+    }
+    if (achievements && achievements.items.length > 0) {
       entities.push(achievements);
-
+    }
     if (customs && customs.items.length > 0) {
-      customs.items.forEach((custom) => {
-        entities.push({
-          id: custom.id,
-          type: 'custom',
-          title: custom.title,
-          description: custom.description,
-        });
-      });
+      entities.push(...customs.items);
     }
 
     return {
@@ -381,27 +167,25 @@ export class ResumeService {
     };
   }
 
-  async createResume(userId: number, title: string): Promise<ResumeModel> {
-    const user = await this.userService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
-    }
-
-    const resume = this.resumeRepository.create({
+  async create(user: User, title: string) {
+    return this.resumeRepository.save({
       title,
       author: user,
     });
-
-    return this.resumeRepository.save(resume);
   }
 
-  async removeResume(userId: number, resumeId: string): Promise<ResumeModel> {
-    const resume = await this.getResume(resumeId);
+  async remove(resumeId: string) {
+    const result = await this.resumeRepository.delete(resumeId);
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `아이디가 ${resumeId}인 포트폴리오가 존재하지 않습니다.`,
+      );
+    }
 
-    return this.resumeRepository.remove(resume);
+    return { message: '포트폴리오가 삭제되었습니다.', id: resumeId };
   }
 
-  async getIntroduction(resumeId: string) {
+  async findIntroduction(resumeId: string) {
     const introduction = await this.introductionRepository.findOne({
       where: { resume: { id: resumeId } },
     });
@@ -414,43 +198,41 @@ export class ResumeService {
   }
 
   async upsertIntroduction(resumeId: string, dto: CreateIntroductionDto) {
-    const resume = await this.getResume(resumeId);
-
     let introduction = await this.introductionRepository.findOne({
-      where: { resume: { id: resume.id } },
+      where: { resume: { id: resumeId } },
     });
 
     if (!introduction) {
       introduction = this.introductionRepository.create({
-        resume,
+        resume: { id: resumeId },
       });
     }
 
     introduction.headline = dto.headline;
     introduction.description = dto.description;
 
-    return this.introductionRepository.save(introduction);
+    await this.introductionRepository.save(introduction);
+
+    return { message: '소개가 생성되었습니다.', id: introduction.id };
   }
 
   async removeIntroduction(resumeId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const introduction = await this.introductionRepository.findOne({
-      where: { resume: { id: resume.id } },
+    const result = await this.introductionRepository.delete({
+      resume: { id: resumeId },
     });
 
-    if (!introduction) {
+    if (result.affected === 0) {
       throw new NotFoundException(
-        `Introduction for resume ID ${resumeId} not found.`,
+        `아이디가 ${resumeId}인 소개가 존재하지 않습니다.`,
       );
     }
 
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.INTRODUCTION);
 
-    return this.introductionRepository.remove(introduction);
+    return { message: '소개가 삭제되었습니다.', id: resumeId };
   }
 
-  async getProfile(resumeId: string) {
+  async findProfile(resumeId: string) {
     const profile = await this.profileRepository.findOne({
       where: { resume: { id: resumeId } },
     });
@@ -463,46 +245,45 @@ export class ResumeService {
   }
 
   async upsertProfile(resumeId: string, profileDto: CreateProfileDto) {
-    const resume = await this.getResume(resumeId);
-
     let profile = await this.profileRepository.findOne({
-      where: { resume: { id: resume.id } },
+      where: { resume: { id: resumeId } },
     });
 
     if (!profile) {
       profile = this.profileRepository.create({
-        resume,
+        resume: { id: resumeId },
       });
     }
 
     profile.name = profileDto.name;
     profile.email = profileDto.email;
     profile.phoneNumber = profileDto.phoneNumber;
+    profile.address = profileDto.address;
+    profile.education = profileDto.education;
     profile.githubUrl = profileDto.githubUrl;
     profile.blogUrl = profileDto.blogUrl;
 
-    return this.profileRepository.save(profile);
+    await this.profileRepository.save(profile);
+
+    return { message: '프로필이 생성되었습니다.', id: profile.id };
   }
 
   async removeProfile(resumeId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const profile = await this.profileRepository.findOne({
-      where: { resume: { id: resume.id } },
+    const result = await this.profileRepository.delete({
+      resume: { id: resumeId },
     });
 
-    if (!profile) {
+    if (result.affected === 0) {
       throw new NotFoundException(
-        `Profile for resume ID ${resumeId} not found.`,
+        `아이디가 ${resumeId}인 프로필이 존재하지 않습니다.`,
       );
     }
-
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.PROFILE);
 
-    return this.profileRepository.remove(profile);
+    return { message: '프로필이 삭제되었습니다.', id: resumeId };
   }
 
-  async getProjectsByResumeId(resumeId: string) {
+  async findProjects(resumeId: string) {
     const projects = await this.projectRepository.find({
       where: { resume: { id: resumeId } },
       relations: ['outcomes'],
@@ -522,18 +303,15 @@ export class ResumeService {
     };
   }
 
-  async syncProjectsForResume(
+  async syncProjects(
     resumeId: string,
     createProjectsDto: CreateProjectsWidthOutcomesDto,
-  ): Promise<ProjectModel[]> {
-    await this.getResume(resumeId);
-
+  ) {
     const incomingProjects = createProjectsDto.items;
     const incomingIds = incomingProjects.map((p) => p.id);
 
     const existingProjects = await this.projectRepository.find({
       where: { resume: { id: resumeId } },
-      relations: ['outcomes'],
     });
 
     const toDelete = existingProjects.filter(
@@ -541,194 +319,154 @@ export class ResumeService {
     );
 
     if (toDelete.length > 0) {
-      for (const project of toDelete) {
-        if (project.outcomes && project.outcomes.length > 0) {
-          await this.projectOutcomeRepository.remove(project.outcomes);
-        }
-      }
-
-      await this.projectRepository.remove(toDelete);
+      await this.projectRepository.delete(toDelete.map((p) => p.id));
     }
 
-    const result: ProjectModel[] = [];
-
-    for (const dto of incomingProjects) {
-      const project = await this.upsertProject(resumeId, dto);
-      result.push(project);
-    }
+    const result = await Promise.all(
+      incomingProjects.map((dto) => this.upsertProject(resumeId, dto)),
+    );
 
     return result;
   }
 
-  async upsertProject(
-    resumeId: string,
-    projectData: CreateProjectDto,
-  ): Promise<ProjectModel> {
-    const resume = await this.getResume(resumeId);
-
+  async upsertProject(resumeId: string, projectData: CreateProjectDto) {
     let project = await this.projectRepository.findOne({
-      where: { id: projectData.id, resume: { id: resume.id } },
+      where: { id: projectData.id, resume: { id: resumeId } },
       relations: ['outcomes'],
     });
 
     if (!project) {
       project = this.projectRepository.create({
         ...projectData,
-        resume,
+        resume: { id: resumeId },
       });
     } else {
-      Object.assign(project, {
-        ...projectData,
-      });
+      project.name = projectData.name;
+      project.description = projectData.description;
+      project.startDate = projectData.startDate;
+      project.endDate = projectData.endDate;
     }
 
     project = await this.projectRepository.save(project);
 
-    await this.projectRepository.save(project);
+    await this.syncProjectOutcomes(project, projectData.outcomes);
 
-    await this.syncProjectOutcomes(project.id, projectData.outcomes);
-
-    return this.projectRepository.findOne({
-      where: { id: project.id },
-      relations: ['outcomes'],
-    });
+    return { message: '프로젝트가 생성되었습니다.', id: project.id };
   }
 
   async removeProject(resumeId: string) {
-    await this.projectRepository.delete({
+    const result = await this.projectRepository.delete({
       resume: { id: resumeId },
     });
 
-    await this.removeBlockFromOrder(resumeId, ResumeBlockType.PROJECTS);
-  }
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `아이디가 ${resumeId}인 프로젝트가 존재하지 않습니다.`,
+      );
+    }
 
-  async getProjectOutcomesByProjectId(
-    projectId: string,
-  ): Promise<ProjectOutcomeModel[]> {
-    return this.projectOutcomeRepository.find({
-      where: { project: { id: projectId } },
-      relations: ['project'],
-    });
+    await this.removeBlockFromOrder(resumeId, ResumeBlockType.PROJECTS);
+    return { message: '프로젝트가 삭제되었습니다.', id: resumeId };
   }
 
   async syncProjectOutcomes(
-    projectId: string,
+    project: ProjectModel,
     outcomeDtos: CreateOutcomeDto[],
-  ): Promise<ProjectOutcomeModel[]> {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-      relations: ['outcomes'],
-    });
-
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found.`);
-    }
-
+  ) {
     const existingOutcomes = project.outcomes || [];
 
     const incomingIds = outcomeDtos.map((dto) => dto.id);
     const toDelete = existingOutcomes.filter(
       (existing) => !incomingIds.includes(existing.id),
     );
+
     if (toDelete.length > 0) {
       await this.projectOutcomeRepository.remove(toDelete);
     }
 
-    const result: ProjectOutcomeModel[] = [];
-
-    for (const dto of outcomeDtos) {
-      let outcome: ProjectOutcomeModel;
-
-      if (dto.id) {
-        outcome = await this.projectOutcomeRepository.findOne({
-          where: { id: dto.id, project: { id: projectId } },
-        });
-      }
-
-      if (!outcome) {
-        outcome = this.projectOutcomeRepository.create({
-          ...dto,
-          project,
-        });
-      } else {
-        Object.assign(outcome, dto);
-      }
-
-      const saved = await this.projectOutcomeRepository.save(outcome);
-      result.push(saved);
-    }
+    const result = await Promise.all(
+      outcomeDtos.map((dto) => this.upsertProjectOutcome(project, dto)),
+    );
 
     return result;
   }
 
-  async removeProjectOutcome(projectId: string, outcomeId: string) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-    });
-
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found.`);
-    }
-
-    const outcome = await this.projectOutcomeRepository.findOne({
-      where: { id: outcomeId, project: { id: project.id } },
+  async upsertProjectOutcome(
+    project: ProjectModel,
+    outcomeDto: CreateOutcomeDto,
+  ) {
+    let outcome = await this.projectOutcomeRepository.findOne({
+      where: { id: outcomeDto.id, project: { id: project.id } },
     });
 
     if (!outcome) {
+      outcome = this.projectOutcomeRepository.create({
+        ...outcomeDto,
+        project,
+      });
+    } else {
+      outcome.task = outcomeDto.task;
+      outcome.result = outcomeDto.result;
+    }
+
+    await this.projectOutcomeRepository.save(outcome);
+    return { message: '결과가 생성되었습니다.', id: outcome.id };
+  }
+
+  async removeProjectOutcome(projectId: string, outcomeId: string) {
+    const result = await this.projectOutcomeRepository.delete({
+      id: outcomeId,
+      project: { id: projectId },
+    });
+
+    if (result.affected === 0) {
       throw new NotFoundException(
-        `Outcome with ID ${outcomeId} for project ID ${projectId} not found.`,
+        `아이디가 ${outcomeId}인 결과가 존재하지 않습니다.`,
       );
     }
 
-    return this.projectOutcomeRepository.remove(outcome);
+    return { message: '결과가 삭제되었습니다.', id: outcomeId };
   }
 
-  async getSkillsByResumeId(resumeId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const strengths = await this.skillRepository.find({
-      where: [{ strongResumes: { id: resume.id } }],
+  async findSkills(resumeId: string) {
+    const resume = await this.resumeRepository.findOne({
+      where: { id: resumeId },
+      relations: ['strSkills', 'famSkills'],
     });
 
-    const familiars = await this.skillRepository.find({
-      where: [{ familiarResumes: { id: resume.id } }],
-    });
+    const strengths = resume.strSkills;
+    const familiars = resume.famSkills;
 
-    if (!strengths || !familiars) {
+    if (strengths.length === 0 && familiars.length === 0) {
       return null;
     }
 
     return { id: 'skills', type: 'skills', strengths, familiars };
   }
 
-  async setSkillsForResume(
+  async upsertSkills(
     resumeId: string,
     { strongSkillIds, familiarSkillIds }: CreateSkillsDto,
   ) {
-    const resume = await this.getResume(resumeId);
+    await this.resumeRepository.save({
+      id: resumeId,
+      strSkills: strongSkillIds.map((s) => ({ id: s.id })),
+      famSkills: familiarSkillIds.map((s) => ({ id: s.id })),
+    });
 
-    const [strongSkills, familiarSkills] = await Promise.all([
-      this.skillRepository.findBy({ id: In(strongSkillIds.map((s) => s.id)) }),
-      this.skillRepository.findBy({
-        id: In(familiarSkillIds.map((s) => s.id)),
-      }),
-    ]);
-
-    resume.strSkills = strongSkills;
-    resume.famSkills = familiarSkills;
-
-    return await this.resumeRepository.save(resume);
+    return { message: '스킬이 업데이트되었습니다.' };
   }
 
   async removeSkills(resumeId: string) {
-    const resume = await this.getResume(resumeId);
-
-    resume.strSkills = [];
-    resume.famSkills = [];
-
-    await this.resumeRepository.save(resume);
+    await this.resumeRepository.save({
+      id: resumeId,
+      strSkills: [],
+      famSkills: [],
+    });
 
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.SKILLS);
+
+    return { message: '스킬이 삭제되었습니다.', id: resumeId };
   }
 
   async searchSkills(query: string): Promise<SkillModel[]> {
@@ -743,7 +481,7 @@ export class ResumeService {
     });
   }
 
-  async getCareersByResumeId(resumeId: string) {
+  async findCareers(resumeId: string) {
     const careers = await this.careerRepository.find({
       where: { resume: { id: resumeId } },
     });
@@ -762,30 +500,52 @@ export class ResumeService {
     };
   }
 
-  async upsertCareer(resumeId: string, careerData: CreateCareersDto) {
-    const resume = await this.getResume(resumeId);
-    const careers = careerData.items;
+  async syncCareers(resumeId: string, careerData: CreateCareersDto) {
+    const incomingCareers = careerData.items;
+    const incomingIds = incomingCareers.map((c) => c.id);
 
-    const results = [];
-    for (const data of careers) {
-      let career = await this.careerRepository.findOne({
-        where: { id: data.id, resume: { id: resume.id } },
-      });
+    const existingCareers = await this.careerRepository.find({
+      where: { resume: { id: resumeId } },
+    });
 
-      if (!career) {
-        career = this.careerRepository.create({
-          ...data,
-          resume,
-        });
-      } else {
-        Object.assign(career, data);
-      }
-      results.push(await this.careerRepository.save(career));
+    const toDelete = existingCareers.filter(
+      (career) => !incomingIds.includes(career.id),
+    );
+
+    if (toDelete.length > 0) {
+      await this.careerRepository.delete(toDelete.map((c) => c.id));
     }
+
+    const results = await Promise.all(
+      incomingCareers.map((data) => this.upsertCareer(resumeId, data)),
+    );
+
     return results;
   }
 
-  async getAchievementsByResumeId(resumeId: string) {
+  async upsertCareer(resumeId: string, data: CreateCareerDto) {
+    let career = await this.careerRepository.findOne({
+      where: { id: data.id, resume: { id: resumeId } },
+    });
+
+    if (!career) {
+      career = this.careerRepository.create({
+        ...data,
+        resume: { id: resumeId },
+      });
+    } else {
+      career.company = data.company;
+      career.position = data.position;
+      career.startDate = data.startDate;
+      career.endDate = data.endDate;
+      career.description = data.description;
+    }
+
+    await this.careerRepository.save(career);
+    return { message: '경력이 생성되었습니다.', id: career.id };
+  }
+
+  async findAchievements(resumeId: string) {
     const achievements = await this.achievementRepository.find({
       where: { resume: { id: resumeId } },
     });
@@ -804,52 +564,76 @@ export class ResumeService {
     };
   }
 
-  async upsertAchievement(
+  async syncAchievements(
     resumeId: string,
     achievementData: CreateAchievementsDto,
   ) {
-    const resume = await this.getResume(resumeId);
-    const achievements = achievementData.items;
+    const incomingAchievements = achievementData.items;
+    const incomingIds = incomingAchievements.map((a) => a.id);
 
-    const results = [];
-    for (const data of achievements) {
-      let achievement = await this.achievementRepository.findOne({
-        where: { id: data.id, resume: { id: resume.id } },
-      });
+    const existingAchievements = await this.achievementRepository.find({
+      where: { resume: { id: resumeId } },
+    });
 
-      if (!achievement) {
-        achievement = this.achievementRepository.create({
-          ...data,
-          resume,
-        });
-      } else {
-        Object.assign(achievement, data);
-      }
-      results.push(await this.achievementRepository.save(achievement));
+    const toDelete = existingAchievements.filter(
+      (achievement) => !incomingIds.includes(achievement.id),
+    );
+
+    if (toDelete.length > 0) {
+      await this.achievementRepository.delete(toDelete.map((a) => a.id));
     }
+
+    const results = await Promise.all(
+      incomingAchievements.map((data) =>
+        this.upsertAchievement(resumeId, data),
+      ),
+    );
+
     return results;
   }
 
-  async upsertCustom(resumeId: string, customData: CreateCustomDto) {
-    const resume = await this.getResume(resumeId);
+  async upsertAchievement(resumeId: string, data: CreateAchievementDto) {
+    let achievement = await this.achievementRepository.findOne({
+      where: { id: data.id, resume: { id: resumeId } },
+    });
 
+    if (!achievement) {
+      achievement = this.achievementRepository.create({
+        ...data,
+        resume: { id: resumeId },
+      });
+    } else {
+      achievement.title = data.title;
+      achievement.organization = data.organization;
+      achievement.date = data.date;
+      achievement.description = data.description;
+    }
+
+    await this.achievementRepository.save(achievement);
+    return { message: '업력이 생성되었습니다.', id: achievement.id };
+  }
+
+  async upsertCustom(resumeId: string, customData: CreateCustomDto) {
     let custom = await this.customRepository.findOne({
-      where: { id: customData.id, resume: { id: resume.id } },
+      where: { id: customData.id, resume: { id: resumeId } },
     });
 
     if (!custom) {
       custom = this.customRepository.create({
         ...customData,
-        resume,
+        resume: { id: resumeId },
       });
     } else {
-      Object.assign(custom, customData);
+      custom.title = customData.title;
+      custom.description = customData.description;
     }
 
-    return this.customRepository.save(custom);
+    await this.customRepository.save(custom);
+
+    return { message: '커스텀이 생성되었습니다.', id: custom.id };
   }
 
-  async getCustomsByResumeId(resumeId: string) {
+  async findCustoms(resumeId: string) {
     const customs = await this.customRepository.find({
       where: { resume: { id: resumeId } },
     });
@@ -869,60 +653,57 @@ export class ResumeService {
   }
 
   async removeCustom(resumeId: string, customId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const custom = await this.customRepository.findOne({
-      where: { id: customId, resume: { id: resume.id } },
+    const result = await this.customRepository.delete({
+      id: customId,
+      resume: { id: resumeId },
     });
 
-    if (!custom) {
+    if (result.affected === 0) {
       throw new NotFoundException(
-        `Custom block with ID ${customId} for resume ID ${resumeId} not found.`,
+        `아이디가 ${customId}인 커스텀이 존재하지 않습니다.`,
       );
     }
 
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.CUSTOM, customId);
 
-    return this.customRepository.remove(custom);
+    return { message: '커스텀이 삭제되었습니다.', id: customId };
   }
 
   async removeCareer(resumeId: string) {
-    await this.getResume(resumeId);
-
-    await this.careerRepository.delete({
+    const result = await this.careerRepository.delete({
       resume: { id: resumeId },
     });
 
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `아이디가 ${resumeId}인 경력이 존재하지 않습니다.`,
+      );
+    }
+
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.CAREERS);
+    return { message: '경력이 삭제되었습니다.', id: resumeId };
   }
 
   async removeAchievement(resumeId: string) {
-    const resume = await this.getResume(resumeId);
-
-    const achievements = await this.achievementRepository.find({
-      where: { resume: { id: resume.id } },
+    const result = await this.achievementRepository.delete({
+      resume: { id: resumeId },
     });
 
-    if (achievements.length === 0) {
+    if (result.affected === 0) {
       throw new NotFoundException(
-        `Achievement for resume ID ${resumeId} not found.`,
+        `아이디가 ${resumeId}인 업적이 존재하지 않습니다.`,
       );
     }
 
     await this.removeBlockFromOrder(resumeId, ResumeBlockType.ACHIEVEMENTS);
 
-    return await this.achievementRepository.remove(achievements);
+    return { message: '업적이 삭제되었습니다.', id: resumeId };
   }
 
   async updateBlockOrders(
     resumeId: string,
     updateBlockOrdersDto: UpdateBlockOrdersDto,
   ) {
-    const resume = await this.getResume(resumeId);
-    if (!resume) {
-      throw new NotFoundException('Resume not found');
-    }
-
     await this.blockOrderRepository.delete({ resume: { id: resumeId } });
 
     if (updateBlockOrdersDto.blockOrders.length === 0) {
@@ -932,16 +713,16 @@ export class ResumeService {
     const blockOrders = updateBlockOrdersDto.blockOrders.map((dto) =>
       this.blockOrderRepository.create({
         ...dto,
-        resume,
+        resume: { id: resumeId },
       }),
     );
 
     await this.blockOrderRepository.save(blockOrders);
 
-    return this.getBlockOrders(resumeId);
+    return this.findBlockOrders(resumeId);
   }
 
-  async getBlockOrders(resumeId: string): Promise<string[]> {
+  async findBlockOrders(resumeId: string): Promise<string[]> {
     const blockOrders = await this.blockOrderRepository.find({
       where: { resume: { id: resumeId } },
       order: { order: 'ASC' },
@@ -952,7 +733,7 @@ export class ResumeService {
     );
   }
 
-  async removeBlockOrdersByBlockId(blockId: string): Promise<void> {
+  async removeBlockOrder(blockId: string): Promise<void> {
     await this.blockOrderRepository.delete({ blockId });
   }
 
@@ -961,7 +742,7 @@ export class ResumeService {
     blockType: ResumeBlockType,
     blockId?: string,
   ): Promise<void> {
-    const currentOrders = await this.getBlockOrders(resumeId);
+    const currentOrders = await this.findBlockOrders(resumeId);
     const newOrder = currentOrders.length + 1;
 
     const blockOrder = this.blockOrderRepository.create({

@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Category } from './category.entity';
 import { Comment } from './comment.entity';
 import { BaseModel } from 'src/common/entity/base.entity';
+import { Like } from './like.entity';
 
 @Entity()
 export class Post extends BaseModel {
@@ -24,11 +25,14 @@ export class Post extends BaseModel {
     onDelete: 'CASCADE',
   })
   @JoinColumn()
-  user: User;
+  author: User;
 
   @Column({ default: 0, name: 'view_count' })
   viewCount: number;
 
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
+
+  @OneToMany(() => Like, (like) => like.post)
+  likes: Like[];
 }

@@ -1,4 +1,5 @@
-import { IsString, IsDateString, IsOptional, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsUUID, IsDate } from 'class-validator';
 
 export class CreateCareerDto {
   @IsUUID()
@@ -10,12 +11,14 @@ export class CreateCareerDto {
   @IsString()
   position: string;
 
-  @IsDateString()
-  startDate: string;
+  @Type(() => Date)
+  @IsDate()
+  startDate: Date;
 
+  @Type(() => Date)
+  @IsDate()
   @IsOptional()
-  @IsDateString()
-  endDate?: string;
+  endDate?: Date;
 
   @IsString()
   description: string;

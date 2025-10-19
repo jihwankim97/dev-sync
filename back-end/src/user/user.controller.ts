@@ -3,55 +3,36 @@ import {
   Body,
   Get,
   Post,
-  Request,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer'; 
+import { memoryStorage } from 'multer';
+import { User } from './decorator/user.decorator';
+import { AuthenticatedGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
-
   @Get()
-  async getUser(@Request() req) {
-    if (req.isAuthenticated()) {
-      const user = await this.userService.getUser(req.user.email);
-      return user;
-    } else {
-      return null;
-    }
+  async getUser(@User() user) {
+    return this.userService.findByEmail(user.email);
   }
 
   @Post('profile')
+  @UseGuards(AuthenticatedGuard)
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
-  async updateProfile(@Request() req, @UploadedFile() file: Express.Multer.File) {
-    const email = req.user?.email; 
-  
-    if (req.isAuthenticated() && email) {
-      if (!file) {
-        throw new Error('파일이 전송되지 않았습니다.');
-      }
-      return this.userService.updateProfile(email, file);
-    } else {
-      return { error: '인증된 회원이 아니거나 이메일이 일치하지 않습니다.' };
-    }
+  async updateProfile(@User() user, @UploadedFile() file: Express.Multer.File) {
+    return this.userService.updateProfile(user.email, file);
   }
-
 
   @Post()
-  updateUser(@Request() req, @Body() user: UpdateUserDto) {
-    if (req.isAuthenticated() && req.user.email === user.email) {
-      return this.userService.updateUser(user);
-    } else {
-      return { error: '인증된 회원이 아닙니다.' };
-    }
+  @UseGuards(AuthenticatedGuard)
+  updateUser(@User() user, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(user.email, updateUserDto);
   }
-
-
-
 }

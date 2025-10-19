@@ -1,27 +1,20 @@
-import {
-  IsDate,
-  IsEmail,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ValidateLength } from 'src/common/decorators/validate-length.decorator';
 
 export class UpdateUserDto {
-  @IsEmail()
-  @ValidateLength('USER_EMAIL')
-  email?: string;
-
   @IsString()
   @ValidateLength('USER_NAME')
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @Transform(({ value }) => new Date(value))
   @IsDate()
+  @IsOptional()
   birthDate?: Date;
 
   @IsNumber()
+  @IsOptional()
   phoneNumber?: number;
 
   @IsString()

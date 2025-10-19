@@ -24,7 +24,10 @@ export class ResumeModel extends BaseUuidModel {
   @Column()
   title: string;
 
-  @ManyToOne(() => User, (user) => user.resumes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.resumes, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   author: User;
 
   @OneToOne(() => IntroductionModel, (introduction) => introduction.resume)

@@ -55,7 +55,11 @@ function App() {
   const { data } = useQuery<string>({
     queryKey: [userKeys.auth("login")],
     queryFn: () =>
-      request({ method: "GET", url: ENDPOINTS.auth("status"), responseType: "text" })
+      request({
+        method: "GET",
+        url: ENDPOINTS.auth("status"),
+        responseType: "text",
+      }),
   });
 
   useEffect(() => {
@@ -84,7 +88,7 @@ function App() {
           margin-left: calc(-50vw + 50%);
           box-sizing: border-box;
           background-color: #f8f8f8f3;
-          height:150px;
+          height: 150px;
           margin-top: 15rem;
         `}
       >

@@ -1,33 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ResumeService } from './resume.service';
-import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
+import { User } from 'src/user/entity/user.entity';
 
 @Injectable()
 export class ResumeGenerationService {
-  private openai: OpenAI;
-
   constructor(
     private readonly resumeService: ResumeService,
-    private readonly userService: UserService,
     private readonly configService: ConfigService,
-  ) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-    });
-  }
+  ) {}
 
-  async generateResume(profileData: string, userId: number) {
-    const resumeData = JSON.parse(await this.callResumeCompletion(profileData));
+  async generateResume(profileData: string, user: User) {
+    const limitedProfileData = profileData.slice(0, 4000);
+    const resumeData = JSON.parse(
+      await this.callResumeCompletion(limitedProfileData),
+    );
 
-    const user = await this.userService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
-    }
-
-    const resume = await this.resumeService.createResume(
-      userId,
+    const resume = await this.resumeService.create(
+      user,
       `${user.name}의 자소서`,
     );
 
@@ -74,7 +65,7 @@ export class ResumeGenerationService {
       items: projects,
     });
 
-    return await this.resumeService.getResumeDetails(resume.id);
+    return this.resumeService.findDetail(resume.id);
   }
 
   async callResumeCompletion(profileData: string): Promise<string> {
@@ -134,14 +125,17 @@ ${profileData}
 `;
 
     try {
-      const response = await this.openai.chat.completions.create({
+      const openai: OpenAI = new OpenAI({
+        apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      });
+
+      const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1500,
         temperature: 0.7,
       });
 
-      // 입력 토큰과 출력 토큰을 계산하여 콘솔에 출력
       const totalTokens =
         (response.usage?.prompt_tokens || 0) +
         (response.usage?.completion_tokens || 0);
@@ -152,9 +146,8 @@ ${profileData}
       return (
         response.choices[0]?.message?.content || '자소서 생성에 실패했습니다'
       );
-    } catch (error) {
-      console.error('Error generating resume:', error);
-      throw new Error('자소서 생성에 실패했습니다');
+    } catch {
+      throw new BadRequestException('자소서 생성에 실패했습니다');
     }
   }
 }
