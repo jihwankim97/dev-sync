@@ -10,7 +10,7 @@ import { Post } from './entities/post.entity';
 import { Category } from './entities/category.entity';
 import { Like } from './entities/like.entity';
 import { Comment } from './entities/comment.entity';
-import { UploadService } from 'src/upload/upload.service';
+import { UploadModule } from 'src/upload/upload.module';
 import { CommonModule } from 'src/common/common.module';
 import { PostOwnershipGuard } from './guard/post-ownership.guard';
 
@@ -19,9 +19,10 @@ import { PostOwnershipGuard } from './guard/post-ownership.guard';
     TypeOrmModule.forFeature([Post, Category, User, Like, Comment]),
     UserModule,
     CommonModule,
+    UploadModule,
   ],
   controllers: [PostsController],
-  providers: [PostService, CategoryService, UploadService, PostOwnershipGuard],
+  providers: [PostService, CategoryService, PostOwnershipGuard],
   exports: [PostService],
 })
 export class PostsModule {}

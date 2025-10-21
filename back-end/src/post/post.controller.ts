@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -71,29 +70,15 @@ export class PostsController {
     return this.postsService.search(dto);
   }
 
+  // 게시글 파일 업로드
   @Post('/upload')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard, PostOwnershipGuard)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
   async uploadPostFiles(
     @UploadedFiles() files: { files?: Express.Multer.File[] },
     @User() user: UserEntity,
   ) {
-    try {
-      const result = await this.postsService.uploadPostFiles(
-        user.id,
-        files.files || [],
-      );
-
-      return {
-        message: '파일이 성공적으로 업로드 되었습니다.',
-        postId: result.postId,
-        fileUrls: result.fileUrls,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : '게시글 생성 실패',
-      );
-    }
+    return this.postsService.uploadPostFiles(user.id, files.files);
   }
 
   // 게시글 생성

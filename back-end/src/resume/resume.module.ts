@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ResumeController } from './resume.controller';
 import { UserModule } from 'src/user/user.module';
-import { SessionSerializer } from 'src/auth/session.serializer';
 import { ResumeService } from './resume.service';
 import { ResumeGenerationService } from './resumeGeneration.Service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,13 +16,11 @@ import { CareerModel } from './entities/career.entity';
 import { CustomModel } from './entities/custom.entity';
 import { OrderModel } from './entities/order.entity';
 import { githubRepoService } from './github-repo.service';
-import { CommonModule } from 'src/common/common.module';
 import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
 
 @Module({
   imports: [
     UserModule,
-    CommonModule,
     TypeOrmModule.forFeature([
       ResumeModel,
       IntroductionModel,
@@ -39,7 +36,6 @@ import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
   ],
   controllers: [ResumeController],
   providers: [
-    SessionSerializer,
     ResumeService,
     ResumeGenerationService,
     SkillSeederService,
