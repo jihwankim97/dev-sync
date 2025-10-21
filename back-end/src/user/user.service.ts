@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
-import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
+import { User as UserEntity } from 'src/user/entity/user.entity';
+import { UploadService } from 'src/upload/upload.service';
+import { extname } from 'path';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,7 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly configService: ConfigService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async findOne(userId: number) {
@@ -43,34 +45,21 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async updateProfile(email: string, file?: Express.Multer.File) {
-    const user = await this.findByEmail(email);
+  async updateProfile(user: UserEntity, file?: Express.Multer.File) {
+    const uploadPath = './uploads/profiles';
+    const filename = `${user.id}-${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
 
-    if (file) {
-      const uniqueFilename = `${uuidv4()}.png`;
-      const newPath = `./uploads/${uniqueFilename}`;
+    const fileUrl = await this.uploadService.uploadFile(
+      file,
+      uploadPath,
+      filename,
+    );
 
-      if (!fs.existsSync('./uploads')) {
-        fs.mkdirSync('./uploads');
-      }
+    await this.userRepository.update(user.id, {
+      profileImage: fileUrl,
+    });
 
-      if (file.buffer) {
-        fs.writeFileSync(newPath, file.buffer as any);
-        user.profileImage = `${this.configService.get('BASE_URL')}/uploads/${uniqueFilename}`;
-      } else {
-        throw new HttpException(
-          '파일 전송 실패',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    } else {
-      throw new HttpException(
-        '파일이 제공되지 않았습니다.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    return this.userRepository.save(user);
+    return this.findOne(user.id);
   }
 
   async findByEmailOrSave(email: string, name: string): Promise<User> {
@@ -85,15 +74,16 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async remove(email: string) {
-    const user = await this.findByEmail(email);
-    if (!user) {
+  async remove(userId: number) {
+    const result = await this.userRepository.delete(userId);
+
+    if (result.affected === 0) {
       throw new HttpException(
         '사용자를 찾을 수 없습니다.',
         HttpStatus.NOT_FOUND,
       );
     }
-    await this.userRepository.remove(user);
-    return { message: '사용자가 삭제되었습니다.', email: user.email };
+
+    return { message: '사용자가 삭제되었습니다.', userId: userId };
   }
 }

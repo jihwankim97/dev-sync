@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Not, Repository } from 'typeorm';
@@ -155,45 +159,39 @@ export class PostService {
 
   //게시글 파일 업로드드
   async uploadPostFiles(userId: number, files: Express.Multer.File[]) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(
-        `ID가 ${userId}인 사용자를 찾을 수 없습니다.`,
-      );
+    if (!files || files.length === 0) {
+      throw new BadRequestException('파일이 없습니다.');
     }
+    const defaultCategory = await this.findCategoryByName('default');
 
-    const defaultCategory = await this.categoryRepository.findOne({
-      where: { category: 'default' },
-    });
-
-    if (!defaultCategory) {
-      throw new NotFoundException(`기본 카테고리를 찾을 수 없습니다.`);
-    }
-
-    const newPost = this.postRepository.create({
+    const savedPost = await this.postRepository.save({
       title: 'Untitled',
       content: '',
-      author: user,
+      author: { id: userId },
       category: defaultCategory,
     });
-    const savedPost = await this.postRepository.save(newPost);
-    const postId = savedPost.id.toString();
+    const postId = savedPost.id;
 
     const uploadPath = `./uploads/${postId}`;
     const fileUrls = {};
 
-    for (const file of files) {
-      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
-      const fileUrl = await this.uploadService.uploadFile(
-        file,
-        uploadPath,
-        filename,
-      );
+    await Promise.all(
+      files.map(async (file, index) => {
+        const filename = `${Date.now()}-${index}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+        const fileUrl = await this.uploadService.uploadFile(
+          file,
+          uploadPath,
+          filename,
+        );
+        fileUrls[file.originalname] = fileUrl;
+      }),
+    );
 
-      fileUrls[file.originalname] = fileUrl;
-    }
-
-    return { postId: postId, fileUrls: fileUrls };
+    return {
+      message: '파일이 성공적으로 업로드 되었습니다.',
+      postId: postId,
+      fileUrls: fileUrls,
+    };
   }
 
   // 게시글 생성
