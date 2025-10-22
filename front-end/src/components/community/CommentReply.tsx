@@ -1,66 +1,45 @@
-/** @jsxImportSource @emotion/react */
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import { Button, css, Divider, TextField } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { GetCommentList } from "../../api/GetCommentList";
-import { SendComment } from "../../api/SendComment";
-import { useEvent } from "../../hooks/useEvent";
-import { fetchUserInfo } from "../../api/UserApi";
-import { userInfo } from "../../types/resume.type";
+import { useSendComment } from "../../api/mutations/userMutations";
 
 export const CommentReply = ({
   parentId,
-  setPage,
-  setComments,
-  setTotalPages,
   setReplying,
 }: {
-  setPage: any;
   parentId: number;
-  setComments: any;
-  setTotalPages: any;
-  setReplying: any;
+  setReplying: Dispatch<
+    SetStateAction<{ isReplying: boolean; parent_id: number }>
+  >;
 }) => {
   const location = useLocation();
-  // const userId = useSelector((state: any) => state.login.loginInfo.user_id);
   const postId = location.state.id; // `navigate`에서 전달된 데이터
   const textRef = useRef<HTMLInputElement | null>(null);
-  const [userData, setUserData] = useState<userInfo>();
-  let userId: number | undefined = undefined;
-  if (userData) {
-    userId = userData.id;
-  }
 
-  useEffect(() => {
-    fetchUserInfo()
-      .then((data) => {
-        setUserData(data);
-      })
-      .catch((err) => {
-        console.log(err.message || "알 수 없는 에러");
-      });
-  }, []);
-
-  console.log()
-
-  const replyComment = useEvent(async (value: any) => {
-    if (typeof userId === "number") {
-      await SendComment(value, parentId, userId, postId);
-      setPage(1);
-      GetCommentList(1, postId, setComments, setTotalPages);
-    }
-  });
+  const sendComment = useSendComment();
 
   const onChangeTextField = () => {
-    if (textRef.current) {
-      const textValue = textRef?.current?.value?.trim();
-      if (textValue) {
-        replyComment(textRef?.current?.value);
-        setReplying(false);
+    const commentText = textRef.current?.value?.trim();
+    if (!commentText) return;
+
+    // 댓글 추가 mutation 실행
+    sendComment.mutate(
+      {
+        postId,
+        value: commentText,
+        parentId,
+      },
+      {
+        onSuccess: () => {
+          setReplying({ isReplying: false, parent_id: 0 });
+          // 성공 시에만 댓글 입력 UI 닫기
+        },
+        onError: (error) => {
+          console.error("댓글 작성 실패:", error);
+        },
       }
-    }
+    );
   };
 
   return (
@@ -113,7 +92,7 @@ export const CommentReply = ({
         <Button
           variant="outlined"
           onClick={() => {
-            setReplying(false);
+            setReplying({ isReplying: false, parent_id: 0 });
           }}
         >
           취소

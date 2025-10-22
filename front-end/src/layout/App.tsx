@@ -10,6 +10,7 @@ import "devicon/devicon.min.css";
 import { userKeys } from "../api/queryKeys";
 import { ENDPOINTS } from "../api/endpoint";
 import { request } from "../api/queries/baseQuery";
+import { loginStateOption } from "../api/queries/userQueries";
 
 const layoutStyle = css`
   display: flex;
@@ -52,21 +53,13 @@ const innerContentStyle = css`
 function App() {
   const dispatch = useDispatch();
 
-  const { data } = useQuery<string>({
-    queryKey: [userKeys.auth("login")],
-    queryFn: () =>
-      request({
-        method: "GET",
-        url: ENDPOINTS.auth("status"),
-        responseType: "text",
-      }),
-  });
+  const { data } = useQuery(loginStateOption());
 
   useEffect(() => {
-    if (data === "Not authenticated") {
-      dispatch(setloggedIn(false)); // 로그인 상태 false로 설정
-    } else {
+    if (data) {
       dispatch(setloggedIn(true)); // 로그인 상태 true로 설정
+    } else {
+      dispatch(setloggedIn(false)); // 로그인 상태 false로 설정
     }
   }, [data]);
 

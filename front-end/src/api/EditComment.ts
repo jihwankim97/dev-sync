@@ -1,5 +1,4 @@
 export const EditComment = async (comment: string, commentId: number) => {
-  console.log(comment, commentId);
   try {
     const response = await fetch(
       `http://localhost:3000/post/comment/${commentId}`,

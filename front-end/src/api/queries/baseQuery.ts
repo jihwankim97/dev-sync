@@ -10,12 +10,10 @@ export async function request<T>({
   url: string;
   responseType?: "json" | "text" | "boolean";
 }) {
-  console.log(url);
   let fetchOptions: RequestInit = {
     method,
     credentials: "include",
   };
-
   if (body instanceof FormData) {
     fetchOptions.body = body;
   } else if (body) {
@@ -24,16 +22,15 @@ export async function request<T>({
   }
 
   const response = await fetch(url, fetchOptions);
-
-  if (url.includes("/auth/logout")) {
-    console.log("Logged out");
-    return true;
-  }
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "API 요청 실패");
   }
 
+  if (url.includes("/auth/logout")) {
+    console.log("Logged out");
+    return true;
+  }
   if (responseType === "text") {
     return response.text();
   }

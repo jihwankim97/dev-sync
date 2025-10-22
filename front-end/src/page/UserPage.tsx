@@ -16,9 +16,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Avatar, InputAdornment, TextField } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { userKeys } from "../api/queryKeys";
 import { ENDPOINTS } from "../api/endpoint";
 import { request } from "../api/queries/baseQuery";
+import { userDataOption } from "../api/queries/userQueries";
 
 // 공통 스타일 정의
 const containerStyle = css`
@@ -478,10 +478,7 @@ export const UserPage = () => {
     open: boolean;
   }>({ type: "", open: false });
 
-  const { data, isError, refetch } = useQuery<userInfo>({
-    queryKey: [userKeys.user],
-    queryFn: () => request({ url: ENDPOINTS.user() }),
-  });
+  const { data, isError, refetch } = useQuery(userDataOption());
 
   useEffect(() => {
     console.log(data);
@@ -528,6 +525,8 @@ export const UserPage = () => {
     }
     updateProfileMutation.mutate(selectedFile);
   }, [selectedFile, updateProfileMutation]);
+
+  console.log(userData);
 
   const handleSave = useMutation({
     mutationFn: useCallback(() => {
