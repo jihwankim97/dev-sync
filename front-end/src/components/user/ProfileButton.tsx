@@ -5,7 +5,6 @@ import { request } from "../../api/queries/baseQuery";
 import { ENDPOINTS } from "../../api/endpoint";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-
 const ProfileButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -15,6 +14,7 @@ const ProfileButton = () => {
     mutationFn: () => request({ method: "GET", url: ENDPOINTS.auth("logout") }),
     onSuccess: () => {
       window.location.href = "/";
+      console.log("로그아웃");
     },
     onError: (error: any) => {
       console.error("로그아웃 실패:", error);
@@ -36,7 +36,6 @@ const ProfileButton = () => {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-
 
   return (
     <>

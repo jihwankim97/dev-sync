@@ -1,42 +1,38 @@
 import { css } from "@emotion/react";
 import { Avatar, TextField, Button, Divider } from "@mui/material";
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
-import { useQuery } from "@tanstack/react-query";
-import { memo, useState, useRef, useEffect } from "react";
+import { memo, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { EditComment } from "../../api/EditComment";
-import { ENDPOINTS } from "../../api/endpoint";
-import { GetCommentList } from "../../api/GetCommentList";
-import { request } from "../../api/queries/baseQuery";
-import { userKeys } from "../../api/queryKeys";
-import { RemoveComment } from "../../api/RemoveComment";
 import { openLoginForm } from "../../redux/loginSlice";
 import { RootState } from "../../redux/store";
-import { userInfo } from "../../types/resume.type";
 import { CommentReply } from "./CommentReply";
 import { OptionBar } from "./OptionBar";
+import {
+  useEditComment,
+  useRemoveComment,
+} from "../../api/mutations/communityMutations";
+import { useQuery } from "@tanstack/react-query";
+import { userDataOption } from "../../api/queries/userQueries";
+import { Comment } from "../../types/feed.type";
+
+export type CommentGroup = Comment & {
+  replies: CommentGroup[];
+  comment_id?: string;
+};
 
 export const CommentReplyLayout = memo(
   ({
     comment,
-    setComments,
     comments,
-    setPage,
-    setTotalPages,
-    editTargetId,
     setEditTargetId,
+    editTargetId,
   }: {
-    setPage: any;
-    comment: any;
-    comments: any[];
-    setTotalPages: any;
-    setComments: React.Dispatch<React.SetStateAction<any[]>>;
+    comment: CommentGroup;
+    comments: Comment[];
     setEditTargetId: React.Dispatch<React.SetStateAction<number | null>>;
     editTargetId: number | null;
   }) => {
-    const [userData, setUserData] = useState<userInfo>();
-    const userName = userData?.name;
     const location = useLocation();
     const postId = location.state.id; // `navigate`에서 전달된 데이터
     const textRef = useRef<HTMLInputElement | null>(null);
@@ -46,36 +42,24 @@ export const CommentReplyLayout = memo(
       isReplying: false,
       parent_id: 0,
     });
+    const { data: userData } = useQuery(userDataOption());
+    const removeComment = useRemoveComment(comment.id, postId);
+    const editComment = useEditComment(comment.id, postId);
 
-    const { data } = useQuery<userInfo>({
-      queryKey: [userKeys.user],
-      queryFn: () => request({ url: ENDPOINTS.user() }),
-    });
-
-    useEffect(() => {
-      if (data) {
-        setUserData(data);
-        console.log("data", data);
-      }
-    }, [data]);
-
-    const handleDeleteComment = async () => {
-      await RemoveComment(comment.id);
-
-      await GetCommentList(1, postId, setComments, setTotalPages);
+    const handleDeleteComment = () => {
+      removeComment.mutate();
     };
+
     const handleEdit = () => {
       setEditTargetId(comment.id);
     };
 
     const isEditing = editTargetId === comment.id;
 
-    const handleEditSave = async () => {
-      if (textRef.current != undefined) {
-        console.log(textRef.current.value);
-        await EditComment(textRef?.current?.value, comment.id);
+    const handleEditSave = () => {
+      if (textRef.current?.value) {
+        editComment.mutate(textRef.current.value);
         setEditTargetId(null);
-        await GetCommentList(1, postId, setComments, setTotalPages);
       }
     };
 
@@ -160,14 +144,13 @@ export const CommentReplyLayout = memo(
                   </div>
                 </div>
               </div>
-              {comment.user_name === userName && (
+              {comment.user_name === userData?.name && (
                 <OptionBar
                   deleteClick={handleDeleteComment}
                   editClick={handleEdit}
                 />
               )}
             </div>
-            {/* <div>{comment.comment}</div> */}
             {isEditing ? (
               <div>
                 <TextField
@@ -237,9 +220,6 @@ export const CommentReplyLayout = memo(
         {replying.isReplying && (
           <CommentReply
             setReplying={setReplying}
-            setComments={setComments}
-            setPage={setPage}
-            setTotalPages={setTotalPages}
             parentId={replying.parent_id}
           />
         )}
@@ -249,12 +229,12 @@ export const CommentReplyLayout = memo(
           <div>
             {comment.replies.map((reply: any, index: number) => (
               <CommentReplyLayout
-                setPage={setPage}
+                // setPage={setPage}
                 key={reply.comment_id ?? `reply-${index}`}
                 comment={reply}
                 comments={comments}
-                setComments={setComments}
-                setTotalPages={setTotalPages}
+                // setComments={setComments}
+                // setTotalPages={setTotalPages}
                 editTargetId={editTargetId}
                 setEditTargetId={setEditTargetId}
               />

@@ -1,90 +1,54 @@
 import { css } from "@emotion/react";
 import { Button, TextField } from "@mui/material";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { GetCommentList } from "../../api/GetCommentList";
 import { useEvent } from "../../hooks/useEvent";
 import { openLoginForm } from "../../redux/loginSlice";
 import { CommentGroup } from "./CommentGroup";
 import { CommentReplyLayout } from "./commentReplyLayout";
-import type { userInfo } from "../../types/resume.type";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { userKeys } from "../../api/queryKeys";
-import { request } from "../../api/queries/baseQuery";
-import { ENDPOINTS } from "../../api/endpoint";
-import type { Comment } from "../../types/feed.type";
+import { useQuery } from "@tanstack/react-query";
+import { useSendComment } from "../../api/mutations/userMutations";
+import { GetCommentsOption } from "../../api/queries/communityQuerys";
+import { Comment } from "../../types/feed.type";
 
 export const CommentPost = () => {
   const textRef = useRef<HTMLInputElement | null>(null);
-  const [userData, setUserData] = useState<userInfo>();
 
   const location = useLocation();
   const postId = location.state.id; // `navigate`에서 전달된 데이터
-  const [comments, setComments] = useState<Comment[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
   const dispatch = useDispatch();
   type RootState = { login: { loggedIn: boolean } };
   const isLogin = useSelector((state: RootState) => state.login.loggedIn);
-  // let userId = 0;
 
-  const { data } = useQuery<userInfo>({
-    queryKey: [userKeys.user],
-    queryFn: () => request({ url: ENDPOINTS.user() }),
+  const sendComment = useSendComment();
+  // 댓글과 총 개수는 React Query의 데이터에서 직접 사용
+
+  const { data: commentsData, refetch } = useQuery({
+    ...GetCommentsOption(postId, page),
+    staleTime: 0,
   });
 
-  useEffect(() => {
-    if (data) {
-      setUserData(data);
-    }
-  }, [data]);
-
-  // if (userData) {
-  //   userId = userData.id;
-  // }
-
-  useEffect(() => {
-    GetCommentList(page, postId, setComments, setTotalPages);
-  }, [page, postId]);
-
-  const sendComment = useMutation({
-    mutationFn: (value: string) =>
-      request({
-        url: ENDPOINTS.comment(postId),
-        method: "POST",
-        body: { parentId: null, comment: value },
-      }),
-    onSuccess: (data) => {
-      console.log("댓글 작성 성공:", data);
-    },
-  });
-
-  const getComments = useMutation({
-    mutationFn: () => {
-      const link: string = `${postId}?page=${page}`;
-      return request({ url: ENDPOINTS.comment(link) });
-    },
-    onSuccess: (data) => {
-      setComments(data.comments);
-      setTotalPages(data.totalCount || 0);
-    },
-  });
+  const comments: Comment[] = commentsData?.comments ?? [];
+  const totalPages: number = commentsData?.totalCount ?? 0;
 
   //댓글 입력시 이벤트 처리
   const eventComment = useEvent(async (value: string) => {
     try {
-      const newComment = await sendComment.mutateAsync(value);
-      setComments((prev) => [newComment as Comment, ...prev]);
-      setPage(1);
+      await sendComment.mutateAsync({ postId, value, parentId: null });
 
-      // await getComments.mutateAsync();
-      setTimeout(() => getComments.mutateAsync(), 300);
+      setPage(1);
+      refetch();
     } catch (error) {
       console.log(error);
     }
   });
+
+  useEffect(() => {
+    refetch();
+  }, [page]);
 
   const handleAddComment = () => {
     if (!isLogin) {
@@ -101,8 +65,17 @@ export const CommentPost = () => {
     }
   };
 
-  const commentPage = Math.ceil(totalPages / 20);
-  const groupComments = CommentGroup(comments);
+  // const commentPage = Math.ceil(totalPages / 20);
+  // const groupComments = CommentGroup(comments);
+  // console.log("댓글 데이터:", comments);
+  // console.log("댓글 그룹화된 데이터:", groupComments);
+
+  const { commentPage, groupComments } = useMemo(() => {
+    const commentPage = Math.ceil(totalPages / 20);
+    const groupComments = CommentGroup(comments);
+
+    return { commentPage, groupComments };
+  }, [comments, totalPages]);
 
   return (
     <>
@@ -169,9 +142,6 @@ export const CommentPost = () => {
           key={rootComment.comment_id ?? `comment-${index}`}
           comment={rootComment}
           comments={comments}
-          setComments={setComments}
-          setPage={setPage}
-          setTotalPages={setTotalPages}
           editTargetId={editTargetId}
           setEditTargetId={setEditTargetId}
         />
@@ -194,7 +164,9 @@ export const CommentPost = () => {
                 color: ${index + 1 === page ? "#2d5999" : "black"};
               `}
               key={index + 1}
-              onClick={() => setPage(index + 1)}
+              onClick={() => {
+                setPage(index + 1);
+              }}
             >
               {index + 1}
             </button>
