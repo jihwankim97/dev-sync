@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ResumeModel } from '../entities/resume.entity';
+import { ResumeModel } from '../entity/resume.entity';
 
 @Injectable()
 export class ResumeOwnershipGuard implements CanActivate {

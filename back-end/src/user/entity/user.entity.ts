@@ -1,6 +1,6 @@
 import { BaseModel } from 'src/common/entity/base.entity';
-import { Post } from 'src/post/entities/post.entity';
-import { ResumeModel } from 'src/resume/entities/resume.entity';
+import { Post } from 'src/post/entity/post.entity';
+import { ResumeModel } from 'src/resume/entity/resume.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity()
