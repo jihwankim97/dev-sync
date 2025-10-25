@@ -31,7 +31,9 @@ export const CommentPost = () => {
     staleTime: 0,
   });
 
-  const comments: Comment[] = commentsData?.comments ?? [];
+  const comments = useMemo<Comment[]>(() => {
+    return commentsData?.comments ?? [];
+  }, [commentsData?.comments]);
   const totalPages: number = commentsData?.totalCount ?? 0;
 
   //댓글 입력시 이벤트 처리

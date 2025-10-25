@@ -10,8 +10,8 @@ export async function request<T>({
   url: string;
   responseType?: "json" | "text" | "boolean";
 }) {
-  let fetchOptions: RequestInit = {
-    method,
+  const fetchOptions: RequestInit = {
+    method: method,
     credentials: "include",
   };
   if (body instanceof FormData) {
