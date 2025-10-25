@@ -1,5 +1,5 @@
 import { IsIn, IsInt, IsString, Length, Min } from 'class-validator';
-import { ValidateLength } from 'src/common/decorators/validate-length.decorator';
+import { ValidateLength } from 'src/common/decorator/validate-length.decorator';
 import { POST_CATEGORY_VALUES } from 'src/post/enum/post-category.enum';
 
 export class CreatePostDto {

@@ -1,14 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Category } from './entities/category.entity';
+import { Category } from './entity/category.entity';
 import { PostCategory } from './enum/post-category.enum';
-
 
 @Injectable()
 export class CategoryService implements OnModuleInit {
   constructor(
-    @InjectRepository(Category) private categoryRepository: Repository<Category>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) {}
 
   async onModuleInit() {
@@ -17,12 +17,14 @@ export class CategoryService implements OnModuleInit {
   }
 
   async initRepository() {
-    const defaultCategories = Object.values(PostCategory).map(category => ({
-      category
+    const defaultCategories = Object.values(PostCategory).map((category) => ({
+      category,
     }));
 
     for (const category of defaultCategories) {
-      const exists = await this.categoryRepository.findOne({ where: { category: category.category } });
+      const exists = await this.categoryRepository.findOne({
+        where: { category: category.category },
+      });
       if (!exists) {
         await this.categoryRepository.save(category);
       }

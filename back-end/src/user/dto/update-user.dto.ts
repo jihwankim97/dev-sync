@@ -1,6 +1,6 @@
 import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ValidateLength } from 'src/common/decorators/validate-length.decorator';
+import { ValidateLength } from 'src/common/decorator/validate-length.decorator';
 
 export class UpdateUserDto {
   @IsString()
