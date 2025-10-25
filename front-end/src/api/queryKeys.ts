@@ -11,5 +11,10 @@ export const userKeys = {
 export const postKeys = {
   lists: ["posts"] as const,
   post: (postId: number) => [...postKeys.lists, { postId }] as const,
-  comments: (postId: number) => [...postKeys.post(postId), "comments"] as const,
-}
+  comments: (postId: number) => ["comments", ...postKeys.post(postId)] as const,
+  likeStatus: (postId: number) =>
+    ["likeStatus", ...postKeys.post(postId)] as const,
+  likeCount: (postId: number) =>
+    ["likeCount", ...postKeys.post(postId)] as const,
+  category: (category: string) => ["category", { category }] as const,
+};

@@ -12,3 +12,12 @@ export type CommentList = {
   totalCount: number;
   comments: Comment[];
 };
+
+export type PostType = {
+  id: number;
+  title: string;
+  content: string;
+  viewCount: number;
+  commentcount: number;
+  likecount: number;
+};

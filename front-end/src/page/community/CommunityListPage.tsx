@@ -1,33 +1,110 @@
-/** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import {
-  Box,
-  Button,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Typography,
-} from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { GetCategoryDataOption } from "../../api/queries/communityQuerys";
+import { ENDPOINTS } from "../../api/endpoint";
+import { request } from "../../api/queries/baseQuery";
 
-type PostType = {
-  id: number;
-  title: string;
-  content: string;
-  viewCount: number;
-  commentcount: number;
-  likecount: number;
-};
+const listStyles = css`
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
 
-type CommunityContextType = {
-  postList: PostType[];
-  setPostList: React.Dispatch<React.SetStateAction<PostType[]>>;
-};
+const listItemStyles = css`
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f6f6f6;
+  }
+`;
+
+const listItemTextStyles = css`
+  flex: 1;
+  margin: 0;
+`;
+
+const primaryTextStyles = css`
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #000;
+  line-height: 1.5;
+`;
+
+const secondaryTextStyles = css`
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.43;
+`;
+
+const dividerStyles = css`
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  height: 1px;
+`;
+
+const iconContainerStyles = css`
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: gray;
+`;
+
+const iconTextStyles = css`
+  font-size: 13px;
+  margin: 0;
+`;
+
+const paginationContainerStyles = css`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+`;
+
+const buttonStyles = css`
+  padding: 6px 16px;
+  font-size: 14px;
+  background-color: #f7f7f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`;
+
+const pageButtonStyles = css`
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #f7f7f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`;
 
 export const CommunityListPage = () => {
   const categoryMap = {
@@ -37,61 +114,51 @@ export const CommunityListPage = () => {
   } as const;
   type CategoryKey = keyof typeof categoryMap;
 
-  const { postList, setPostList } = useOutletContext<CommunityContextType>();
   const navigate = useNavigate();
-  // const location = useLocation();
-  // let category = "";
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 20;
-  const totalPages = Math.ceil(postList.length / postsPerPage);
+
   const { categoryKey } = useParams<{ categoryKey: CategoryKey }>();
   const category = categoryKey ? categoryMap[categoryKey] : "";
 
-  useEffect(() => {
-    if (category !== "") {
-      fetch(`http://localhost:3000/post/categories/${category}`)
-        .then((res) => res.json())
-        .then((data) => {
-          // HTML 태그 제거 후 상태 저장
-          const cleanedData = data
-            .map((post: PostType) => ({
-              ...post,
-              content: post.content,
-            }))
-            .sort(
-              (a: { postId: number }, b: { postId: number }) =>
-                b.postId - a.postId
-            );
-          setPostList(cleanedData);
-        })
-        .catch((error) => console.error("Error fetching posts:", error));
-    }
-  }, [category]);
+  const {
+    data: postList,
+    isError,
+    isLoading,
+  } = useQuery({
+    ...GetCategoryDataOption(category),
+    refetchOnWindowFocus: true, // 창 포커스 시 재조회
+    staleTime: 0,
+  });
+
+  const viewCountMutation = useMutation({
+    mutationFn: (postId: number) =>
+      request({ url: ENDPOINTS.viewCount(postId), method: "PATCH" }),
+    onError: (error) => {
+      console.error("조회수 증가 실패:", error);
+    },
+  });
+
+  if (isLoading) {
+    return <div>📡 게시글을 불러오는 중입니다...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div style={{ color: "red" }}>❌ 데이터를 불러오는데 실패했습니다.</div>
+    );
+  }
+
+  if (!postList || postList.length === 0) {
+    return <div>게시글이 없습니다.</div>;
+  }
+
+  const totalPages = Math.ceil(postList?.length || 0 / postsPerPage);
 
   const removeTag = (html: string) => {
-    // <img> 태그를 (이미지)로 대체
     let text = html.replace(/<img[^>]*>/g, "(이미지)");
-    // 나머지 HTML 태그 제거
     text = text.replace(/<[^>]+>/g, "");
-
     return text;
-  };
-  const increaseViewCount = async (postId: number) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/post/${postId}/view`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("조회수 증가 실패");
-      }
-    } catch (error) {
-      console.error("API 호출 에러:", error);
-    }
   };
 
   const handleListClick = async (post: {
@@ -100,8 +167,7 @@ export const CommunityListPage = () => {
     content: string;
     viewCount: number;
   }) => {
-    // console.log(post);
-    await increaseViewCount(post.id);
+    viewCountMutation.mutate(post.id);
 
     const updatedPost = {
       ...post,
@@ -116,73 +182,42 @@ export const CommunityListPage = () => {
     }
   };
 
-  // 현재 페이지에 맞는 게시물만 가져오기
-  const paginatedPosts = postList.slice(
+  const paginatedPosts = postList?.slice(
     (currentPage - 1) * postsPerPage,
     currentPage * postsPerPage
   );
 
-  console.log(paginatedPosts)
-
   return (
     <>
-      <List
-        sx={{
-          bgcolor: "background.paper",
-        }}
-      >
-        {paginatedPosts.map((post, index) => (
+      <ul css={listStyles}>
+        {paginatedPosts?.map((post, index) => (
           <div key={`${post.id} - ${index}`}>
-            <ListItem onClick={() => handleListClick(post)}>
-              <ListItemText
-                primary={post.title}
-                secondary={removeTag(post.content) || ""}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: "4px",
-                  right: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "0.75rem",
-                  color: "gray",
-                }}
-              >
+            <li css={listItemStyles} onClick={() => handleListClick(post)}>
+              <div css={listItemTextStyles}>
+                <h3 css={primaryTextStyles}>{post.title}</h3>
+                <p css={secondaryTextStyles}>{removeTag(post.content) || ""}</p>
+              </div>
+              <div css={iconContainerStyles}>
                 <VisibilityOutlinedIcon sx={{ fontSize: "13px" }} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  {post.viewCount ?? 0}
-                </Typography>
+                <span css={iconTextStyles}>{post.viewCount ?? 0}</span>
                 <ChatBubbleOutlineOutlinedIcon sx={{ fontSize: "13px" }} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  {post.commentcount}
-                </Typography>
+                <span css={iconTextStyles}>{post.commentcount}</span>
                 <FavoriteBorderIcon sx={{ fontSize: "13px" }} />
-                <Typography sx={{ fontSize: "13px" }}>
-                  {post.likecount}
-                </Typography>
-              </Box>
-            </ListItem>
-            <Divider />
+                <span css={iconTextStyles}>{post.likecount}</span>
+              </div>
+            </li>
+            <hr css={dividerStyles} />
           </div>
         ))}
-      </List>
-      <div
-        css={css`
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-          margin-top: 2;
-        `}
-      >
+      </ul>
+      <div css={paginationContainerStyles}>
         {currentPage > 5 && (
-          <Button
-            size="small"
+          <button
+            css={buttonStyles}
             onClick={() => handlePageChange(currentPage - 5)}
           >
             이전
-          </Button>
+          </button>
         )}
 
         {Array.from(
@@ -196,14 +231,17 @@ export const CommunityListPage = () => {
             const pageNumber = Math.floor((currentPage - 1) / 5) * 5 + i + 1;
             return (
               <button
-                css={css`
-                  padding: 0;
-                  font-size: 14px;
-                  background-color: #f7f7f8;
-                  color: ${pageNumber === currentPage
-                    ? "hsl(216, 55%, 39%)"
-                    : "black"};
-                `}
+                css={[
+                  pageButtonStyles,
+                  css`
+                    color: ${pageNumber === currentPage
+                      ? "hsl(216, 55%, 39%)"
+                      : "black"};
+                    background-color: ${pageNumber === currentPage
+                      ? "#e3f2fd"
+                      : "#f7f7f8"};
+                  `,
+                ]}
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
               >
@@ -214,12 +252,12 @@ export const CommunityListPage = () => {
         )}
 
         {currentPage + 5 <= totalPages && (
-          <Button
-            size="small"
+          <button
+            css={buttonStyles}
             onClick={() => handlePageChange(currentPage + 5)}
           >
             다음
-          </Button>
+          </button>
         )}
       </div>
     </>

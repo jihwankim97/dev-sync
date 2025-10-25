@@ -4,90 +4,84 @@ import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { Button, css, Divider, Typography } from "@mui/material";
 import DOMPurify from "dompurify";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { GetLikeCount } from "../../api/GetLikeCount";
-import { ToggleLike } from "../../api/ToggleLike";
-import { CommentPost } from "../../components/community/CommentPost";
 import { DeletePostDialog } from "../../components/community/DeletePostDialog";
 import { OptionBar } from "../../components/community/OptionBar";
-import type { userInfo } from "../../types/resume.type";
-import { fetchUserInfo } from "../../api/UserApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { postKeys } from "../../api/queryKeys";
+import { request } from "../../api/queries/baseQuery";
+import { ENDPOINTS } from "../../api/endpoint";
+import { userDataOption } from "../../api/queries/userQueries";
+import { CommentPost } from "../../components/community/CommentPost";
 
 export const ReadPostPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [likeCount, setLikeCount] = useState<number>(0);
-  const [liked, setLiked] = useState(false);
-  const [userData, setUserData] = useState<userInfo>();
   const [open, setOpen] = useState(false);
   const post = location.state; // `navigate`에서 전달된 데이터
   const [date, time] = post.createdAt.split("T");
   const formmatTime = time.substring(0, 5);
   //xss 방지를 위한 데이터 처리
   const sanitizedContent = DOMPurify.sanitize(post.content);
+  const queryClient = useQueryClient();
+  const { data: userData } = useQuery(userDataOption());
 
-  useEffect(() => {
-    fetchUserInfo()
-      .then((data) => {
-        setUserData(data);
-      })
-      .catch((err) => {
-        console.log(err.message || "알 수 없는 에러");
+  console.log(post.id);
+
+  //좋아요 상태 조회
+  const { data: likeStatus } = useQuery({
+    queryKey: postKeys.likeStatus(post.id),
+    queryFn: () =>
+      request({
+        url: `${ENDPOINTS.postLike(post.id)}/status`,
+        responseType: "text",
+      }),
+    enabled: !!post.id,
+  });
+
+  //좋아요 갯수 조회
+  const { data: likeCount } = useQuery({
+    queryKey: postKeys.likeCount(post.id),
+    queryFn: () =>
+      request({
+        url: `${ENDPOINTS.postLike(post.id)}/count`,
+      }),
+    enabled: !!post.id,
+  });
+
+  //좋아요 토글 변경
+  const likeToggle = useMutation({
+    mutationFn: () =>
+      request({
+        url: `${ENDPOINTS.base()}/post/${post.id}/like-toggle`,
+        method: "POST",
+      }),
+    onSuccess: () => {
+      console.log("좋아요 토글 성공");
+      // 관련 쿼리들 무효화
+      queryClient.invalidateQueries({
+        queryKey: postKeys.likeStatus(post.id),
       });
-  }, []);
-
-  const checkLikeStatus = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/post/${post.id}/likes/status`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      if (!response.ok) throw new Error("Failed to check like status");
-
-      const value = await response.text();
-      console.log("value", value);
-      return value;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    if (post.id) {
-      const checkLike = async () => {
-        const status = await checkLikeStatus();
-        console.log("status", status);
-        if (status === "true") {
-          setLiked(true);
-        } else {
-          setLiked(false);
-        }
-      };
-      checkLike();
-    }
-  }, []);
-
-  const count = async () => {
-    const data = await GetLikeCount(post.id);
-    setLikeCount(data);
-  };
-
-  //렌더링시 라이크 갯수
-  useEffect(() => {
-    count();
-  }, []);
+      queryClient.invalidateQueries({
+        queryKey: postKeys.likeCount(post.id),
+      });
+    },
+    onError: (error) => {
+      console.error("좋아요 토글 실패:", error);
+    },
+  });
 
   const handleButton = async () => {
-    setLiked(!liked);
-    await ToggleLike(post.id);
-    count();
+    if (post.id && !likeToggle.isPending) {
+      try {
+        const result = await likeToggle.mutateAsync();
+        console.log("토글 결과:", result);
+      } catch (error) {
+        console.error("좋아요 토글 중 에러:", error);
+      }
+    }
   };
-
   const handleDelete = () => {
     setOpen(true);
   };
@@ -100,7 +94,6 @@ export const ReadPostPage = () => {
     };
     navigate(`/post/${post.id}/edit`, { state: updatedPost });
   };
-
 
   return (
     <>
@@ -220,6 +213,7 @@ export const ReadPostPage = () => {
             <KeyboardBackspaceIcon />
           </Button>
           <Button
+            disabled={likeToggle.isPending}
             onClick={handleButton}
             variant="outlined"
             sx={{
@@ -231,8 +225,8 @@ export const ReadPostPage = () => {
               boxShadow: "0px 0px 5px rgba(230, 230, 230, 0.8)",
             }}
           >
-            {liked === true ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-            <span>{likeCount}</span>
+            {likeStatus === "true" ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+            <span>{likeCount || 0}</span>
           </Button>
         </div>
         <CommentPost />
