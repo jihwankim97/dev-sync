@@ -29,6 +29,8 @@ import { CareerModel } from './resume/entity/career.entity';
 import { AchievementModel } from './resume/entity/achievement.entity';
 import { CustomModel } from './resume/entity/custom.entity';
 import { OrderModel } from './resume/entity/order.entity';
+import { addTransactionalDataSource } from 'typeorm-transactional';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
@@ -75,6 +77,12 @@ import { OrderModel } from './resume/entity/order.entity';
         autoLoadEntities: true,
         synchronize: true,
       }),
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('데이터베이스 연결 옵션이 제공되지 않았습니다.');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
       inject: [ConfigService],
     }),
     UserModule,

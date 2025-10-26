@@ -20,6 +20,7 @@ import { CreatePostDto } from './dto/post/create-post.dto';
 import { SearchPostDto } from './dto/post/search-post.dto';
 import { AddCommentDto } from './dto/comment/add-comment.dto';
 import { UpdateCommentDto } from './dto/comment/update-comment.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class PostService {
@@ -157,7 +158,8 @@ export class PostService {
     }));
   }
 
-  //게시글 파일 업로드드
+  //게시글 파일 업로드
+  @Transactional()
   async uploadPostFiles(userId: number, files: Express.Multer.File[]) {
     if (!files || files.length === 0) {
       throw new BadRequestException('파일이 없습니다.');

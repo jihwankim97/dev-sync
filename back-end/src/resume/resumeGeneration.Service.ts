@@ -68,7 +68,7 @@ export class ResumeGenerationService {
     return this.resumeService.findDetail(resume.id);
   }
 
-  async callResumeCompletion(profileData: string): Promise<string> {
+  private async callResumeCompletion(profileData: string): Promise<string> {
     const prompt = `
 Using the following GitHub profile data, generate a structured JSON object for a developer portfolio. 
 

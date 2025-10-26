@@ -6,8 +6,11 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 import * as express from 'express';
 import { join } from 'path';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
 async function bootstrap() {
+  initializeTransactionalContext();
+
   const app = await NestFactory.create(AppModule);
 
   const port = process.env.PORT || 3000;

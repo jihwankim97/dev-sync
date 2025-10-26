@@ -22,12 +22,10 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    return user;
+    return this.userRepository.findOne({ where: { email } });
   }
 
-  async update(email: string, updateUserDto: Partial<UpdateUserDto>) {
+  async update(email: string, updateUserDto: UpdateUserDto) {
     if (Object.keys(updateUserDto).length === 0) {
       throw new HttpException(
         '업데이트할 데이터가 없습니다.',
@@ -49,17 +47,19 @@ export class UserService {
     const uploadPath = './uploads/profiles';
     const filename = `${user.id}-${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
 
-    const fileUrl = await this.uploadService.uploadFile(
-      file,
-      uploadPath,
-      filename,
-    );
+    let fileUrl: string;
+    try {
+      fileUrl = await this.uploadService.uploadFile(file, uploadPath, filename);
 
-    await this.userRepository.update(user.id, {
-      profileImage: fileUrl,
-    });
+      await this.userRepository.update(user.id, {
+        profileImage: fileUrl,
+      });
 
-    return this.findOne(user.id);
+      return this.findOne(user.id);
+    } catch (error) {
+      await this.uploadService.deleteFile(fileUrl);
+      throw error;
+    }
   }
 
   async findByEmailOrSave(email: string, name: string): Promise<User> {
