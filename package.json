@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "joi": "^18.0.1"
-  },
-  "devDependencies": {
-    "prettier": "^3.6.2"
-  }
-}

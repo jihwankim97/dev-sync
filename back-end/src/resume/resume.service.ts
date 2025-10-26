@@ -25,6 +25,7 @@ import { ResumeBlockType } from './enum/resume-type.enum';
 import { User } from 'src/user/entity/user.entity';
 import { CreateCareerDto } from './dto/create-career.dto';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class ResumeService {
@@ -51,6 +52,7 @@ export class ResumeService {
     private readonly blockOrderRepository: Repository<OrderModel>,
   ) {}
 
+  @Transactional()
   async saveBlock(resumeId: string, dto: any) {
     const { type, ...entityData } = dto;
 
@@ -197,7 +199,10 @@ export class ResumeService {
     return { id: introduction.id, type: 'introduction', ...introduction };
   }
 
-  async upsertIntroduction(resumeId: string, dto: CreateIntroductionDto) {
+  private async upsertIntroduction(
+    resumeId: string,
+    dto: CreateIntroductionDto,
+  ) {
     let introduction = await this.introductionRepository.findOne({
       where: { resume: { id: resumeId } },
     });
@@ -216,6 +221,7 @@ export class ResumeService {
     return { message: '소개가 생성되었습니다.', id: introduction.id };
   }
 
+  @Transactional()
   async removeIntroduction(resumeId: string) {
     const result = await this.introductionRepository.delete({
       resume: { id: resumeId },
@@ -244,7 +250,7 @@ export class ResumeService {
     return { id: profile.id, type: 'profile', ...profile };
   }
 
-  async upsertProfile(resumeId: string, profileDto: CreateProfileDto) {
+  private async upsertProfile(resumeId: string, profileDto: CreateProfileDto) {
     let profile = await this.profileRepository.findOne({
       where: { resume: { id: resumeId } },
     });
@@ -268,6 +274,7 @@ export class ResumeService {
     return { message: '프로필이 생성되었습니다.', id: profile.id };
   }
 
+  @Transactional()
   async removeProfile(resumeId: string) {
     const result = await this.profileRepository.delete({
       resume: { id: resumeId },
@@ -303,6 +310,7 @@ export class ResumeService {
     };
   }
 
+  @Transactional()
   async syncProjects(
     resumeId: string,
     createProjectsDto: CreateProjectsWidthOutcomesDto,
@@ -329,7 +337,7 @@ export class ResumeService {
     return result;
   }
 
-  async upsertProject(resumeId: string, projectData: CreateProjectDto) {
+  private async upsertProject(resumeId: string, projectData: CreateProjectDto) {
     let project = await this.projectRepository.findOne({
       where: { id: projectData.id, resume: { id: resumeId } },
       relations: ['outcomes'],
@@ -354,6 +362,7 @@ export class ResumeService {
     return { message: '프로젝트가 생성되었습니다.', id: project.id };
   }
 
+  @Transactional()
   async removeProject(resumeId: string) {
     const result = await this.projectRepository.delete({
       resume: { id: resumeId },
@@ -369,6 +378,7 @@ export class ResumeService {
     return { message: '프로젝트가 삭제되었습니다.', id: resumeId };
   }
 
+  @Transactional()
   async syncProjectOutcomes(
     project: ProjectModel,
     outcomeDtos: CreateOutcomeDto[],
@@ -391,7 +401,7 @@ export class ResumeService {
     return result;
   }
 
-  async upsertProjectOutcome(
+  private async upsertProjectOutcome(
     project: ProjectModel,
     outcomeDto: CreateOutcomeDto,
   ) {
@@ -413,7 +423,7 @@ export class ResumeService {
     return { message: '결과가 생성되었습니다.', id: outcome.id };
   }
 
-  async removeProjectOutcome(projectId: string, outcomeId: string) {
+  private async removeProjectOutcome(projectId: string, outcomeId: string) {
     const result = await this.projectOutcomeRepository.delete({
       id: outcomeId,
       project: { id: projectId },
@@ -457,6 +467,7 @@ export class ResumeService {
     return { message: '스킬이 업데이트되었습니다.' };
   }
 
+  @Transactional()
   async removeSkills(resumeId: string) {
     await this.resumeRepository.save({
       id: resumeId,
@@ -500,6 +511,7 @@ export class ResumeService {
     };
   }
 
+  @Transactional()
   async syncCareers(resumeId: string, careerData: CreateCareersDto) {
     const incomingCareers = careerData.items;
     const incomingIds = incomingCareers.map((c) => c.id);
@@ -523,7 +535,7 @@ export class ResumeService {
     return results;
   }
 
-  async upsertCareer(resumeId: string, data: CreateCareerDto) {
+  private async upsertCareer(resumeId: string, data: CreateCareerDto) {
     let career = await this.careerRepository.findOne({
       where: { id: data.id, resume: { id: resumeId } },
     });
@@ -564,6 +576,7 @@ export class ResumeService {
     };
   }
 
+  @Transactional()
   async syncAchievements(
     resumeId: string,
     achievementData: CreateAchievementsDto,
@@ -592,7 +605,10 @@ export class ResumeService {
     return results;
   }
 
-  async upsertAchievement(resumeId: string, data: CreateAchievementDto) {
+  private async upsertAchievement(
+    resumeId: string,
+    data: CreateAchievementDto,
+  ) {
     let achievement = await this.achievementRepository.findOne({
       where: { id: data.id, resume: { id: resumeId } },
     });
@@ -613,7 +629,7 @@ export class ResumeService {
     return { message: '업력이 생성되었습니다.', id: achievement.id };
   }
 
-  async upsertCustom(resumeId: string, customData: CreateCustomDto) {
+  private async upsertCustom(resumeId: string, customData: CreateCustomDto) {
     let custom = await this.customRepository.findOne({
       where: { id: customData.id, resume: { id: resumeId } },
     });
@@ -652,6 +668,7 @@ export class ResumeService {
     };
   }
 
+  @Transactional()
   async removeCustom(resumeId: string, customId: string) {
     const result = await this.customRepository.delete({
       id: customId,
@@ -669,6 +686,7 @@ export class ResumeService {
     return { message: '커스텀이 삭제되었습니다.', id: customId };
   }
 
+  @Transactional()
   async removeCareer(resumeId: string) {
     const result = await this.careerRepository.delete({
       resume: { id: resumeId },
@@ -684,6 +702,7 @@ export class ResumeService {
     return { message: '경력이 삭제되었습니다.', id: resumeId };
   }
 
+  @Transactional()
   async removeAchievement(resumeId: string) {
     const result = await this.achievementRepository.delete({
       resume: { id: resumeId },
@@ -700,6 +719,7 @@ export class ResumeService {
     return { message: '업적이 삭제되었습니다.', id: resumeId };
   }
 
+  @Transactional()
   async updateBlockOrders(
     resumeId: string,
     updateBlockOrdersDto: UpdateBlockOrdersDto,
@@ -737,7 +757,7 @@ export class ResumeService {
     await this.blockOrderRepository.delete({ blockId });
   }
 
-  async addBlockToOrder(
+  private async addBlockToOrder(
     resumeId: string,
     blockType: ResumeBlockType,
     blockId?: string,
@@ -755,7 +775,7 @@ export class ResumeService {
     await this.blockOrderRepository.save(blockOrder);
   }
 
-  async addBlockToOrderIfNotExists(
+  private async addBlockToOrderIfNotExists(
     resumeId: string,
     blockType: ResumeBlockType,
     blockId?: string,
@@ -774,7 +794,7 @@ export class ResumeService {
     }
   }
 
-  async removeBlockFromOrder(
+  private async removeBlockFromOrder(
     resumeId: string,
     blockType: ResumeBlockType,
     blockId?: string,
