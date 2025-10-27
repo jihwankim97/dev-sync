@@ -26,6 +26,7 @@ import { User } from 'src/user/decorator/user.decorator';
 import { SearchPostDto } from './dto/post/search-post.dto';
 import { PostOwnershipGuard } from './guard/post-ownership.guard';
 import { User as UserEntity } from 'src/user/entity/user.entity';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
 @Controller('post')
 export class PostsController {
@@ -42,20 +43,26 @@ export class PostsController {
 
   // 모든 게시글 조회
   @Get()
-  async getAllPosts() {
-    return this.postsService.findAll();
+  async getAllPosts(@Query() dto: BasePaginationDto) {
+    return this.postsService.findAll(dto);
   }
 
   // 카테고리 이름으로 게시글 조회
   @Get('/categories/:category')
-  async getPostsByCategory(@Param() params: GetPostsByCategoryDto) {
-    return this.postsService.findPostsByCategory(params);
+  async getPostsByCategory(
+    @Param() params: GetPostsByCategoryDto,
+    @Query() dto: BasePaginationDto,
+  ) {
+    return this.postsService.findPostsByCategory(params, dto);
   }
 
   // 유저 이메일로 게시글 조회
   @Get('/users/:email')
-  async getPostsByUserId(@Param('email') email: string) {
-    return this.postsService.findByUserEmail(email);
+  async getPostsByUserId(
+    @Param('email') email: string,
+    @Query() dto: BasePaginationDto,
+  ) {
+    return this.postsService.findByUserEmail(email, dto);
   }
 
   // 조회수 상위 n개 게시글 조회

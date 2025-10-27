@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Not, Repository } from 'typeorm';
@@ -12,7 +8,6 @@ import { Post } from './entity/post.entity';
 import { Category } from './entity/category.entity';
 import { Like } from './entity/like.entity';
 import { Comment } from './entity/comment.entity';
-import { UserService } from 'src/user/user.service';
 import { UploadService } from 'src/upload/upload.service';
 import { extname } from 'path';
 import { UpdatePostDto } from './dto/post/update-post.dto';
@@ -21,6 +16,8 @@ import { SearchPostDto } from './dto/post/search-post.dto';
 import { AddCommentDto } from './dto/comment/add-comment.dto';
 import { UpdateCommentDto } from './dto/comment/update-comment.dto';
 import { Transactional } from 'typeorm-transactional';
+import { CommonService } from 'src/common/common.service';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
 @Injectable()
 export class PostService {
@@ -28,13 +25,32 @@ export class PostService {
     @InjectRepository(Post) private postRepository: Repository<Post>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-    @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Like) private likeRepository: Repository<Like>,
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
-    private readonly userService: UserService,
     private readonly uploadService: UploadService,
+    private readonly commonService: CommonService,
   ) {}
 
+  private createBasePostQuery() {
+    return this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.category', 'category')
+      .loadRelationCountAndMap('post.likecount', 'post.likes')
+      .loadRelationCountAndMap('post.commentcount', 'post.comments');
+  }
+
+  private mapPostToResponse(posts: Post[]) {
+    return posts.map((post) => ({
+      ...post,
+      user: {
+        id: post.author.id,
+        email: post.author.email,
+        name: post.author.name,
+        profile_image: post.author.profileImage,
+      },
+    }));
+  }
   //-----------------------------------category----------------------------------------------------
 
   // 모든 카테고리 조회
@@ -57,51 +73,49 @@ export class PostService {
   }
 
   // 특정 카테고리에 속한 게시글 조회
-  async findPostsByCategory(getPostsByCategoryDto: GetPostsByCategoryDto) {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments')
+  async findPostsByCategory(
+    getPostsByCategoryDto: GetPostsByCategoryDto,
+    paginationDto: BasePaginationDto = {},
+  ) {
+    const query = this.createBasePostQuery()
       .where('category.category = :category', {
         category: getPostsByCategoryDto.category,
       })
-      .orderBy('post.createdAt', 'DESC')
-      .getMany();
+      .orderBy('post.createdAt', 'DESC');
 
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
+    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+
+    const [posts, total] = await query.getManyAndCount();
+
+    return {
+      data: this.mapPostToResponse(posts),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
       },
-    }));
+    };
   }
 
   //-----------------------------------post----------------------------------------------------
   // 모든 게시글 조회
-  async findAll() {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments')
-      .orderBy('post.createdAt', 'DESC')
-      .getMany();
+  async findAll(paginationDto: BasePaginationDto = {}) {
+    const query = this.createBasePostQuery().orderBy('post.createdAt', 'DESC');
 
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
+    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+
+    const [posts, total] = await query.getManyAndCount();
+
+    return {
+      data: this.mapPostToResponse(posts),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
       },
-    }));
+    };
   }
 
   // 게시글 ID로 조회
@@ -113,57 +127,104 @@ export class PostService {
   }
 
   // 유저 이메일로 게시글 조회
-  async findByUserEmail(email: string) {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments')
-      .where('author.email = :email', { email: email })
-      .orderBy('post.createdAt', 'DESC')
-      .getMany();
+  async findByUserEmail(email: string, paginationDto: BasePaginationDto = {}) {
+    const query = this.createBasePostQuery()
+      .where('author.email = :email', { email })
+      .orderBy('post.createdAt', 'DESC');
 
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
+    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+
+    const [posts, total] = await query.getManyAndCount();
+
+    return {
+      data: this.mapPostToResponse(posts),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
       },
-    }));
+    };
   }
 
   // 유저 아이디로 게시글 조회
-  async findByUserId(userId: number) {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments')
-      .where('author.id = :userId', { userId: userId })
-      .orderBy('post.createdAt', 'DESC')
+  async findByUserId(userId: number, paginationDto: BasePaginationDto = {}) {
+    const query = this.createBasePostQuery()
+      .where('author.id = :userId', { userId })
+      .orderBy('post.createdAt', 'DESC');
+
+    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+
+    const [posts, total] = await query.getManyAndCount();
+
+    return {
+      data: this.mapPostToResponse(posts),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
+  }
+
+  //검색어로 게시글 조회
+  async search(
+    searchPostDto: SearchPostDto,
+    paginationDto: BasePaginationDto = {},
+  ) {
+    const query = this.createBasePostQuery();
+
+    if (searchPostDto.type === 'title') {
+      query.where('post.title LIKE :keyword', {
+        keyword: `%${searchPostDto.keyword}%`,
+      });
+    } else if (searchPostDto.type === 'content') {
+      query.where('post.content LIKE :keyword', {
+        keyword: `%${searchPostDto.keyword}%`,
+      });
+    } else {
+      query.where('post.title LIKE :keyword OR post.content LIKE :keyword', {
+        keyword: `%${searchPostDto.keyword}%`,
+      });
+    }
+
+    if (searchPostDto.category) {
+      query.andWhere('category.category = :category', {
+        category: searchPostDto.category,
+      });
+    }
+
+    query.orderBy('post.createdAt', 'DESC');
+
+    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+
+    const [posts, total] = await query.getManyAndCount();
+
+    return {
+      data: this.mapPostToResponse(posts),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
+  }
+
+  // 조회수 상위 n개 게시글 조회
+  async findTop(n: number) {
+    const posts = await this.createBasePostQuery()
+      .orderBy('post.viewCount', 'DESC')
+      .limit(n)
       .getMany();
 
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
-      },
-    }));
+    return this.mapPostToResponse(posts);
   }
 
   //게시글 파일 업로드
   @Transactional()
   async uploadPostFiles(userId: number, files: Express.Multer.File[]) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('파일이 없습니다.');
-    }
     const defaultCategory = await this.findCategoryByName('default');
 
     const savedPost = await this.postRepository.save({
@@ -177,17 +238,19 @@ export class PostService {
     const uploadPath = `./uploads/${postId}`;
     const fileUrls = {};
 
-    await Promise.all(
-      files.map(async (file, index) => {
-        const filename = `${Date.now()}-${index}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
-        const fileUrl = await this.uploadService.uploadFile(
-          file,
-          uploadPath,
-          filename,
-        );
-        fileUrls[file.originalname] = fileUrl;
-      }),
-    );
+    if (files && files.length > 0) {
+      await Promise.all(
+        files.map(async (file, index) => {
+          const filename = `${Date.now()}-${index}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+          const fileUrl = await this.uploadService.uploadFile(
+            file,
+            uploadPath,
+            filename,
+          );
+          fileUrls[file.originalname] = fileUrl;
+        }),
+      );
+    }
 
     return {
       message: '파일이 성공적으로 업로드 되었습니다.',
@@ -281,71 +344,6 @@ export class PostService {
     };
   }
 
-  // 조회수 상위 n개 게시글 조회
-  async findTop(n: number) {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments')
-      .orderBy('post.viewCount', 'DESC')
-      .limit(n)
-      .getMany();
-
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
-      },
-    }));
-  }
-
-  //검색어로 게시글 조회
-  async search(searchPostDto: SearchPostDto) {
-    const query = this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.category', 'category')
-      .loadRelationCountAndMap('post.likecount', 'post.likes')
-      .loadRelationCountAndMap('post.commentcount', 'post.comments');
-
-    if (searchPostDto.type === 'title') {
-      query.where('post.title LIKE :keyword', {
-        keyword: `%${searchPostDto.keyword}%`,
-      });
-    } else if (searchPostDto.type === 'content') {
-      query.where('post.content LIKE :keyword', {
-        keyword: `%${searchPostDto.keyword}%`,
-      });
-    } else {
-      query.where('post.title LIKE :keyword OR post.content LIKE :keyword', {
-        keyword: `%${searchPostDto.keyword}%`,
-      });
-    }
-
-    if (searchPostDto.category) {
-      query.andWhere('category.category = :category', {
-        category: searchPostDto.category,
-      });
-    }
-
-    const posts = await query.orderBy('post.createdAt', 'DESC').getMany();
-
-    return posts.map((post) => ({
-      ...post,
-      user: {
-        id: post.author.id,
-        email: post.author.email,
-        name: post.author.name,
-        profile_image: post.author.profileImage,
-      },
-    }));
-  }
-
   //-----------------------------------like----------------------------------------------------
 
   async toggleLike(user: User, postId: number) {
@@ -381,13 +379,15 @@ export class PostService {
 
   //----------------------comment----------------------------------
 
-  async findComments(postId: number, page: number) {
+  async findComments(postId: number, paginationDto: BasePaginationDto = {}) {
+    const paginationOptions =
+      this.commonService.applyPagePaginationParams<Comment>(paginationDto);
+
     const comments = await this.commentRepository.find({
       where: { post: { id: postId } },
       relations: ['author', 'parent'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * 20,
-      take: 20,
+      order: { createdAt: 'ASC' },
+      ...paginationOptions,
     });
 
     return comments.map((comment) => ({
