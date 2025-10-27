@@ -1,23 +1,14 @@
-import { IsIn, IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export class BasePaginationDto {
   @IsNumber()
   @IsOptional()
+  @Min(1)
   page?: number;
 
   @IsNumber()
   @IsOptional()
-  where__id__less_than?: number;
-
-  @IsNumber()
-  @IsOptional()
-  where__id__more_than?: number;
-
-  @IsIn(['ASC', 'DESC'])
-  @IsOptional()
-  order__createdAt: 'ASC' | 'DESC' = 'ASC';
-
-  @IsNumber()
-  @IsOptional()
-  take: number = 20;
+  @Min(1, { message: 'take는 최소 1 이상이어야 합니다.' })
+  @Max(100, { message: 'take는 최대 100까지 가능합니다.' })
+  take?: number;
 }

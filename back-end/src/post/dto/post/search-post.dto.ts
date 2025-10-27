@@ -1,7 +1,8 @@
 import { IsString, IsOptional, IsIn } from 'class-validator';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 import { POST_CATEGORY_VALUES } from 'src/post/enum/post-category.enum';
 
-export class SearchPostDto {
+export class SearchPostDto extends BasePaginationDto {
   @IsString()
   keyword: string;
 
