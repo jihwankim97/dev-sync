@@ -1,6 +1,4 @@
-/** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-// MUI 제거, emotion css와 HTML로 대체
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import useFetchCategories from "../../api/FetchCategories";
@@ -14,16 +12,17 @@ type PostType = {
   likecount: number;
 };
 
-type CommunityContextType = {
-  postData: PostType[];
-  setPostData: React.Dispatch<React.SetStateAction<PostType[]>>;
-};
-
 export const CommunityLayout = () => {
   const navigate = useNavigate();
   const [category, setCategory] = useState("자유게시판");
   const { categories } = useFetchCategories();
-  const [postList, setPostList] = useState<CommunityContextType[]>([]);
+  const [search, setSearch] = useState<{
+    keyword: string;
+    type: "title" | "content" | "all";
+  }>({
+    keyword: "",
+    type: "all",
+  });
 
   const handleCategory = (category: string) => {
     setCategory(category);
@@ -43,7 +42,6 @@ export const CommunityLayout = () => {
       css={css`
         display: flex;
         padding-top: 3rem;
-
       `}
     >
       <nav
@@ -53,7 +51,13 @@ export const CommunityLayout = () => {
           border-right: 1px solid #ddd;
         `}
       >
-        <ul css={css`list-style: none; margin: 0; padding: 0;`}>
+        <ul
+          css={css`
+            list-style: none;
+            margin: 0;
+            padding: 0;
+          `}
+        >
           {categories.map((cat, index) => (
             <li key={index}>
               <button
@@ -64,7 +68,9 @@ export const CommunityLayout = () => {
                   border: none;
                   background: none;
                   font-weight: bold;
-                  color: ${category === cat.category ? "#2264d6f5" : "#6d6d6dff"};
+                  color: ${category === cat.category
+                    ? "#2264d6f5"
+                    : "#6d6d6dff"};
                   font-size: 1rem;
                   cursor: pointer;
                   transition: background 0.2s;
@@ -91,17 +97,19 @@ export const CommunityLayout = () => {
           width: 100%;
         `}
       >
-        <CommunityAction category={category} setPostList={setPostList} />
+        <CommunityAction category={category} setSearch={setSearch} />
         {/* 게시물 영역 */}
-        <div
-        >
-          <Outlet context={{ setPostList, postList }} />
+        <div>
+          <Outlet context={{ search }} />
         </div>
       </div>
-      <div css={css`width: 100%;        
-      max-width: 200px;
-      box-sizing: border-box;
-`}></div>
+      <div
+        css={css`
+          width: 100%;
+          max-width: 200px;
+          box-sizing: border-box;
+        `}
+      ></div>
     </div>
   );
 };

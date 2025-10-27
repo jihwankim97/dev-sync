@@ -70,6 +70,64 @@ const skillsCloseBtn = css`
   }
 `;
 
+const buttonStyles = (size: "sm" | "md" | "lg" = "md") => {
+  const sizeConfig = {
+    sm: {
+      padding: "6px 12px",
+      fontSize: "12px",
+      borderRadius: "3px",
+    },
+    md: {
+      padding: "8px 16px",
+      fontSize: "14px",
+      borderRadius: "4px",
+    },
+    lg: {
+      padding: "12px 24px",
+      fontSize: "16px",
+      borderRadius: "6px",
+    },
+  };
+
+  const config = sizeConfig[size];
+
+  return css`
+    padding: ${config.padding};
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: ${config.borderRadius};
+    font-size: ${config.fontSize};
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #1565c0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+      background-color: #0d47a1;
+      transform: translateY(0);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+    }
+  `;
+};
+
+// Divider 스타일
+const dividerStyles = css`
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  height: 1px;
+  margin: 0;
+`;
+
 export {
   containerStyle,
   headerStyle,
@@ -77,4 +135,6 @@ export {
   blueBackgroundStyle,
   contentWrapperStyle,
   skillsCloseBtn,
+  buttonStyles,
+  dividerStyles,
 };
