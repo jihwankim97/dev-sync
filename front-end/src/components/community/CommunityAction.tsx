@@ -1,28 +1,85 @@
 import SearchIcon from "@mui/icons-material/Search";
-import {
-  Button,
-  Divider,
-  InputAdornment,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
-import { useState } from "react";
+import { css } from "@emotion/react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { openLoginForm } from "../../redux/loginSlice";
 import type { RootState } from "../../redux/store";
+import { buttonStyles, dividerStyles } from "../../styles/resumeCommonStyle";
 
 interface CommunityActionsProps {
   category: string;
-  setPostList: any;
+  setSearch: Dispatch<
+    SetStateAction<{ keyword: string; type: "title" | "content" | "all" }>
+  >;
 }
 
-const CommunityAction = ({ category, setPostList }: CommunityActionsProps) => {
+// 검색바 컨테이너 스타일
+const searchContainerStyles = css`
+  display: flex;
+  margin-bottom: 1rem;
+  gap: 1rem;
+`;
+
+// Select 스타일
+const selectStyles = css`
+  width: 140px;
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+  }
+`;
+
+// TextField 스타일
+const inputContainerStyles = css`
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+const inputStyles = css`
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+  }
+`;
+
+const searchIconStyles = css`
+  position: absolute;
+  left: 12px;
+  color: #666;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+// 글쓰기 버튼 컨테이너 스타일
+const writeButtonContainerStyles = css`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+`;
+
+const CommunityAction = ({ category, setSearch }: CommunityActionsProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [keyword, setKeyword] = useState("");
-  const [searchType, setSearchType] = useState<"title" | "content" | "all">(
+  // 입력값은 로컬 상태로 관리
+  const [localKeyword, setLocalKeyword] = useState("");
+  const [localType, setLocalType] = useState<"title" | "content" | "all">(
     "all"
   );
   const isLogin = useSelector((state: RootState) => state.login.loggedIn);
@@ -30,26 +87,11 @@ const CommunityAction = ({ category, setPostList }: CommunityActionsProps) => {
 
   // 게시물 페이지에서는 안 보이게 설정
   const isPostPage = location.pathname.startsWith("/community/post/");
-
   if (isPostPage) return null;
 
-  const handleSearch = async () => {
-    if (!keyword.trim()) return;
-
-    const response = await fetch(
-      `http://localhost:3000/post/search?keyword=${encodeURIComponent(
-        keyword
-      )}&category=${encodeURIComponent(category)}&type=${searchType}`
-    );
-
-    if (!response.ok) {
-      console.error("검색 실패");
-      return;
-    }
-
-    const result = await response.json();
-    // console.log(result);
-    setPostList(result);
+  // 검색 버튼 클릭 시 상위 상태에 반영
+  const handleSearch = () => {
+    setSearch({ keyword: localKeyword, type: localType });
   };
 
   const handleWrite = () => {
@@ -63,60 +105,50 @@ const CommunityAction = ({ category, setPostList }: CommunityActionsProps) => {
   return (
     <>
       {/* 검색 바 */}
-      <div style={{ display: "flex", marginBottom: "1rem" }}>
-        <Select
-          value={searchType}
-          size="small"
-          onChange={(e) => setSearchType(e.target.value as any)}
-          sx={{ marginRight: "1rem", width: "140px", backgroundColor: "white" }}
+      <div css={searchContainerStyles}>
+        <select
+          value={localType}
+          onChange={(e) => {
+            const val = e.target.value as "title" | "content" | "all";
+            setLocalType(val);
+          }}
+          css={selectStyles}
         >
-          <MenuItem value="title">제목</MenuItem>
-          <MenuItem value="content">내용</MenuItem>
-          <MenuItem value="all">제목+내용</MenuItem>
-        </Select>
+          <option value="title">제목</option>
+          <option value="content">내용</option>
+          <option value="all">제목+내용</option>
+        </select>
 
-        <TextField
-          size="small"
-          variant="outlined"
-          sx={{ flex: 1, backgroundColor: "white" }}
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSearch();
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-        <Button
-          variant="contained"
-          sx={{ marginLeft: "1rem" }}
-          onClick={handleSearch}
-        >
+        <div css={inputContainerStyles}>
+          {/* 검색 아이콘 */}
+          <SearchIcon css={searchIconStyles} />
+          <input
+            type="text"
+            css={inputStyles}
+            value={localKeyword}
+            onChange={(e) => setLocalKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSearch();
+            }}
+            placeholder="검색어를 입력하세요"
+          />
+        </div>
+
+        <button css={buttonStyles()} onClick={handleSearch}>
           검색
-        </Button>
+        </button>
       </div>
 
       {/* 글쓰기 버튼 */}
       {(category === "자유게시판" || category === "질문게시판") && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: "1rem",
-          }}
-        >
-          <Button onClick={handleWrite} variant="contained">
+        <div css={writeButtonContainerStyles}>
+          <button css={buttonStyles()} onClick={handleWrite}>
             글쓰기
-          </Button>
+          </button>
         </div>
       )}
 
-      <Divider />
+      <hr css={dividerStyles} />
     </>
   );
 };

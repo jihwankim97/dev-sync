@@ -4,10 +4,12 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { GetCategoryDataOption } from "../../api/queries/communityQuerys";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { ENDPOINTS } from "../../api/endpoint";
 import { request } from "../../api/queries/baseQuery";
+import { getCategoryData } from "../../api/getCategoryData";
+import { searchPost } from "../../api/SearchPost";
+import { postKeys } from "../../api/queryKeys";
 
 const listStyles = css`
   background-color: #fff;
@@ -106,6 +108,15 @@ const pageButtonStyles = css`
   }
 `;
 
+type postType = {
+  id: number;
+  title: string;
+  content: string;
+  viewCount: number;
+  commentcount?: number;
+  likecount?: number;
+};
+
 export const CommunityListPage = () => {
   const categoryMap = {
     question: "질문게시판",
@@ -117,18 +128,32 @@ export const CommunityListPage = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 20;
+  const { search } = useOutletContext<{
+    search: { keyword: string; type: string };
+  }>();
 
   const { categoryKey } = useParams<{ categoryKey: CategoryKey }>();
-  const category = categoryKey ? categoryMap[categoryKey] : "";
+  const category = categoryKey ? categoryMap[categoryKey] : "자유게시판";
+
+  const fetchList = () => {
+    //검색 키워드 존재할경우
+    if (search.keyword !== "") {
+      return searchPost({ search, category });
+    } else {
+      return getCategoryData(category);
+    }
+  };
 
   const {
     data: postList,
     isError,
     isLoading,
   } = useQuery({
-    ...GetCategoryDataOption(category),
+    queryKey: postKeys.categorySearch(category, search),
+    queryFn: fetchList,
     refetchOnWindowFocus: true, // 창 포커스 시 재조회
     staleTime: 0,
+    enabled: !!category,
   });
 
   const viewCountMutation = useMutation({
@@ -161,12 +186,7 @@ export const CommunityListPage = () => {
     return text;
   };
 
-  const handleListClick = async (post: {
-    id: number;
-    title: string;
-    content: string;
-    viewCount: number;
-  }) => {
+  const handleListClick = async (post: postType) => {
     viewCountMutation.mutate(post.id);
 
     const updatedPost = {
@@ -187,10 +207,12 @@ export const CommunityListPage = () => {
     currentPage * postsPerPage
   );
 
+  console.log(paginatedPosts);
+
   return (
     <>
       <ul css={listStyles}>
-        {paginatedPosts?.map((post, index) => (
+        {paginatedPosts?.map((post: postType, index: number) => (
           <div key={`${post.id} - ${index}`}>
             <li css={listItemStyles} onClick={() => handleListClick(post)}>
               <div css={listItemTextStyles}>

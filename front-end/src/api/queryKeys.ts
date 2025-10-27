@@ -16,5 +16,12 @@ export const postKeys = {
     ["likeStatus", ...postKeys.post(postId)] as const,
   likeCount: (postId: number) =>
     ["likeCount", ...postKeys.post(postId)] as const,
-  category: (category: string) => ["category", { category }] as const,
+  categorySearch: (
+    category: string,
+    search: { keyword: string; type: string }
+  ) =>
+    [
+      "category",
+      { category, keyword: search.keyword, type: search.type },
+    ] as const,
 };
