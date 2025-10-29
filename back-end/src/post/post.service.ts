@@ -77,13 +77,18 @@ export class PostService {
     getPostsByCategoryDto: GetPostsByCategoryDto,
     paginationDto: BasePaginationDto = {},
   ) {
-    const query = this.createBasePostQuery()
-      .where('category.category = :category', {
+    const query = this.createBasePostQuery().where(
+      'category.category = :category',
+      {
         category: getPostsByCategoryDto.category,
-      })
-      .orderBy('post.createdAt', 'DESC');
+      },
+    );
 
-    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
 
     const [posts, total] = await query.getManyAndCount();
 
@@ -101,9 +106,13 @@ export class PostService {
   //-----------------------------------post----------------------------------------------------
   // 모든 게시글 조회
   async findAll(paginationDto: BasePaginationDto = {}) {
-    const query = this.createBasePostQuery().orderBy('post.createdAt', 'DESC');
+    const query = this.createBasePostQuery();
 
-    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
 
     const [posts, total] = await query.getManyAndCount();
 
@@ -128,11 +137,15 @@ export class PostService {
 
   // 유저 이메일로 게시글 조회
   async findByUserEmail(email: string, paginationDto: BasePaginationDto = {}) {
-    const query = this.createBasePostQuery()
-      .where('author.email = :email', { email })
-      .orderBy('post.createdAt', 'DESC');
+    const query = this.createBasePostQuery().where('author.email = :email', {
+      email,
+    });
 
-    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
 
     const [posts, total] = await query.getManyAndCount();
 
@@ -149,11 +162,15 @@ export class PostService {
 
   // 유저 아이디로 게시글 조회
   async findByUserId(userId: number, paginationDto: BasePaginationDto = {}) {
-    const query = this.createBasePostQuery()
-      .where('author.id = :userId', { userId })
-      .orderBy('post.createdAt', 'DESC');
+    const query = this.createBasePostQuery().where('author.id = :userId', {
+      userId,
+    });
 
-    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
 
     const [posts, total] = await query.getManyAndCount();
 
@@ -195,9 +212,11 @@ export class PostService {
       });
     }
 
-    query.orderBy('post.createdAt', 'DESC');
-
-    this.commonService.applyPagePaginationParamsToQb(query, paginationDto);
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
 
     const [posts, total] = await query.getManyAndCount();
 
@@ -381,24 +400,34 @@ export class PostService {
 
   async findComments(postId: number, paginationDto: BasePaginationDto = {}) {
     const paginationOptions =
-      this.commonService.applyPagePaginationParams<Comment>(paginationDto);
+      this.commonService.applyPagePaginationParams<Comment>(
+        paginationDto,
+        'createdAt',
+      );
 
-    const comments = await this.commentRepository.find({
+    const [comments, total] = await this.commentRepository.findAndCount({
       where: { post: { id: postId } },
       relations: ['author', 'parent'],
-      order: { createdAt: 'ASC' },
       ...paginationOptions,
     });
 
-    return comments.map((comment) => ({
-      id: comment.id,
-      comment: comment.comment,
-      createdAt: comment.createdAt,
-      author: comment.author?.id,
-      user_name: comment.author?.name,
-      profile_image: comment.author?.profileImage,
-      parent: comment.parent?.id ?? null,
-    }));
+    return {
+      data: comments.map((comment) => ({
+        id: comment.id,
+        comment: comment.comment,
+        createdAt: comment.createdAt,
+        author: comment.author?.id,
+        user_name: comment.author?.name,
+        profile_image: comment.author?.profileImage,
+        parent: comment.parent?.id ?? null,
+      })),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
   }
 
   //전체 댓글의 개수 조회
