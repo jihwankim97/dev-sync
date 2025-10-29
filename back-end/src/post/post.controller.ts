@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Param,
@@ -148,11 +147,9 @@ export class PostsController {
   @Get('/comment/:id')
   async getComments(
     @Param('id', ParseIntPipe) postId: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query() paginationDto: BasePaginationDto,
   ) {
-    const comments = await this.postsService.findComments(postId, page);
-    const totalCount = await this.postsService.findCommentCount(postId);
-    return { totalCount, comments };
+    return this.postsService.findComments(postId, paginationDto);
   }
 
   // 댓글 생성
