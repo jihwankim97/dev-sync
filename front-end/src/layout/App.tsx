@@ -7,9 +7,6 @@ import { useDispatch } from "react-redux";
 import { setloggedIn } from "../redux/loginSlice";
 import { Outlet } from "react-router-dom";
 import "devicon/devicon.min.css";
-import { userKeys } from "../api/queryKeys";
-import { ENDPOINTS } from "../api/endpoint";
-import { request } from "../api/queries/baseQuery";
 import { loginStateOption } from "../api/queries/userQueries";
 
 const layoutStyle = css`
@@ -26,13 +23,19 @@ const layoutStyle = css`
     max-width: 100%;
     margin: 0;
   }
+    @media (max-width: 768px) {
+  .main-container {
+    min-height: 100vh;
+    height: auto;
+  }
+
 `;
 
 const contentWrapperStyle = css`
   flex-grow: 1;
   margin-top: 80px;
   width: 100%;
-  overflow-x: hidden;
+  height: 100%;
 `;
 
 const containerStyle = css`
@@ -46,6 +49,7 @@ const innerContentStyle = css`
   background-color: #ffffffff;
   box-sizing: border-box;
   width: 100%;
+  height: 100%;
   max-width: 1400px;
   margin: 0 auto;
 `;
@@ -81,8 +85,7 @@ function App() {
           margin-left: calc(-50vw + 50%);
           box-sizing: border-box;
           background-color: #f8f8f8f3;
-          height: 150px;
-          margin-top: 15rem;
+          height: 180px;
         `}
       >
         <Footer />

@@ -176,10 +176,10 @@ export const ReadPostPage = () => {
               padding-bottom: 60px;
               min-height: fit-content;
               img {
-                max-width: 30%; // 부모 요소 너비에 맞게 조정
-                height: auto; // 비율 유지하며 크기 조정
-                display: block; // 레이아웃 깨짐 방지
-                margin: 0 auto; // 중앙 정렬
+                max-width: 30%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
               }
             `}
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}

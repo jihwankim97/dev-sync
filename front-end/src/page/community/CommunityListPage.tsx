@@ -3,7 +3,7 @@ import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutline
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { ENDPOINTS } from "../../api/endpoint";
 import { request } from "../../api/queries/baseQuery";
@@ -95,16 +95,15 @@ const buttonStyles = css`
 `;
 
 const pageButtonStyles = css`
-  padding: 8px 12px;
-  font-size: 14px;
+  padding: 3px 6px;
+  font-size: 12px;
   background-color: #f7f7f8;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background-color: #e0e0e0;
+    background-color: #cacaca;
   }
 `;
 
@@ -135,22 +134,23 @@ export const CommunityListPage = () => {
   const { categoryKey } = useParams<{ categoryKey: CategoryKey }>();
   const category = categoryKey ? categoryMap[categoryKey] : "자유게시판";
 
-  const fetchList = () => {
-    //검색 키워드 존재할경우
-    if (search.keyword !== "") {
-      return searchPost({ search, category });
-    } else {
-      return getCategoryData(category);
-    }
-  };
-
   const {
     data: postList,
     isError,
     isLoading,
   } = useQuery({
-    queryKey: postKeys.categorySearch(category, search),
-    queryFn: fetchList,
+    queryKey: postKeys.categorySearch(
+      category,
+      { keyword: search.keyword, type: search.type },
+      currentPage
+    ),
+    queryFn: () => {
+      if (search.keyword !== "") {
+        return searchPost({ search, category });
+      } else {
+        return getCategoryData(category, currentPage);
+      }
+    },
     refetchOnWindowFocus: true, // 창 포커스 시 재조회
     staleTime: 0,
     enabled: !!category,
@@ -165,20 +165,16 @@ export const CommunityListPage = () => {
   });
 
   if (isLoading) {
-    return <div>📡 게시글을 불러오는 중입니다...</div>;
+    return <div>게시글을 불러오는 중입니다...</div>;
   }
 
   if (isError) {
-    return (
-      <div style={{ color: "red" }}>❌ 데이터를 불러오는데 실패했습니다.</div>
-    );
+    return <div>데이터를 불러오는데 실패했습니다.</div>;
   }
 
-  if (!postList || postList.length === 0) {
+  if (!postList || postList.data.length === 0) {
     return <div>게시글이 없습니다.</div>;
   }
-
-  const totalPages = Math.ceil(postList?.length || 0 / postsPerPage);
 
   const removeTag = (html: string) => {
     let text = html.replace(/<img[^>]*>/g, "(이미지)");
@@ -197,22 +193,15 @@ export const CommunityListPage = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= postList?.meta?.totalPages) {
       setCurrentPage(newPage);
     }
   };
 
-  const paginatedPosts = postList?.slice(
-    (currentPage - 1) * postsPerPage,
-    currentPage * postsPerPage
-  );
-
-  console.log(paginatedPosts);
-
   return (
     <>
       <ul css={listStyles}>
-        {paginatedPosts?.map((post: postType, index: number) => (
+        {postList?.data.map((post: postType, index: number) => (
           <div key={`${post.id} - ${index}`}>
             <li css={listItemStyles} onClick={() => handleListClick(post)}>
               <div css={listItemTextStyles}>
@@ -244,13 +233,10 @@ export const CommunityListPage = () => {
 
         {Array.from(
           {
-            length: Math.min(
-              5,
-              totalPages - Math.floor((currentPage - 1) / 5) * 5
-            ),
+            length: postList?.meta.totalPages ?? 1,
           },
           (_, i) => {
-            const pageNumber = Math.floor((currentPage - 1) / 5) * 5 + i + 1;
+            const pageNumber = i + 1;
             return (
               <button
                 css={[
@@ -273,7 +259,7 @@ export const CommunityListPage = () => {
           }
         )}
 
-        {currentPage + 5 <= totalPages && (
+        {currentPage + 5 <= postList?.meta.totalPages && (
           <button
             css={buttonStyles}
             onClick={() => handlePageChange(currentPage + 5)}

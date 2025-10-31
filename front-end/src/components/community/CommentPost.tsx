@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { Button, TextField } from "@mui/material";
+// import { Button, TextField } from "@mui/material";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSendComment } from "../../api/mutations/userMutations";
 import { GetCommentsOption } from "../../api/queries/communityQuerys";
 import { Comment } from "../../types/feed.type";
+import { buttonStyles } from "../../styles/resumeCommonStyle";
 
 export const CommentPost = () => {
   const textRef = useRef<HTMLInputElement | null>(null);
@@ -30,6 +31,7 @@ export const CommentPost = () => {
     ...GetCommentsOption(postId, page),
     staleTime: 0,
   });
+  console.log(commentsData);
 
   const comments = useMemo<Comment[]>(() => {
     return commentsData?.comments ?? [];
@@ -67,11 +69,6 @@ export const CommentPost = () => {
     }
   };
 
-  // const commentPage = Math.ceil(totalPages / 20);
-  // const groupComments = CommentGroup(comments);
-  // console.log("댓글 데이터:", comments);
-  // console.log("댓글 그룹화된 데이터:", groupComments);
-
   const { commentPage, groupComments } = useMemo(() => {
     const commentPage = Math.ceil(totalPages / 20);
     const groupComments = CommentGroup(comments);
@@ -83,7 +80,7 @@ export const CommentPost = () => {
     <>
       <div
         css={css`
-          padding: 0.8rem 0;
+          padding: 1rem 0;
           display: flex;
           font-size: 1.1rem;
         `}
@@ -108,35 +105,40 @@ export const CommentPost = () => {
       <div
         css={css`
           min-height: fit-content;
-          padding: 0rem 0rem;
           display: flex;
-          gap: 5px;
+          gap: 10px;
+          margin-bottom: 1rem;
         `}
       >
-        <TextField
-          hiddenLabel
-          inputRef={textRef}
-          variant="outlined"
+        <input
+          ref={textRef}
           css={css`
             width: 80%;
             background-color: #ffffff;
             font-size: 12px;
+            border: 1px solid #c4c4c4;
+            border-radius: 4px;
+            min-height: 40px;
+            max-height: 200px;
+            outline: none;
+            &:focus {
+              border-color: #1976d2;
+              box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+            }
           `}
-          multiline
-          maxRows={10}
+          maxLength={500}
         />
-        <Button
-          variant="contained"
+        <button
           css={css`
-            margin: 7px;
+            ${buttonStyles("lg")}
+            align-self: stretch;
+            height: 100%;
           `}
           disabled={sendComment.isPending}
-          onClick={() => {
-            handleAddComment();
-          }}
+          onClick={handleAddComment}
         >
           {sendComment.isPending ? "처리중.." : "입력"}
-        </Button>
+        </button>
       </div>
       {/* 댓글 그룹화된 데이터 출력 */}
       {groupComments.map((rootComment, index) => (

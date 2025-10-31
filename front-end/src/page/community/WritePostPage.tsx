@@ -11,7 +11,7 @@ import {
 import Quill from "quill";
 import { ImageResize } from "quill-image-resize-module-ts";
 import "quill/dist/quill.snow.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useQuill } from "react-quilljs";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EditContentSave } from "../../api/EditContentSave";
@@ -99,7 +99,7 @@ export const WritePostPage = () => {
     let newName = `${baseName}${extension}`;
     let counter = 1;
 
-    // 중복된 파일명이 존재하면 숫자를 붙여서 유니크한 이름 생성
+    // 중복된 파일명이 존재하면 숫을 붙여서 유니크한 이름 생성
     while (existingFiles.some((file) => file.name === newName)) {
       newName = `${baseName}(${counter})${extension}`;
       counter++;
@@ -107,7 +107,7 @@ export const WritePostPage = () => {
     return newName;
   };
 
-  const handleContentLoad = async () => {
+  const handleContentLoad = useCallback(async () => {
     const input = document.createElement("input");
     input.setAttribute("type", "file");
     input.setAttribute("accept", "image/*");
@@ -137,7 +137,7 @@ export const WritePostPage = () => {
       };
       reader.readAsDataURL(file);
     };
-  };
+  }, [quill, uploadedFiles]);
 
   // 에디터 내 삭제된 이미지를 감지하고 동기화
   useEffect(() => {
@@ -258,36 +258,39 @@ export const WritePostPage = () => {
     }
   };
 
-  const handleSave = async (contentData: string, postId: number) => {
-    const response = await fetch("http://localhost:3000/post", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      credentials: "include",
+  const handleSave = useCallback(
+    async (contentData: string, postId: number) => {
+      const response = await fetch("http://localhost:3000/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
 
-      body: JSON.stringify({
-        postId: postId,
-        title: title,
-        content: contentData, // 여기서 바로 받은 데이터 사용
-        category: selectedCategory,
-      }),
-    });
+        body: JSON.stringify({
+          postId: postId,
+          title: title,
+          content: contentData, // 여기서 바로 받은 데이터 사용
+          category: selectedCategory,
+        }),
+      });
 
-    if (response.ok) {
-      const result = await response.json();
-      const updatedPost = {
-        ...result,
-        viewCount: result.viewCount + 1,
-      };
-      navigate(`/community/post/${result.postId}`, { state: updatedPost });
-      console.log("이미지 업로드 성공");
-    } else {
-      const error = await response.json();
-      console.error("Update failed:", error, response);
-    }
-  };
+      if (response.ok) {
+        const result = await response.json();
+        const updatedPost = {
+          ...result,
+          viewCount: result.viewCount + 1,
+        };
+        navigate(`/community/post/${result.postId}`, { state: updatedPost });
+        console.log("이미지 업로드 성공");
+      } else {
+        const error = await response.json();
+        console.error("Update failed:", error, response);
+      }
+    },
+    [title, selectedCategory, navigate]
+  );
 
   const changeCategory = (e: any) => {
     setSelectedCategory(e.target.value);
@@ -300,7 +303,7 @@ export const WritePostPage = () => {
     ) {
       setSelectedCategory(categories[0].category);
     }
-  }, [categories]);
+  }, [categories, selectedCategory]);
 
   return (
     <div
