@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Not, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/user/entity/user.entity';
 import { GetPostsByCategoryDto } from './dto/category/get-posts-by-category.dto';
 import { Post } from './entity/post.entity';
@@ -18,6 +18,7 @@ import { UpdateCommentDto } from './dto/comment/update-comment.dto';
 import { Transactional } from 'typeorm-transactional';
 import { CommonService } from 'src/common/common.service';
 import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
+import { CursorPaginationDto } from 'src/common/dto/cursor-pagination.dto';
 
 @Injectable()
 export class PostService {
@@ -406,8 +407,8 @@ export class PostService {
       );
 
     const [comments, total] = await this.commentRepository.findAndCount({
-      where: { post: { id: postId } },
-      relations: ['author', 'parent'],
+      where: { post: { id: postId }, parent: IsNull() },
+      relations: ['author'],
       ...paginationOptions,
     });
 
@@ -426,6 +427,45 @@ export class PostService {
         page: paginationDto.page || 1,
         take: paginationDto.take || 20,
         totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
+  }
+
+  async findReplies(commentId: number, cursorDto: CursorPaginationDto = {}) {
+    const take = cursorDto.take || 20;
+    const cursorParams =
+      this.commonService.applyCursorPaginationParams(cursorDto);
+
+    const where = {
+      parent: { id: commentId },
+      ...cursorParams.where,
+    };
+
+    const comments = await this.commentRepository.find({
+      where,
+      relations: ['author'],
+      take: cursorParams.take,
+      order: cursorParams.order,
+    });
+
+    const hasNextPage = comments.length > take;
+    const data = hasNextPage ? comments.slice(0, take) : comments;
+    const nextCursor = data.length > 0 ? data[data.length - 1].id : null;
+
+    return {
+      data: data.map((comment) => ({
+        id: comment.id,
+        comment: comment.comment,
+        createdAt: comment.createdAt,
+        author: comment.author?.id,
+        user_name: comment.author?.name,
+        profile_image: comment.author?.profileImage,
+        parent: comment.parent?.id ?? null,
+      })),
+      meta: {
+        hasNextPage,
+        nextCursor,
+        take,
       },
     };
   }
