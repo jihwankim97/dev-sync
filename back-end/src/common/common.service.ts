@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { FindManyOptions, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import {
+  FindManyOptions,
+  MoreThan,
+  ObjectLiteral,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BasePaginationDto, SortOrder } from './dto/base-pagination.dto';
+import { CursorPaginationDto } from './dto/cursor-pagination.dto';
 
 const ALLOWED_ORDER_BY_FIELDS = ['id', 'createdAt', 'updatedAt', 'viewCount'];
 
@@ -42,6 +48,24 @@ export class CommonService {
       take,
       order: {
         [safeOrderBy]: order,
+      } as any,
+    };
+  }
+
+  applyCursorPaginationParams(dto: CursorPaginationDto) {
+    const { take = 20, cursor } = dto;
+
+    const where: any = {};
+    if (cursor) {
+      where.id = MoreThan(cursor);
+    }
+
+    return {
+      where,
+      take: take + 1,
+      order: {
+        createdAt: 'ASC',
+        id: 'ASC',
       } as any,
     };
   }

@@ -26,6 +26,7 @@ import { SearchPostDto } from './dto/post/search-post.dto';
 import { PostOwnershipGuard } from './guard/post-ownership.guard';
 import { User as UserEntity } from 'src/user/entity/user.entity';
 import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
+import { CursorPaginationDto } from 'src/common/dto/cursor-pagination.dto';
 
 @Controller('post')
 export class PostsController {
@@ -150,6 +151,14 @@ export class PostsController {
     @Query() paginationDto: BasePaginationDto,
   ) {
     return this.postsService.findComments(postId, paginationDto);
+  }
+
+  @Get('/comment/:id/replies')
+  async getReplies(
+    @Param('id', ParseIntPipe) commentId: number,
+    @Query() cursorDto: CursorPaginationDto,
+  ) {
+    return this.postsService.findReplies(commentId, cursorDto);
   }
 
   // 댓글 생성
