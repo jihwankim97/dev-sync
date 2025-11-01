@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { IsNull, Not, Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { User } from 'src/user/entity/user.entity';
 import { GetPostsByCategoryDto } from './dto/category/get-posts-by-category.dto';
 import { Post } from './entity/post.entity';
@@ -400,27 +400,45 @@ export class PostService {
   //----------------------comment----------------------------------
 
   async findComments(postId: number, paginationDto: BasePaginationDto = {}) {
-    const paginationOptions =
-      this.commonService.applyPagePaginationParams<Comment>(
-        paginationDto,
-        'createdAt',
+    const query = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.author', 'author')
+      .where('comment.post.id = :postId', { postId })
+      .andWhere('comment.parent IS NULL')
+      .addSelect(
+        (subQuery) =>
+          subQuery
+            .select('1')
+            .from(Comment, 'reply')
+            .where('reply.parent.id = comment.id')
+            .limit(1),
+        'hasReplies',
       );
 
-    const [comments, total] = await this.commentRepository.findAndCount({
-      where: { post: { id: postId }, parent: IsNull() },
-      relations: ['author'],
-      ...paginationOptions,
-    });
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
+
+    const countQuery = query
+      .clone()
+      .select('COUNT(DISTINCT comment.id)', 'count');
+    const total = Number((await countQuery.getRawOne())?.count || 0);
+
+    const rawResults = await query.getRawAndEntities();
+    const comments = rawResults.entities;
+    const rawData = rawResults.raw;
 
     return {
-      data: comments.map((comment) => ({
+      data: comments.map((comment, index) => ({
         id: comment.id,
         comment: comment.comment,
         createdAt: comment.createdAt,
         author: comment.author?.id,
         user_name: comment.author?.name,
         profile_image: comment.author?.profileImage,
-        parent: comment.parent?.id ?? null,
+        hasReplies: !!rawData[index]?.hasReplies,
       })),
       meta: {
         total,
@@ -443,7 +461,7 @@ export class PostService {
 
     const comments = await this.commentRepository.find({
       where,
-      relations: ['author'],
+      relations: ['author', 'parent'],
       take: cursorParams.take,
       order: cursorParams.order,
     });
