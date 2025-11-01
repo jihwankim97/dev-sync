@@ -26,6 +26,7 @@ import { User } from 'src/user/decorator/user.decorator';
 import { User as UserEntity } from 'src/user/entity/user.entity';
 import { githubRepoService } from './github-repo.service';
 import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
 @Controller('resumes')
 @UseGuards(AuthenticatedGuard)
@@ -55,8 +56,11 @@ export class ResumeController {
   }
 
   @Get()
-  async getAllResumes(@User() user: UserEntity) {
-    return this.resumeService.findAll(user.id);
+  async getAllResumes(
+    @User() user: UserEntity,
+    @Query() paginationDto: BasePaginationDto,
+  ) {
+    return this.resumeService.findAll(user.id, paginationDto);
   }
 
   @Get(':id')

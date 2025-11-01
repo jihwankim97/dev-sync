@@ -26,6 +26,8 @@ import { User } from 'src/user/entity/user.entity';
 import { CreateCareerDto } from './dto/create-career.dto';
 import { CreateAchievementDto } from './dto/create-achievement.dto';
 import { Transactional } from 'typeorm-transactional';
+import { CommonService } from 'src/common/common.service';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
 @Injectable()
 export class ResumeService {
@@ -50,6 +52,7 @@ export class ResumeService {
     private readonly customRepository: Repository<CustomModel>,
     @InjectRepository(OrderModel)
     private readonly blockOrderRepository: Repository<OrderModel>,
+    private readonly commonService: CommonService,
   ) {}
 
   @Transactional()
@@ -99,11 +102,34 @@ export class ResumeService {
     return result;
   }
 
-  findAll(id: number) {
-    return this.resumeRepository.find({
+  async findAll(id: number, paginationDto: BasePaginationDto = {}) {
+    const paginationOptions =
+      this.commonService.applyPagePaginationParams<ResumeModel>(paginationDto);
+    const [result, total] = await this.resumeRepository.findAndCount({
       where: { author: { id: id } },
       relations: ['profile', 'strSkills', 'famSkills'],
+      ...paginationOptions,
     });
+
+    return {
+      data: result.map((resume) => ({
+        id: resume.id,
+        title: resume.title,
+        updateAt: resume.updatedAt,
+        profile: {
+          email: resume.profile.email,
+          phoneNumber: resume.profile.phoneNumber,
+        },
+        fam_skills: resume.famSkills || [],
+        str_skills: resume.strSkills || [],
+      })),
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
   }
 
   private async findOne(id: string) {

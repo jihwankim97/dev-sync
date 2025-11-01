@@ -12,6 +12,8 @@ import { Repository } from 'typeorm';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { ConfigService } from '@nestjs/config';
+import { CommonService } from 'src/common/common.service';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
 @Injectable()
 export class ContactService {
@@ -19,10 +21,11 @@ export class ContactService {
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
     private readonly configService: ConfigService,
+    private readonly commonService: CommonService,
   ) {}
 
   async sendInquiryEmail(dto: CreateContactDto): Promise<string> {
-    const newContact = await this.createContact(dto);
+    const newContact = await this.create(dto);
 
     if (!newContact) {
       throw new BadRequestException('문의글 생성에 실패했습니다.');
@@ -59,7 +62,7 @@ export class ContactService {
     }
   }
 
-  async createContact(dto: CreateContactDto) {
+  async create(dto: CreateContactDto) {
     const hashPwd = dto.password
       ? await bcrypt.hash(
           dto.password,
@@ -75,22 +78,28 @@ export class ContactService {
     return this.contactRepository.save(contact);
   }
 
-  async getContacts() {
+  async findAll() {
     return this.contactRepository.find({ order: { createdAt: 'DESC' } });
   }
 
-  async getContactListByEmail(user_email?: string) {
-    const contacts = await this.contactRepository.find({
-      where: user_email ? { email: user_email } : {},
-      select: ['id', 'name', 'title', 'createdAt', 'password'],
-      order: { createdAt: 'DESC' },
-    });
+  async findByEmail(email: string, paginationDto: BasePaginationDto = {}) {
+    const query = this.contactRepository.createQueryBuilder('contact');
+
+    query.where('contact.email = :email', { email });
+
+    this.commonService.applyPagePaginationParamsToQb(
+      query,
+      paginationDto,
+      'createdAt',
+    );
+
+    const [contacts, total] = await query.getManyAndCount();
 
     if (!contacts.length) {
       throw new NotFoundException('해당 이메일로 작성된 문의글이 없습니다.');
     }
 
-    return contacts.map((c) => {
+    const data = contacts.map((c) => {
       const hasPassword = !!c.password;
 
       return hasPassword
@@ -106,9 +115,19 @@ export class ContactService {
             isPrivate: false,
           };
     });
+
+    return {
+      data,
+      meta: {
+        total,
+        page: paginationDto.page || 1,
+        take: paginationDto.take || 20,
+        totalPages: Math.ceil(total / (paginationDto.take || 20)),
+      },
+    };
   }
 
-  async getContactById(id: number, password?: string) {
+  async findById(id: number, password?: string) {
     const contact = await this.contactRepository.findOne({ where: { id } });
 
     if (!contact) {
@@ -119,7 +138,7 @@ export class ContactService {
     return contact;
   }
 
-  async updateContact(id: number, dto: UpdateContactDto) {
+  async update(id: number, dto: UpdateContactDto) {
     const contact = await this.contactRepository.findOne({ where: { id } });
 
     if (!contact) {
@@ -136,7 +155,7 @@ export class ContactService {
     return this.contactRepository.save(updated);
   }
 
-  async deleteContact(id: number, password?: string) {
+  async delete(id: number, password?: string) {
     const contact = await this.contactRepository.findOne({ where: { id } });
 
     if (!contact) {

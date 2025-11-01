@@ -17,6 +17,7 @@ import { CustomModel } from './entity/custom.entity';
 import { OrderModel } from './entity/order.entity';
 import { githubRepoService } from './github-repo.service';
 import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
       CustomModel,
       OrderModel,
     ]),
+    CommonModule,
   ],
   controllers: [ResumeController],
   providers: [

@@ -2,6 +2,7 @@ import { BaseUuidModel } from 'src/common/entity/base.entity';
 import { User } from 'src/user/entity/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -66,6 +67,9 @@ export class ResumeModel extends BaseUuidModel {
 
   @OneToMany(() => OrderModel, (blockOrder) => blockOrder.resume)
   blockOrders: OrderModel[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
