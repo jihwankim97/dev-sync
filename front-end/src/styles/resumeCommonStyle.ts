@@ -83,7 +83,7 @@ const buttonStyles = (size: "sm" | "md" | "lg" = "md") => {
       borderRadius: "4px",
     },
     lg: {
-      padding: "12px 24px",
+      padding: "9px 18px",
       fontSize: "16px",
       borderRadius: "6px",
     },

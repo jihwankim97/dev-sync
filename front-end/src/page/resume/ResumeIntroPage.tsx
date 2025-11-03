@@ -34,7 +34,7 @@ export const ResumeIntroPage = () => {
     if (response.ok) {
       const data = await response.json();
       sessionStorage.setItem("repoData", JSON.stringify(data));
-      setRepoData(data); // 받아온 배열 저
+      setRepoData(data); // 받아온 배열 저장
       setIsLoading(false);
       navigate("/resume/connect");
       console.log("성공");
