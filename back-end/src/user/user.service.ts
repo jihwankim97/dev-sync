@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { User as UserEntity } from 'src/user/entity/user.entity';
 import { UploadService } from 'src/upload/upload.service';
 import { extname } from 'path';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UserService {
@@ -15,6 +16,7 @@ export class UserService {
     private userRepository: Repository<User>,
     private readonly configService: ConfigService,
     private readonly uploadService: UploadService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findOne(userId: number) {
@@ -22,7 +24,12 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    return this.userRepository.findOne({ where: { email } });
+    return this.cacheService.getOrSet<User>(
+      email,
+      () => this.userRepository.findOne({ where: { email } }),
+      600000,
+      'user',
+    );
   }
 
   async update(email: string, updateUserDto: UpdateUserDto) {
@@ -40,6 +47,9 @@ export class UserService {
         '사용자를 찾을 수 없습니다.',
         HttpStatus.NOT_FOUND,
       );
+
+    await this.cacheService.del(email, 'user');
+
     return this.userRepository.findOne({ where: { email } });
   }
 
@@ -55,6 +65,7 @@ export class UserService {
         profileImage: fileUrl,
       });
 
+      await this.cacheService.del(user.email, 'user');
       return this.findOne(user.id);
     } catch (error) {
       await this.uploadService.deleteFile(fileUrl);
@@ -71,6 +82,7 @@ export class UserService {
       },
     );
 
+    await this.cacheService.del(email, 'user');
     return this.userRepository.findOne({ where: { email } });
   }
 
