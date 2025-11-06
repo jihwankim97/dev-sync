@@ -19,6 +19,7 @@ import { Transactional } from 'typeorm-transactional';
 import { CommonService } from 'src/common/common.service';
 import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 import { CursorPaginationDto } from 'src/common/dto/cursor-pagination.dto';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class PostService {
@@ -30,6 +31,7 @@ export class PostService {
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     private readonly uploadService: UploadService,
     private readonly commonService: CommonService,
+    private readonly cacheService: CacheService,
   ) {}
 
   private createBasePostQuery() {
@@ -56,13 +58,29 @@ export class PostService {
 
   // 모든 카테고리 조회
   async findAllCategories() {
-    return this.categoryRepository.find({
-      where: { category: Not('default') },
-    });
+    return this.cacheService.getOrSet(
+      'categories',
+      () => {
+        return this.categoryRepository.find({
+          where: { category: Not('default') },
+        });
+      },
+      86400000,
+      'category',
+    );
   }
 
   // 카테고리 이름으로 단일 카테고리 조회
   async findCategoryByName(category: string) {
+    const categories = await this.cacheService.get<Category[]>(
+      'categories',
+      'category',
+    );
+
+    if (categories) {
+      return categories.find((c) => c.category === category);
+    }
+
     return this.categoryRepository.findOne({ where: { category } });
   }
 
