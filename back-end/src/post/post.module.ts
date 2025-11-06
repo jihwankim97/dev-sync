@@ -13,6 +13,7 @@ import { Comment } from './entity/comment.entity';
 import { UploadModule } from 'src/upload/upload.module';
 import { CommonModule } from 'src/common/common.module';
 import { PostOwnershipGuard } from './guard/post-ownership.guard';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PostOwnershipGuard } from './guard/post-ownership.guard';
     UserModule,
     CommonModule,
     UploadModule,
+    CacheModule,
   ],
   controllers: [PostsController],
   providers: [PostService, CategoryService, PostOwnershipGuard],

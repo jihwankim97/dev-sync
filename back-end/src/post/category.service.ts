@@ -1,14 +1,16 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Category } from './entity/category.entity';
 import { PostCategory } from './enum/post-category.enum';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class CategoryService implements OnModuleInit {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    private readonly cacheService: CacheService,
   ) {}
 
   async onModuleInit() {
@@ -29,6 +31,13 @@ export class CategoryService implements OnModuleInit {
         await this.categoryRepository.save(category);
       }
     }
+
+    const categories = await this.categoryRepository.find({
+      where: { category: Not('default') },
+    });
+
+    await this.cacheService.set('categories', categories, 86400000, 'category');
+
     console.log('Default categories initialized');
   }
 }
