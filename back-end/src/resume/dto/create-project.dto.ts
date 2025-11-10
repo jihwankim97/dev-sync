@@ -21,7 +21,8 @@ export class CreateProjectDto {
 
   @Type(() => Date)
   @IsDate()
-  startDate: Date;
+  @IsOptional()
+  startDate?: Date;
 
   @Type(() => Date)
   @IsDate()
