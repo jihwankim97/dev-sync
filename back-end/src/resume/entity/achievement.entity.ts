@@ -13,7 +13,7 @@ export class AchievementModel extends BaseUuidModel {
   @Column()
   date: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 500 })
   description: string;
 
   @ManyToOne(() => ResumeModel, (resume) => resume.achievements, {

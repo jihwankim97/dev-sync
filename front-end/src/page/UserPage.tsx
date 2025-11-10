@@ -582,6 +582,7 @@ export const UserPage = () => {
         id: _user_id,
         profileImage: _profileImage,
         createdDt: _createdDt,
+        email: _email,
         ...rest
       } = userData;
       return request({ method: "POST", url: ENDPOINTS.user(), body: rest });

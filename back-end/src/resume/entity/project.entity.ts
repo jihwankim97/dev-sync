@@ -8,10 +8,10 @@ export class ProjectModel extends BaseUuidModel {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ length: 500 })
   description: string;
 
-  @Column({ name: 'start_date' })
+  @Column({ nullable: true, name: 'start_date' })
   startDate: Date;
 
   @Column({ nullable: true, name: 'end_date' })

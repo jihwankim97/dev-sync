@@ -9,7 +9,7 @@ export class IntroductionModel extends BaseUuidModel {
   @IsString()
   headline: string;
 
-  @Column()
+  @Column({ length: 500 })
   @IsString()
   description: string;
 

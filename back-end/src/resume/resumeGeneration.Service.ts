@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { ResumeService } from './resume.service';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/user/entity/user.entity';
+import { SkillModel } from './entity/skill.entity';
 
 @Injectable()
 export class ResumeGenerationService {
@@ -11,11 +12,28 @@ export class ResumeGenerationService {
     private readonly configService: ConfigService,
   ) {}
 
-  async generateResume(profileData: string, user: User) {
-    const limitedProfileData = profileData.slice(0, 4000);
-    const resumeData = JSON.parse(
-      await this.callResumeCompletion(limitedProfileData),
-    );
+  async generateResume(profileData: unknown, user: User) {
+    const normalizedProfileData = this.normalizeProfileData(profileData);
+    const profileDataString =
+      typeof profileData === 'string'
+        ? profileData
+        : JSON.stringify(normalizedProfileData);
+
+    const limitedProfileData =
+      profileDataString.length > 12000
+        ? profileDataString.slice(0, 12000)
+        : profileDataString;
+
+    let resumeData: any;
+    try {
+      resumeData = JSON.parse(
+        await this.callResumeCompletion(limitedProfileData),
+      );
+    } catch {
+      throw new BadRequestException(
+        '생성된 이력서 데이터를 해석하는 데 실패했습니다.',
+      );
+    }
 
     const resume = await this.resumeService.create(
       user,
@@ -38,25 +56,23 @@ export class ResumeGenerationService {
       description: resumeData.introduction.description,
     });
 
-    const strengthsRaw = await Promise.all(
-      resumeData.skills.strengths.map(async (skill) => {
-        const [match] = await this.resumeService.searchSkills(skill);
-        return match;
-      }),
-    );
-    const strengths = strengthsRaw.filter(Boolean);
+    const strengths = await this.resolveSkills(resumeData.skills?.strengths);
 
-    const familiarRaw = await Promise.all(
-      resumeData.skills.familiar.map(async (skill) => {
-        const [match] = await this.resumeService.searchSkills(skill);
-        return match;
-      }),
-    );
-    const familiar = familiarRaw.filter(Boolean);
+    const familiar = await this.resolveSkills(resumeData.skills?.familiar);
+
     await this.resumeService.saveBlock(resume.id, {
+      id: 'skills',
       type: 'skills',
-      strongSkillIds: strengths.map((s) => s.id),
-      familiarSkillIds: familiar.map((s) => s.id),
+      strongSkillIds: strengths.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        icon: skill.icon,
+      })),
+      familiarSkillIds: familiar.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        icon: skill.icon,
+      })),
     });
 
     const projects = resumeData.projects;
@@ -68,60 +84,50 @@ export class ResumeGenerationService {
     return this.resumeService.findDetail(resume.id);
   }
 
-  private async callResumeCompletion(profileData: string): Promise<string> {
+  private async callResumeCompletion(profileJson: string): Promise<string> {
     const prompt = `
-Using the following GitHub profile data, generate a structured JSON object for a developer portfolio. 
+You will receive JSON describing GitHub repositories the user selected.
+Return ONLY JSON that matches the schema below.
 
-### JSON Structure:
+Schema:
 {
   "introduction": {
-    "headline": "",// A short headline-style sentence to introduce yourself at the top of the resume. Summarize your identity as a developer in one impactful phrase (e.g., "끈기 있게 성장하는 백엔드 개발자입니다", "사용자 경험을 생각하는 프론트엔드 개발자입니다").
-    "description": "" // Developer's self-introduction in Korean (400-500 characters), focusing on their experience, core skills, and career goals.
+    "headline": "one-sentence headline in Korean",
+    "description": "self introduction in Korean (1000-1200 characters)"
   },
   "skills": {
-    "strengths": [], // List of key technical skills (e.g., React, Node.js, SQL).
-    "familiar": [] // List of secondary or familiar skills (e.g., Docker, TailwindCSS).
+    "strengths": ["core technical skills"],
+    "familiar": ["secondary skills"]
   },
   "projects": [
     {
-      "name": "", // Repository name.
-      "description": "", // Brief description of the project in Korean.
-      "startDate": "", // Start date of the project (if available).
-      "endDate": "", // End date of the project (if available).
+      "name": "repository name",
+      "description": "project summary in Korean",
+      "startDate": "YYYY-MM-DD or empty string",
+      "endDate": "YYYY-MM-DD or empty string",
+      "role": "role in Korean",
       "outcomes": [
         {
-          "task": "", // A short title in Korean summarizing the task or achievement (e.g., "구글 인증 구현").
-          "result": "" // Detailed explanation in Korean. Describe:
-          // - The specific action or task performed based on the commit message (e.g., "구글 인증 기능을 구현했습니다").
-          // - The tools/technologies used, if applicable (e.g., "TypeScript와 Google API를 활용").
-          // - The outcome or improvement achieved (e.g., "로그인 시간을 20% 단축하여 사용자 유지율을 높였습니다").
+          "task": "short task title in Korean",
+          "result": "detailed result in Korean"
         }
-      ],
-      "role": "" // Role played in the project (e.g., "Frontend Developer", "Full-Stack Developer").
+      ]
     }
   ]
 }
 
-### Guidelines:
-1. Use **only the information provided in the "GitHub Profile Data" section** to populate the JSON object.
-2. Do not fabricate data or add anything that is not explicitly stated in the profileData.
-3. For the "outcomes" section:
-   - Use each entry in "Recent Commit Details" to create an individual outcome.
-   - The "title" must summarize the task or feature implemented, directly reflecting the commit message.
-   - The "result" must describe the action, tools/technologies used (if applicable), and the outcome of the commit in Korean.
-   - If the commit message lacks detail, infer meaning conservatively based on the commit content and the repository's general purpose.
-4. Include all repositories from the profileData as individual projects in the "projects" key.
-5. The "description" field for each project should summarize the repository's purpose based on its name, commit history, or description in the profileData.
-6. Write all descriptive fields (e.g., introduction, outcomes) in **Korean**.
-7. Keep all JSON keys (e.g., description, strengths, outcomes) in **English**.
+Rules:
+- Include every repository from the input exactly once in projects.
+- Derive skills strictly from explicit technology/tool names available in the input (e.g., primary_language, languages[].language, topics, techStack) and reuse their canonical casing. Do not generate conceptual phrases such as "API 설계" or "문제 해결". If no matching technology exists, leave the array empty. Each skill must correspond to an actual technology that can appear in the Devicon dataset.
+- Build outcomes primarily from selected_commits; if insufficient, use meaningful recent_commit_messages. If commit.note exists, weave it into result. Provide between 3 and 7 outcomes per project when evidence exists, never exceeding 7. Order outcomes by highest impact first and keep task/result phrasing concise.
+- Results must cite concrete actions, tools, leadership decisions, or measurable impact found in the input.
+- When repository.created_at is present, copy it to projects[].startDate in YYYY-MM-DD; when repository.updated_at is present, copy it to projects[].endDate in YYYY-MM-DD. Leave the field as "" if no source value exists.
+- Craft introduction.headline/description to project a high-impact senior engineer: highlight ownership, architecture decisions, scale, performance improvements, and quantifiable outcomes when available. Avoid generic buzzwords.
+- Do not invent facts. Leave unknown values as empty string "" or [].
+- All narrative text must be Korean; keep JSON keys in English.
 
-### Important Notes:
-- Do not include work or outcomes that the user did not explicitly perform or commit, as detailed in the "GitHub Profile Data".
-- For missing or unclear details in the profileData, leave the fields empty or use placeholders such as "N/A".
-- Ensure the portfolio strictly matches the user's contributions and skills as represented in the profileData.
-
-GitHub Profile Data:
-${profileData}
+Input JSON:
+${profileJson}
 `;
 
     try {
@@ -130,10 +136,18 @@ ${profileData}
       });
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500,
-        temperature: 0.7,
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are an assistant that converts GitHub repository JSON into structured Korean resume data. Follow the provided schema strictly and never fabricate details.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 1800,
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
       });
 
       const totalTokens =
@@ -149,5 +163,47 @@ ${profileData}
     } catch {
       throw new BadRequestException('자소서 생성에 실패했습니다');
     }
+  }
+
+  private normalizeProfileData(profileData: unknown): any[] {
+    if (Array.isArray(profileData)) {
+      return profileData;
+    }
+
+    if (typeof profileData === 'string') {
+      try {
+        const parsed = JSON.parse(profileData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  }
+
+  private async resolveSkills(skillNames: string[]): Promise<SkillModel[]> {
+    if (!Array.isArray(skillNames) || skillNames.length === 0) {
+      return [];
+    }
+
+    const resolved = await Promise.all(
+      skillNames.map(async (skill) => {
+        if (!skill) return null;
+        const [match] = await this.resumeService.searchSkills(skill);
+        return match ?? null;
+      }),
+    );
+
+    const uniqueById = new Map<number, SkillModel>();
+    resolved
+      .filter((skill): skill is SkillModel => Boolean(skill))
+      .forEach((skill) => {
+        if (!uniqueById.has(skill.id ?? -1)) {
+          uniqueById.set(skill.id, skill);
+        }
+      });
+
+    return Array.from(uniqueById.values());
   }
 }

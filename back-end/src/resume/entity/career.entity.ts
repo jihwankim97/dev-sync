@@ -16,7 +16,7 @@ export class CareerModel extends BaseUuidModel {
   @Column({ nullable: true, name: 'end_date' })
   endDate: Date;
 
-  @Column()
+  @Column({ length: 500 })
   description: string;
 
   @ManyToOne(() => ResumeModel, (resume) => resume.careers, {
