@@ -46,7 +46,7 @@ export const CommunityLayout = () => {
     >
       <nav
         css={css`
-          width: 200px;
+          width: 300px;
           min-height: 80vh;
           border-right: 1px solid #ddd;
         `}
@@ -63,8 +63,8 @@ export const CommunityLayout = () => {
               <button
                 css={css`
                   width: 100%;
-                  padding: 0rem 0rem 2rem 3rem;
-                  text-align: left;
+                  padding: 0rem 0rem 2rem 0rem;
+                  text-align: center;
                   border: none;
                   background: none;
                   font-weight: bold;

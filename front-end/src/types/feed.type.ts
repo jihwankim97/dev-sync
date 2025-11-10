@@ -6,6 +6,7 @@ export type Comment = {
   parent: number;
   profile_image: string;
   user_name: string;
+  hasReplies: boolean;
 };
 
 export type CommentList = {

@@ -4,7 +4,7 @@ import { ENDPOINTS } from "../endpoint";
 import { queryClient } from "../client";
 import { postKeys } from "../queryKeys";
 
-export const useSendComment = (postId: number) => {
+export const useSendComment = (postId: number , page: number) => {
  return useMutation({
             mutationFn: (value: string) =>
               request({
@@ -14,13 +14,13 @@ export const useSendComment = (postId: number) => {
               }),
             onSuccess: (data) => {
               console.log("댓글 작성 성공:", data);
-              queryClient.invalidateQueries({ queryKey: postKeys.comments(postId) });
+              queryClient.invalidateQueries({ queryKey: postKeys.comments(postId, page) });
 
             },
         })
 }
 
-export const useEditComment = (commentId: number, postId: number) => {
+export const useEditComment = (commentId: number, postId: number, page: number) => {
     return useMutation({
         mutationFn: (comment: string) =>
             request({
@@ -29,12 +29,12 @@ export const useEditComment = (commentId: number, postId: number) => {
                 body: { comment }
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: postKeys.comments (postId) });
+            queryClient.invalidateQueries({ queryKey: postKeys.comments(postId, page) });
         }
     });
 };
 
-export const useRemoveComment = (commentId: number ,postId: number) => {
+export const useRemoveComment = (commentId: number ,postId: number, page: number) => {
     return useMutation({
         mutationFn: () =>
             request({
@@ -42,7 +42,8 @@ export const useRemoveComment = (commentId: number ,postId: number) => {
                 method: "DELETE"
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: postKeys.comments(postId) });
+            queryClient.invalidateQueries({ queryKey: postKeys.comments(postId ,page) });
         }
     });
 };
+

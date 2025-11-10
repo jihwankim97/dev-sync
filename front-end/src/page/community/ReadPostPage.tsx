@@ -27,8 +27,6 @@ export const ReadPostPage = () => {
   const queryClient = useQueryClient();
   const { data: userData } = useQuery(userDataOption());
 
-  console.log(post.id);
-
   //좋아요 상태 조회
   const { data: likeStatus } = useQuery({
     queryKey: postKeys.likeStatus(post.id),

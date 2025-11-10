@@ -13,6 +13,8 @@ export const postKeys = {
   post: (postId: number) => [...postKeys.lists, { postId }] as const,
   comments: (postId: number, page: number) =>
     ["comments", ...postKeys.post(postId), page] as const,
+  commentReply: (commentId: number, page: number) =>  [
+   "replies",{ commentId }, page] as const,
   likeStatus: (postId: number) =>
     ["likeStatus", ...postKeys.post(postId)] as const,
   likeCount: (postId: number) =>

@@ -10,6 +10,8 @@ export async function request<T>({
   url: string;
   responseType?: "json" | "text" | "boolean";
 }) {
+       console.log(url)
+
   const fetchOptions: RequestInit = {
     method: method,
     credentials: "include",
@@ -20,7 +22,7 @@ export async function request<T>({
     fetchOptions.body = JSON.stringify(body);
     fetchOptions.headers = { "Content-Type": "application/json" };
   }
-
+     console.log(url)
   const response = await fetch(url, fetchOptions);
   if (!response.ok) {
     const errorData = await response.json();
