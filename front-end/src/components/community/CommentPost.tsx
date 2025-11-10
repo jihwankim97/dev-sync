@@ -2,19 +2,17 @@ import { css } from "@emotion/react";
 // import { Button, TextField } from "@mui/material";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useEvent } from "../../hooks/useEvent";
 import { openLoginForm } from "../../redux/loginSlice";
-import { CommentGroup } from "./CommentGroup";
 import { CommentReplyLayout } from "./commentReplyLayout";
 import { useQuery } from "@tanstack/react-query";
 import { useSendComment } from "../../api/mutations/userMutations";
 import { GetCommentsOption } from "../../api/queries/communityQuerys";
-import { Comment } from "../../types/feed.type";
-import { buttonStyles } from "../../styles/resumeCommonStyle";
+import { buttonStyles, textAreaStyles } from "../../styles/resumeCommonStyle";
 
 export const CommentPost = () => {
-  const textRef = useRef<HTMLInputElement | null>(null);
+  const textRef = useRef<HTMLTextAreaElement | null>(null);
 
   const location = useLocation();
   const postId = location.state.id; // `navigate`에서 전달된 데이터
@@ -23,7 +21,7 @@ export const CommentPost = () => {
   const dispatch = useDispatch();
   type RootState = { login: { loggedIn: boolean } };
   const isLogin = useSelector((state: RootState) => state.login.loggedIn);
-
+  const navigate = useNavigate();
   const sendComment = useSendComment();
   // 댓글과 총 개수는 React Query의 데이터에서 직접 사용
 
@@ -33,26 +31,21 @@ export const CommentPost = () => {
   });
   console.log(commentsData);
 
-  const comments = useMemo<Comment[]>(() => {
-    return commentsData?.comments ?? [];
-  }, [commentsData?.comments]);
-  const totalPages: number = commentsData?.totalCount ?? 0;
+  const totalPages: number = commentsData?.meta.total ?? 0;
 
   //댓글 입력시 이벤트 처리
   const eventComment = useEvent(async (value: string) => {
     try {
-      await sendComment.mutateAsync({ postId, value, parentId: null });
-
-      setPage(1);
+      await sendComment.mutateAsync({ postId, value, parentId: null, page });
       refetch();
     } catch (error) {
       console.log(error);
     }
   });
 
-  useEffect(() => {
-    refetch();
-  }, [page]);
+  // useEffect(() => {
+  //   refetch();
+  // }, [page]);
 
   const handleAddComment = () => {
     if (!isLogin) {
@@ -69,15 +62,12 @@ export const CommentPost = () => {
     }
   };
 
-  const { commentPage, groupComments } = useMemo(() => {
-    const commentPage = Math.ceil(totalPages / 20);
-    const groupComments = CommentGroup(comments);
-
-    return { commentPage, groupComments };
-  }, [comments, totalPages]);
-
   return (
-    <>
+    <div
+      css={css`
+        margin-left: 1rem;
+      `}
+    >
       <div
         css={css`
           padding: 1rem 0;
@@ -106,27 +96,26 @@ export const CommentPost = () => {
         css={css`
           min-height: fit-content;
           display: flex;
-          gap: 10px;
+          gap: 15px;
           margin-bottom: 1rem;
         `}
       >
-        <input
+        <textarea
           ref={textRef}
-          css={css`
-            width: 80%;
-            background-color: #ffffff;
-            font-size: 12px;
-            border: 1px solid #c4c4c4;
-            border-radius: 4px;
-            min-height: 40px;
-            max-height: 200px;
-            outline: none;
-            &:focus {
-              border-color: #1976d2;
-              box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
-            }
-          `}
-          maxLength={500}
+          rows={1}
+          onInput={() => {
+            const el = textRef.current;
+            if (!el) return;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
+          css={[
+            textAreaStyles,
+            css`
+              width: 80%;
+              font-size: 15px;
+            `,
+          ]}
         />
         <button
           css={css`
@@ -141,11 +130,11 @@ export const CommentPost = () => {
         </button>
       </div>
       {/* 댓글 그룹화된 데이터 출력 */}
-      {groupComments.map((rootComment, index) => (
+      {commentsData?.data.map((rootComment, index: number) => (
         <CommentReplyLayout
-          key={rootComment.comment_id ?? `comment-${index}`}
+          key={rootComment.id ?? `comment-${index}`}
           comment={rootComment}
-          comments={comments}
+          page={page}
           editTargetId={editTargetId}
           setEditTargetId={setEditTargetId}
         />
@@ -153,13 +142,13 @@ export const CommentPost = () => {
       {totalPages > 0 && (
         <div
           css={css`
-            margin-top: 1rem;
+            margin: 4rem 0;
             display: flex;
             justify-content: center;
             gap: 0.5rem;
           `}
         >
-          {Array.from({ length: commentPage }, (_, index) => (
+          {Array.from({ length: commentsData?.meta.totalPages }, (_, index) => (
             <button
               css={css`
                 padding: 0;
@@ -177,6 +166,6 @@ export const CommentPost = () => {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 };

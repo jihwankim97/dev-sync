@@ -6,7 +6,7 @@ import { postKeys } from "../queryKeys";
 
 export const useSendComment = () => {
  return useMutation({
-            mutationFn: ({postId,  value, parentId }: { postId: number; value: string; parentId: number | null }) =>
+            mutationFn: ({postId,  value, parentId }: { postId: number; value: string; parentId: number | null ,page :number }) =>
               request({
                 url: ENDPOINTS.comment(postId),
                 method: "POST",
@@ -14,7 +14,7 @@ export const useSendComment = () => {
               }),
             onSuccess: (data, variables) => {
               console.log("댓글 작성 성공:", data);
-                  queryClient.invalidateQueries({ queryKey: postKeys.comments(variables.postId) });
+                  // queryClient.invalidateQueries({ queryKey: postKeys.comments(variables.postId ,variables.page) });
 
             },
         })

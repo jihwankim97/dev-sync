@@ -70,6 +70,13 @@ const skillsCloseBtn = css`
   }
 `;
 
+const whiteButtonStyle = css`
+  border: 1px solid #d9d9d9;
+  font-size: 12px;
+  color: #2f2f2f;
+  background-color: #ffffff;
+`;
+
 const buttonStyles = (size: "sm" | "md" | "lg" = "md") => {
   const sizeConfig = {
     sm: {
@@ -80,12 +87,12 @@ const buttonStyles = (size: "sm" | "md" | "lg" = "md") => {
     md: {
       padding: "8px 16px",
       fontSize: "14px",
-      borderRadius: "4px",
+      borderRadius: "5px",
     },
     lg: {
       padding: "9px 18px",
       fontSize: "16px",
-      borderRadius: "6px",
+      borderRadius: "7px",
     },
   };
 
@@ -128,6 +135,24 @@ const dividerStyles = css`
   margin: 0;
 `;
 
+const textAreaStyles = css`
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #b5b5b5;
+  box-sizing: border-box;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none; /* autosize handled by JS */
+  overflow: hidden;
+  background-color: #ffffff;
+
+  &:focus {
+    outline: none; /* 포커스 링 제거 */
+    border: 1px solid #717171;
+  }
+`;
+
 export {
   containerStyle,
   headerStyle,
@@ -137,4 +162,6 @@ export {
   skillsCloseBtn,
   buttonStyles,
   dividerStyles,
+  textAreaStyles,
+  whiteButtonStyle,
 };
