@@ -75,10 +75,9 @@ export class ResumeGenerationService {
       })),
     });
 
-    const projects = resumeData.projects;
     await this.resumeService.saveBlock(resume.id, {
       type: 'projects',
-      items: projects,
+      items: resumeData.projects,
     });
 
     return this.resumeService.findDetail(resume.id);
@@ -92,8 +91,8 @@ Return ONLY JSON that matches the schema below.
 Schema:
 {
   "introduction": {
-    "headline": "one-sentence headline in Korean",
-    "description": "self introduction in Korean (1000-1200 characters)"
+    "headline": "one-sentence headline in Korean (<=80 characters)",
+    "description": "self introduction in Korean (380-450 characters)"
   },
   "skills": {
     "strengths": ["core technical skills"],
@@ -101,30 +100,31 @@ Schema:
   },
   "projects": [
     {
-      "name": "repository name",
-      "description": "project summary in Korean",
+      "name": "repository name (<=150 characters)",
+      "description": "project summary in Korean (<=220 characters)",
       "startDate": "YYYY-MM-DD or empty string",
       "endDate": "YYYY-MM-DD or empty string",
-      "role": "role in Korean",
+      "role": "role in Korean (<=150 characters)",
       "outcomes": [
         {
-          "task": "short task title in Korean",
-          "result": "detailed result in Korean"
+          "task": "short task title in Korean (<=80 characters)",
+          "result": "detailed result in Korean (<=220 characters)"
         }
       ]
     }
   ]
 }
 
-Rules:
-- Include every repository from the input exactly once in projects.
-- Derive skills strictly from explicit technology/tool names available in the input (e.g., primary_language, languages[].language, topics, techStack) and reuse their canonical casing. Do not generate conceptual phrases such as "API 설계" or "문제 해결". If no matching technology exists, leave the array empty. Each skill must correspond to an actual technology that can appear in the Devicon dataset.
-- Build outcomes primarily from selected_commits; if insufficient, use meaningful recent_commit_messages. If commit.note exists, weave it into result. Provide between 3 and 7 outcomes per project when evidence exists, never exceeding 7. Order outcomes by highest impact first and keep task/result phrasing concise.
-- Results must cite concrete actions, tools, leadership decisions, or measurable impact found in the input.
-- When repository.created_at is present, copy it to projects[].startDate in YYYY-MM-DD; when repository.updated_at is present, copy it to projects[].endDate in YYYY-MM-DD. Leave the field as "" if no source value exists.
-- Craft introduction.headline/description to project a high-impact senior engineer: highlight ownership, architecture decisions, scale, performance improvements, and quantifiable outcomes when available. Avoid generic buzzwords.
-- Do not invent facts. Leave unknown values as empty string "" or [].
-- All narrative text must be Korean; keep JSON keys in English.
+Guidelines:
+- Include every repository exactly once. Regardless of quality, every repository provided by the user must appear in the projects array, sorted by the most recent timeline.startDate.
+- Derive skills strictly from explicit technologies (languages.primary, languages.detailed[].language, topics, metrics_summary, techStack). Use canonical casing compatible with Devicon; do not invent or include conceptual phrases.
+- introduction.description must stay between 380 and 450 characters. Reference ownership, architecture decisions, scalability, and quantitative impact only when there is evidence in the input data; never fabricate details. The text itself must be in Korean.
+- Projects must keep the given order (newest first) and preserve provided dates. startDate = timeline.startDate (created_at) in YYYY-MM-DD format; endDate = timeline.endDate (pushed_at) or "" when absent.
+- role should reflect ownership strictly based on evidence (e.g., only label as "백엔드 리드" when ownership.is_owner is true). Otherwise, state the role without implying leadership. All role strings must remain in Korean.
+- user_notes.commits/pull_requests contain user-authored notes. Treat these as the highest-priority evidence when crafting outcomes, followed by pull request data, then commit or other evidence.
+- Provide 3-7 outcomes per project. Each outcome must cite concrete actions or metrics grounded in (priority order) user_notes, activity.pull_requests/body_preview, metrics_summary, highlights, recent_commits, activity.latest_release, release_summary, or evidence.commit_messages/readme_excerpt. Follow a concise "문제/상황 → 행동 → 정량적 성과" structure whenever possible, and write in a confident senior-engineer tone (in Korean).
+- Avoid duplicate outcomes; prioritise the highest-impact contributions while keeping wording varied and professional.
+- All narrative text (headline, description, outcomes, etc.) must be in Korean. If reliable data is unavailable, output "" or [] rather than guessing.
 
 Input JSON:
 ${profileJson}
