@@ -60,26 +60,22 @@ export const commitContainerStyle = css`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid #ddd;
 `;
 
 export const commitStyle = css`
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-`;
-
-export const commitHeaderStyle = css`
-  display: flex;
   align-items: center;
   gap: 10px;
-  margin-right : 7px;
 `;
+
 
 export const textareaStyle = css`
   resize: none;
   padding: 10px;
   font-size: 0.9rem;
-  margin : 0 10px;
+  margin : 0 20px;
+  width : 100%;
   background-color: #ffffff;
   color: #000000;
   border : 1.5px solid #469cecff;

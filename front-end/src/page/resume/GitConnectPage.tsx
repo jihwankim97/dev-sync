@@ -6,9 +6,11 @@ import GitRepoList from "../../components/gitRepoList/GitRepoList";
 import type { ResumeContextType } from "../../layout/resume/ResumeSetupLayout ";
 import { useDispatch } from "react-redux";
 import { setResume } from "../../redux/resumeSlice";
+import { GitHubRepoData } from "../../types/github.resume";
 export const GitConnectPage = () => {
   const {
     repoData,
+
     selectedRepos,
     setSelectedRepos,
     setIsLoading,
@@ -22,7 +24,8 @@ export const GitConnectPage = () => {
       updatedSelection: {
         name: string;
         selected: boolean;
-        commits: { message: string; description: string }[];
+        commits: { message: string; selected: boolean }[];
+        pullRequests: { title: string; selected: boolean }[];
       }[]
     ) => {
       setSelectedRepos(updatedSelection);
@@ -30,9 +33,10 @@ export const GitConnectPage = () => {
     []
   );
 
-  const generateResume = async (repoData: any[]) => {
+  // console.log(repoData);
+  const generateResume = async (repoData: GitHubRepoData[]) => {
     const filteredRepos = repoData.filter((repo) => repo.selected);
-    console.log(filteredRepos);
+    // console.log(filteredRepos);
     setIsLoading(true);
 
     try {
@@ -48,9 +52,10 @@ export const GitConnectPage = () => {
       // Check if the request was successful
       if (!response.ok) {
         const errorData = await response.json();
-        console.error(errorData)
+        console.error(errorData);
         throw new Error(
-          `HTTP error! status: ${response.status}, message: ${errorData.message || "Unknown error"
+          `HTTP error! status: ${response.status}, message: ${
+            errorData.message || "Unknown error"
           }`
         );
       }
