@@ -1,16 +1,25 @@
 import { css } from "@emotion/react";
 import { Button, CircularProgress } from "@mui/material";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import GitRepoList from "../../components/gitRepoList/GitRepoList";
 import type { ResumeContextType } from "../../layout/resume/ResumeSetupLayout ";
 import { useDispatch } from "react-redux";
 import { setResume } from "../../redux/resumeSlice";
 import { GitHubRepoData } from "../../types/github.resume";
+
+type RepoLookup = {
+  [repoName: string]: {
+    selected: boolean;
+    showCommits: boolean;
+    commits: { message: string; selected: boolean }[];
+    pullRequests: { title: string; selected: boolean }[];
+  };
+};
+
 export const GitConnectPage = () => {
   const {
     repoData,
-
     selectedRepos,
     setSelectedRepos,
     setIsLoading,
@@ -19,26 +28,44 @@ export const GitConnectPage = () => {
   } = useOutletContext<ResumeContextType>();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleSelectionChange = useCallback(
-    (
-      updatedSelection: {
-        name: string;
-        selected: boolean;
-        commits: { message: string; selected: boolean }[];
-        pullRequests: { title: string; selected: boolean }[];
-      }[]
-    ) => {
-      setSelectedRepos(updatedSelection);
-    },
-    []
-  );
+  const [selectedItems, setSelectedItems] = useState<RepoLookup>({});
+  const generateResume = async (selectedItems: RepoLookup) => {
+    // 1. 선택된 항목만 필터링하여 updatedResult 계산
+    const updatedResult = repoData
+      .map((repo) => {
+        const repoState = selectedItems[repo.name];
+        if (!repoState || !repoState.selected) return null; // 상위 선택 false면 제외
 
-  // console.log(repoData);
-  const generateResume = async (repoData: GitHubRepoData[]) => {
-    const filteredRepos = repoData.filter((repo) => repo.selected);
-    // console.log(filteredRepos);
+        // commits와 pullRequests에서 selected만 남기고, 수정된 message/title 적용
+        const filteredCommits = repo.activity.commits
+          .map((commit, idx) => {
+            const stateCommit = repoState.commits[idx];
+            if (!stateCommit || !stateCommit.selected) return null;
+            return { ...commit, message: stateCommit.message };
+          })
+          .filter(Boolean);
+
+        const filteredPRs = repo.activity.pull_requests
+          .map((pr, idx) => {
+            const statePR = repoState.pullRequests[idx];
+            if (!statePR || !statePR.selected) return null;
+            return { ...pr, title: statePR.title };
+          })
+          .filter(Boolean);
+
+        return {
+          ...repo,
+          activity: {
+            ...repo.activity,
+            commits: filteredCommits,
+            pull_requests: filteredPRs,
+          },
+        };
+      })
+      .filter(Boolean);
+
+    //서버로 요청 전송
     setIsLoading(true);
-
     try {
       const response = await fetch("http://localhost:3000/resumes/generate", {
         method: "POST",
@@ -46,10 +73,9 @@ export const GitConnectPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ profileData: filteredRepos }),
+        body: JSON.stringify({ profileData: updatedResult }),
       });
 
-      // Check if the request was successful
       if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);
@@ -66,8 +92,9 @@ export const GitConnectPage = () => {
       dispatch(setResume(result));
     } catch (error) {
       console.error("Error generating resume:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -100,7 +127,8 @@ export const GitConnectPage = () => {
         <>
           <GitRepoList
             result={repoData}
-            onSelectionChange={handleSelectionChange}
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
           />
           <div
             css={css`
@@ -122,7 +150,7 @@ export const GitConnectPage = () => {
               size="large"
               color="primary"
               onClick={() => {
-                generateResume(selectedRepos);
+                generateResume(selectedItems);
               }}
             >
               이력서 만들기
