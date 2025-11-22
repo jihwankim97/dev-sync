@@ -60,7 +60,6 @@ export const commitContainerStyle = css`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border: 1px solid #ddd;
 `;
 
 export const commitStyle = css`

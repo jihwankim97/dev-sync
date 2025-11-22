@@ -11,61 +11,45 @@ import {
 } from "./GitRepoList.styles";
 import { GitHubRepoData } from "../../types/github.resume";
 
+type RepoLookup = {
+  [repoName: string]: {
+    selected: boolean;
+    showCommits: boolean;
+    commits: { message: string; selected: boolean }[];
+    pullRequests: { title: string; selected: boolean }[];
+  };
+};
+
 const GitRepoList = ({
   result,
-  onSelectionChange,
+  selectedItems,
+  setSelectedItems,
 }: {
   result: GitHubRepoData[];
-  onSelectionChange: (
-    selected: {
-      name: string;
-      selected: boolean;
-      commits: { message: string; selected: boolean }[];
-      pullRequests: { title: string; selected: boolean }[];
-    }[]
-  ) => void;
+  selectedItems: RepoLookup;
+  setSelectedItems: React.Dispatch<React.SetStateAction<RepoLookup>>;
 }) => {
   const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
-  const [selectedItems, setSelectedItems] = useState<
-    {
-      name: string;
-      selected: boolean;
-      showCommits: boolean;
-      commits: { message: string; selected: boolean }[];
-      pullRequests: { title: string; selected: boolean }[];
-    }[]
-  >([]);
-
-  console.log(result);
 
   useEffect(() => {
     setSelectedItems(
-      result.map((item) => ({
-        name: item.name,
-        selected: true,
-        showCommits: false,
-        commits: item.activity.commits.map((commit) => ({
-          message: commit.message,
+      result.reduce((acc, repo) => {
+        acc[repo.name] = {
           selected: true,
-        })),
-        pullRequests: item.activity.pull_requests.map((pullRequest) => ({
-          title: pullRequest.title,
-          selected: true,
-        })),
-      }))
+          showCommits: false,
+          commits: repo.activity.commits.map((c) => ({
+            message: c.message,
+            selected: true,
+          })),
+          pullRequests: repo.activity.pull_requests.map((p) => ({
+            title: p.title,
+            selected: true,
+          })),
+        };
+        return acc;
+      }, {} as RepoLookup)
     );
   }, [result]);
-
-  useEffect(() => {
-    const filteredSelection = selectedItems.map((item) => ({
-      name: item.name,
-      selected: item.selected,
-      commits: item.commits
-        .filter((commit) => commit.selected)
-        .map(({ message }) => ({ message })),
-    }));
-    // onSelectionChange(filteredSelection);
-  }, [selectedItems, onSelectionChange]);
 
   useEffect(() => {
     const timeouts: ReturnType<typeof setTimeout>[] = [];
@@ -83,94 +67,99 @@ const GitRepoList = ({
 
   const handleCheckboxChange = (
     type: "commits" | "pullRequests",
-    repoIndex: number,
+    repoName: string,
     itemIndex: number
   ) => {
-    setSelectedItems((prev) =>
-      prev.map((item, index) =>
-        index === repoIndex
-          ? {
-              ...item,
-              [type]: item[type].map((entry, idx) =>
-                idx === itemIndex
-                  ? { ...entry, selected: !entry.selected }
-                  : entry
-              ),
-            }
-          : item
-      )
-    );
+    setSelectedItems((prev) => {
+      const repo = prev[repoName];
+
+      const updatedList = repo[type].map((item, idx) =>
+        idx === itemIndex ? { ...item, selected: !item.selected } : item
+      );
+
+      return {
+        ...prev,
+        [repoName]: {
+          ...repo,
+          [type]: updatedList,
+        },
+      };
+    });
   };
 
   const handleDescriptionChange = (
     type: "commits" | "pullRequests",
-    repoIndex: number,
-    commitIndex: number,
+    repoName: string,
+    itemIndex: number,
     message: string
   ) => {
-    setSelectedItems((prev) =>
-      prev.map((item, index) =>
-        index === repoIndex
+    setSelectedItems((prev) => {
+      const repo = prev[repoName];
+
+      const updatedList = repo[type].map((item, idx) =>
+        idx === itemIndex
           ? {
               ...item,
-              [type]: item[type].map((commit, idx) =>
-                idx === commitIndex
-                  ? {
-                      ...commit,
-                      [type === "commits" ? "message" : "title"]: message,
-                    }
-                  : commit
-              ),
+              [type === "commits" ? "message" : "title"]: message,
             }
           : item
-      )
-    );
+      );
+
+      return {
+        ...prev,
+        [repoName]: {
+          ...repo,
+          [type]: updatedList,
+        },
+      };
+    });
   };
 
-  const toggleCommitsVisibility = (repoIndex: number) => {
-    setSelectedItems((prev) =>
-      prev.map((item, index) =>
-        index === repoIndex ? { ...item, showCommits: !item.showCommits } : item
-      )
-    );
+  const toggleCommitsVisibility = (repoName: string) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [repoName]: {
+        ...prev[repoName],
+        showCommits: !prev[repoName].showCommits,
+      },
+    }));
   };
 
-  const handleRepoCheckChange = (repoIndex: number) => {
-    setSelectedItems((prev) =>
-      prev.map((item, index) =>
-        index === repoIndex
-          ? {
-              ...item,
-              selected: !item.selected,
-              commits: item.commits.map((commit) => ({
-                ...commit,
-                selected: !item.selected, // 상위 선택 상태에 따라 변경
-              })),
-              pullRequests: item.pullRequests.map((pr) => ({
-                ...pr,
-                selected: !item.selected,
-              })),
-            }
-          : item
-      )
-    );
+  const handleRepoCheckChange = (name: string) => {
+    setSelectedItems((prev) => {
+      const repo = prev[name];
+      const newSelected = !repo.selected;
+
+      return {
+        ...prev,
+        [name]: {
+          ...repo,
+          selected: newSelected,
+          commits: repo.commits.map((c) => ({ ...c, selected: newSelected })),
+          pullRequests: repo.pullRequests.map((pr) => ({
+            ...pr,
+            selected: newSelected,
+          })),
+        },
+      };
+    });
   };
 
   return (
     <div css={containerStyle}>
-      {selectedItems.map((repo, repoIndex) => (
+      {Object.entries(selectedItems).map(([repoName, repo], repoIndex) => (
         <div key={repoIndex}>
           <div
             css={itemStyle}
             className={visibleIndexes.includes(repoIndex) ? "visible" : ""}
           >
             <Checkbox
-              onChange={() => handleRepoCheckChange(repoIndex)}
+              onChange={() => handleRepoCheckChange(repoName)}
               checked={repo.selected}
             />
-            <Typography>{repo.name}</Typography>
+            <Typography>{repoName}</Typography>
             <Button
-              onClick={() => toggleCommitsVisibility(repoIndex)}
+              onClick={() => toggleCommitsVisibility(repoName)}
               variant="outlined"
               size="small"
             >
@@ -184,19 +173,25 @@ const GitRepoList = ({
                   <div key={commitIndex} css={commitStyle}>
                     <Checkbox
                       onChange={() =>
-                        handleCheckboxChange("commits", repoIndex, commitIndex)
+                        handleCheckboxChange("commits", repoName, commitIndex)
                       }
                       checked={commit.selected}
                     />
                     <TextareaAutosize
-                      css={textareaStyle}
+                      css={[
+                        textareaStyle,
+                        !commit.selected && {
+                          backgroundColor: "#f0f0f0",
+                        },
+                      ]}
+                      disabled={!commit.selected}
                       minRows={2}
                       placeholder="커밋 내용에 대해 추가해보세요."
                       value={commit.message}
                       onChange={(e) =>
                         handleDescriptionChange(
                           "commits",
-                          repoIndex,
+                          repoName,
                           commitIndex,
                           e.target.value
                         )
@@ -208,18 +203,24 @@ const GitRepoList = ({
                   <div key={prIndex} css={commitStyle}>
                     <Checkbox
                       onChange={() =>
-                        handleCheckboxChange("pullRequests", repoIndex, prIndex)
+                        handleCheckboxChange("pullRequests", repoName, prIndex)
                       }
                       checked={pullRequest.selected}
                     />
                     <TextareaAutosize
-                      css={textareaStyle}
+                      css={[
+                        textareaStyle,
+                        !pullRequest.selected && {
+                          backgroundColor: "#f0f0f0",
+                        }, // 비활성화 시 스타일
+                      ]}
                       minRows={2}
+                      disabled={!pullRequest.selected}
                       value={pullRequest.title}
                       onChange={(e) =>
                         handleDescriptionChange(
                           "pullRequests",
-                          repoIndex,
+                          repoName,
                           prIndex,
                           e.target.value
                         )

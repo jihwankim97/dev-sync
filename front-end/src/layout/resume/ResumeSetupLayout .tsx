@@ -12,14 +12,14 @@ import {
   titleStyle,
 } from "../../styles/resumeCommonStyle";
 import logo from "../../assets/white_logo.png";
-
+import { GitHubRepoData } from "../../types/github.resume";
 
 export interface ResumeContextType {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 
-  repoData: { name: string }[];
-  setRepoData: React.Dispatch<React.SetStateAction<{ name: string }[]>>;
+  repoData: GitHubRepoData[];
+  setRepoData: React.Dispatch<React.SetStateAction<GitHubRepoData[]>>;
 
   selectedRepos: { name: string; selected: boolean }[];
   setSelectedRepos: React.Dispatch<
@@ -36,7 +36,7 @@ const subtitleStyle = css`
 
 export const ResumeSetupLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [repoData, setRepoData] = useState<{ name: string }[]>([]);
+  const [repoData, setRepoData] = useState<GitHubRepoData[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<
     { name: string; selected: boolean }[]
   >([]);
@@ -63,7 +63,16 @@ export const ResumeSetupLayout = () => {
         <header css={headerStyle}>
           {/* <h2>DevSync</h2>
            */}
-          <img src={logo} alt="로고" css={css` height: 25px; margin: 20px 10px; cursor: pointer; `} onClick={() => navigate("/")} />
+          <img
+            src={logo}
+            alt="로고"
+            css={css`
+              height: 25px;
+              margin: 20px 10px;
+              cursor: pointer;
+            `}
+            onClick={() => navigate("/")}
+          />
           <Button
             css={css`
               color: #ffffff;
