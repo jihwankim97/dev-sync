@@ -1,5 +1,5 @@
 import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -31,6 +31,8 @@ import { CustomModel } from './resume/entity/custom.entity';
 import { OrderModel } from './resume/entity/order.entity';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
+import { QueueModule } from './queue/queue.module';
+import { WorkerModule } from './worker/worker.module';
 
 @Module({
   imports: [
@@ -94,6 +96,11 @@ import { DataSource } from 'typeorm';
     PostsModule,
     UploadModule,
     CommonModule,
+    QueueModule,
+    ConditionalModule.registerWhen(
+      WorkerModule,
+      (env: NodeJS.ProcessEnv) => env['TYPE'] === 'worker',
+    ),
   ],
   controllers: [AppController],
   providers: [

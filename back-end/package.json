@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
+    "start:dev:worker": "export TYPE=worker && export PORT=3001 && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -20,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^10.4.5",
     "@nestjs/config": "^3.2.3",
@@ -30,6 +32,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
+    "bullmq": "^5.64.1",
     "cache-manager": "^7.2.4",
     "cache-manager-redis-yet": "^5.1.5",
     "cheerio": "^1.0.0",
