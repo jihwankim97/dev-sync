@@ -4,15 +4,41 @@ import { ResumeService } from './resume.service';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/user/entity/user.entity';
 import { SkillModel } from './entity/skill.entity';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { ResumeModel } from './entity/resume.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ResumeGenerationService {
   constructor(
     private readonly resumeService: ResumeService,
     private readonly configService: ConfigService,
+
+    @InjectRepository(ResumeModel)
+    private readonly resumeRepository: Repository<ResumeModel>,
+
+    @InjectQueue('resume-generation-queue')
+    private readonly resumeGenerationQueue: Queue,
   ) {}
 
   async generateResume(profileData: unknown, user: User) {
+    const resume = await this.resumeService.create(user, `생성중인 자소서`);
+
+    const job = await this.resumeGenerationQueue.add('create-resume', {
+      profileData,
+      resumeId: resume.id,
+      user,
+    });
+    return {
+      message: '자소서 생성 작업이 예약되었습니다.',
+      jobId: job.id,
+      resumeId: resume.id,
+    };
+  }
+
+  async createResume(profileData: unknown, resumeId: string, user: User) {
     const normalizedProfileData = this.normalizeProfileData(profileData);
     const profileDataString =
       typeof profileData === 'string'
@@ -35,12 +61,11 @@ export class ResumeGenerationService {
       );
     }
 
-    const resume = await this.resumeService.create(
-      user,
-      `${user.name}의 자소서`,
-    );
+    await this.resumeRepository.update(resumeId, {
+      title: `${user.name}의 자소서`,
+    });
 
-    await this.resumeService.saveBlock(resume.id, {
+    await this.resumeService.saveBlock(resumeId, {
       type: 'profile',
       name: user.name,
       email: user.email,
@@ -50,7 +75,7 @@ export class ResumeGenerationService {
       blogUrl: user.blogUrl,
     });
 
-    await this.resumeService.saveBlock(resume.id, {
+    await this.resumeService.saveBlock(resumeId, {
       type: 'introduction',
       headline: resumeData.introduction.headline,
       description: resumeData.introduction.description,
@@ -60,7 +85,7 @@ export class ResumeGenerationService {
 
     const familiar = await this.resolveSkills(resumeData.skills?.familiar);
 
-    await this.resumeService.saveBlock(resume.id, {
+    await this.resumeService.saveBlock(resumeId, {
       id: 'skills',
       type: 'skills',
       strongSkillIds: strengths.map((skill) => ({
@@ -75,12 +100,12 @@ export class ResumeGenerationService {
       })),
     });
 
-    await this.resumeService.saveBlock(resume.id, {
+    await this.resumeService.saveBlock(resumeId, {
       type: 'projects',
       items: resumeData.projects,
     });
 
-    return this.resumeService.findDetail(resume.id);
+    return this.resumeService.findDetail(resumeId);
   }
 
   private async callResumeCompletion(profileJson: string): Promise<string> {

@@ -18,10 +18,12 @@ import { OrderModel } from './entity/order.entity';
 import { githubRepoService } from './github-repo.service';
 import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
 import { CommonModule } from 'src/common/common.module';
+import { QueueModule } from 'src/queue/queue.module';
 
 @Module({
   imports: [
     UserModule,
+    QueueModule,
     TypeOrmModule.forFeature([
       ResumeModel,
       IntroductionModel,
@@ -44,6 +46,6 @@ import { CommonModule } from 'src/common/common.module';
     githubRepoService,
     ResumeOwnershipGuard,
   ],
-  exports: [ResumeService],
+  exports: [ResumeService, ResumeGenerationService],
 })
 export class ResumeModule {}

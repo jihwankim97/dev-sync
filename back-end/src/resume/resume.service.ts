@@ -117,8 +117,8 @@ export class ResumeService {
         title: resume.title,
         updateAt: resume.updatedAt,
         profile: {
-          email: resume.profile.email,
-          phoneNumber: resume.profile.phoneNumber,
+          email: resume.profile?.email,
+          phoneNumber: resume.profile?.phoneNumber,
         },
         fam_skills: resume.famSkills || [],
         str_skills: resume.strSkills || [],
