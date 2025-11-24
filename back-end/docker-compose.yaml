@@ -28,7 +28,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  worker:
+    build: .
+    command: npm run start:dev:worker
+    environment:
+      - TYPE=worker
+    depends_on:
+      - redis
 
+  worker-2:
+    build: .
+    command: npm run start:dev:worker
+    environment:
+      - TYPE=worker
+    depends_on:
+      - redis
   redis:
     image: redis:latest
     container_name: redis_db
