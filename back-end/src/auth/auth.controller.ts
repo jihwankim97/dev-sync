@@ -7,7 +7,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { AuthenticatedGuard, GoogleAuthGuard } from './auth.guard';
+import {
+  AuthenticatedGuard,
+  GithubAuthGuard,
+  GoogleAuthGuard,
+} from './auth.guard';
 import { AuthExceptionFilter } from './auth-exception.filter';
 import { User } from 'src/user/decorator/user.decorator';
 
@@ -29,6 +33,23 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @UseFilters(AuthExceptionFilter)
   async googleAuthRedirect(@Request() req, @Response() res) {
+    const { user } = req;
+    if (user) {
+      return res.redirect('http://localhost:4000/');
+    } else {
+      return res.status(403).send('로그인에 실패했습니다.');
+    }
+  }
+
+  @Get('github')
+  @UseGuards(GithubAuthGuard)
+  @UseFilters(AuthExceptionFilter)
+  async githubAuth() {}
+
+  @Get('github/callback')
+  @UseGuards(GithubAuthGuard)
+  @UseFilters(AuthExceptionFilter)
+  async githubAuthRedirect(@Request() req, @Response() res) {
     const { user } = req;
     if (user) {
       return res.redirect('http://localhost:4000/');
