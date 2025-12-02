@@ -124,6 +124,13 @@ export const InfoAlert = memo(({ message }: { message: string }) => (
   </div>
 ));
 
+const StatsTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #313131;
+  margin-bottom: 0.5rem;
+`;
+
 const initialState: userInfo = {
   id: 0,
   createdDt: "",
@@ -293,112 +300,124 @@ const AccountSection = memo(
     changeValue: (section: keyof userInfo, data: string | number) => void;
     handleSave: { mutate: () => void };
     alertUpdate: { type: string; open: boolean };
-  }) => (
-    <div css={containerStyle}>
-      <div css={headerStyle}>Account Information</div>
-      <div css={sectionStyle}>
-        {alertUpdate.type === "user" && (
-          <InfoAlert message="유저 정보가 업데이트 되었습니다." />
-        )}
-        <div
-          css={css`
-            width: 80%;
-            @media (max-width: 768px) {
-              flex-direction: column;
-              gap: 0.5rem;
-              width: 80%;
-            }
-          `}
-        >
-          <div css={flexRowStyle}>
-            <div css={labelStyle}>
-              Name
-              <CustomTextField
-                label="Username"
-                value={userData.name}
-                onChange={(value) => changeValue("name", value)}
-              />
-            </div>
-            <div css={labelStyle}>
-              BirthDay
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  css={customTextFieldStyle}
-                  value={userData.birthDate ? dayjs(userData.birthDate) : null}
-                  onChange={(newValue) => {
-                    if (newValue) {
-                      const formattedDate = newValue.format("YYYY-MM-DD");
-                      changeValue("birthDate", formattedDate);
-                    } else {
-                      changeValue("birthDate", "");
-                    }
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
-          </div>
-          <div css={flexRowStyle}>
-            <div css={labelStyle}>
-              GitHub
-              <CustomTextField
-                label="github.com/"
-                value={userData.githubUrl}
-                onChange={(value) => changeValue("githubUrl", value)}
-              />
-            </div>
-            <div css={labelStyle}>
-              Blog
-              <CustomTextField
-                label="Blog"
-                value={userData.blogUrl}
-                onChange={(value) => changeValue("blogUrl", value)}
-              />
-            </div>
-          </div>
+  }) => {
+    // GitHub username 추출 (githubUrl에서)
+    const getGithubUsername = (url: string) => {
+      if (!url) return null;
+      const match = url.match(/github\.com\/([^\/]+)/);
+      return match ? match[1] : null;
+    };
+
+    const githubUsername = userData.githubUrl;
+    console.log("GitHub Username:", githubUsername);
+
+    return (
+      <div css={containerStyle}>
+        <div css={headerStyle}>Account Information</div>
+        <div css={sectionStyle}>
+          {alertUpdate.type === "user" && (
+            <InfoAlert message="유저 정보가 업데이트 되었습니다." />
+          )}
           <div
             css={css`
-              display: flex;
-              flex-wrap: wrap;
+              width: 80%;
+              @media (max-width: 768px) {
+                width: 100%;
+              }
             `}
           >
-            <div css={LongLabelStyle}>
-              Phone Number
-              <TextField
-                placeholder="01012341234"
-                variant="outlined"
-                error={!userData.phoneNumber}
-                css={longTextFieldStyle}
-                value={userData.phoneNumber}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  changeValue("phoneNumber", Number(e.target.value))
-                }
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">+82 |</InputAdornment>
-                    ),
-                  },
-                }}
-              />
+            <div css={flexRowStyle}>
+              <div css={labelStyle}>
+                Name
+                <CustomTextField
+                  label="Username"
+                  value={userData.name}
+                  onChange={(value) => changeValue("name", value)}
+                />
+              </div>
+              <div css={labelStyle}>
+                BirthDay
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    css={customTextFieldStyle}
+                    value={
+                      userData.birthDate ? dayjs(userData.birthDate) : null
+                    }
+                    onChange={(newValue) => {
+                      if (newValue) {
+                        const formattedDate = newValue.format("YYYY-MM-DD");
+                        changeValue("birthDate", formattedDate);
+                      } else {
+                        changeValue("birthDate", "");
+                      }
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
+            </div>
+            <div css={flexRowStyle}>
+              <div css={labelStyle}>
+                GitHub
+                <CustomTextField
+                  label="github.com/"
+                  value={userData.githubUrl}
+                  onChange={(value) => changeValue("githubUrl", value)}
+                />
+              </div>
+              <div css={labelStyle}>
+                Blog
+                <CustomTextField
+                  label="Blog"
+                  value={userData.blogUrl}
+                  onChange={(value) => changeValue("blogUrl", value)}
+                />
+              </div>
+            </div>
+            <div
+              css={css`
+                display: flex;
+                flex-wrap: wrap;
+              `}
+            >
+              <div css={LongLabelStyle}>
+                Phone Number
+                <TextField
+                  placeholder="01012341234"
+                  variant="outlined"
+                  error={!userData.phoneNumber}
+                  css={longTextFieldStyle}
+                  value={userData.phoneNumber}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    changeValue("phoneNumber", Number(e.target.value))
+                  }
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">+82 |</InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div css={buttonGroupStyle}>
-          <button
-            css={[
-              buttonStyles("lg"),
-              css`
-                margin-top: 1rem;
-              `,
-            ]}
-            onClick={() => handleSave.mutate()}
-          >
-            Save
-          </button>
+          <div css={buttonGroupStyle}>
+            <button
+              css={[
+                buttonStyles("lg"),
+                css`
+                  margin-top: 1rem;
+                `,
+              ]}
+              onClick={() => handleSave.mutate()}
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 
 // Career Section 컴포넌트
@@ -619,6 +638,32 @@ export const UserPage = () => {
         </div>
       ) : (
         <>
+          {userData.githubUrl && (
+            <>
+              <div
+                css={css`
+                  margin: 2rem 0;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                `}
+              >
+                <StatsTitle>🌱 GitHub Activity</StatsTitle>
+                <img
+                  src={`https://ghchart.rshah.org/${userData.githubUrl}`}
+                  alt="GitHub Contributions"
+                  loading="lazy"
+                  css={css`
+                    max-width: 90%;
+                    height: auto;
+                    max-width: 1200px;
+                    margin-bottom: 2rem;
+                  `}
+                />
+                <hr css={dividerStyle} />
+              </div>
+            </>
+          )}
           <ProfileSection
             previewImage={previewImage}
             email={userData.email}
