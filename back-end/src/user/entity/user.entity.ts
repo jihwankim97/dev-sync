@@ -1,7 +1,13 @@
+import { Exclude } from 'class-transformer';
 import { BaseModel } from 'src/common/entity/base.entity';
 import { Post } from 'src/post/entity/post.entity';
 import { ResumeModel } from 'src/resume/entity/resume.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
+
+export enum Provider {
+  GOOGLE = 'google',
+  GITHUB = 'github',
+}
 
 @Entity()
 export class User extends BaseModel {
@@ -40,4 +46,11 @@ export class User extends BaseModel {
 
   @OneToMany(() => ResumeModel, (resume) => resume.author)
   resumes: ResumeModel[];
+
+  @Column({ type: 'enum', enum: Provider, default: Provider.GOOGLE })
+  provider: Provider;
+
+  @Exclude()
+  @Column({ nullable: true, name: 'github_access_token' })
+  githubAccessToken: string;
 }

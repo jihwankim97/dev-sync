@@ -1,5 +1,13 @@
-import { IsAlphanumeric, IsEmail, IsString, Length } from 'class-validator';
+import {
+  IsAlphanumeric,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import { ValidateLength } from 'src/common/decorator/validate-length.decorator';
+import { Provider } from '../entity/user.entity';
 
 export class CreateUserDto {
   @IsEmail()
@@ -14,4 +22,12 @@ export class CreateUserDto {
   @IsString()
   @ValidateLength('USER_NAME')
   name: string;
+
+  @IsEnum(Provider)
+  @IsOptional()
+  provider?: Provider;
+
+  @IsString()
+  @IsOptional()
+  githubAccessToken?: string;
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
-import { User } from 'src/user/entity/user.entity';
+import { Provider, User } from 'src/user/entity/user.entity';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -29,6 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       user = await this.userService.findByEmailOrSave(
         email,
         name.familyName + name.givenName,
+        Provider.GOOGLE,
       );
     }
     return user;
