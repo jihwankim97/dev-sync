@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entity/user.entity';
+import { Provider, User } from './entity/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ConfigService } from '@nestjs/config';
@@ -73,9 +73,14 @@ export class UserService {
     }
   }
 
-  async findByEmailOrSave(email: string, name: string): Promise<User> {
+  async findByEmailOrSave(
+    email: string,
+    name: string,
+    provider: Provider,
+    githubAccessToken?: string,
+  ): Promise<User> {
     await this.userRepository.upsert(
-      { email, name },
+      { email, name, provider, githubAccessToken },
       {
         conflictPaths: ['email'],
         skipUpdateIfNoValuesChanged: true,
