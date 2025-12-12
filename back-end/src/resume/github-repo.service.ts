@@ -25,6 +25,10 @@ export class githubRepoService {
 
   async getGitHubData(name: string, email: string) {
     const user = await this.userService.findByEmail(email);
+
+    if (!user.githubUrl)
+      throw new BadRequestException('GitHub 계정이 없습니다.');
+
     const username = user.githubUrl.split('/').pop();
 
     const repositories = await this.getUserRepositories(username);
