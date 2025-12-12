@@ -39,8 +39,17 @@ export const ResumeIntroPage = () => {
       navigate("/resume/connect");
       console.log("성공");
     } else {
+      setIsLoading(false);
       const error = await response.json();
       console.error("Update failed:", error);
+
+      // GitHub 계정이 없는 경우 처리
+      if (error.message === "GitHub 계정이 없습니다.") {
+        alert("깃허브 레포지토리 정보를 알려주세요.");
+        window.location.href = "http://localhost:4000/Users";
+      } else {
+        navigate("/resume/Users");
+      }
     }
   };
 

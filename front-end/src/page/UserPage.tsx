@@ -309,7 +309,7 @@ const AccountSection = memo(
     };
 
     const githubUsername = userData.githubUrl;
-    console.log("GitHub Username:", githubUsername);
+    // console.log("GitHub Username:", githubUsername);
 
     return (
       <div css={containerStyle}>
@@ -364,14 +364,14 @@ const AccountSection = memo(
                   onChange={(value) => changeValue("githubUrl", value)}
                 />
               </div>
-              <div css={labelStyle}>
+              {/* <div css={labelStyle}>
                 Blog
                 <CustomTextField
                   label="Blog"
                   value={userData.blogUrl}
                   onChange={(value) => changeValue("blogUrl", value)}
                 />
-              </div>
+              </div> */}
             </div>
             <div
               css={css`
@@ -386,9 +386,9 @@ const AccountSection = memo(
                   variant="outlined"
                   error={!userData.phoneNumber}
                   css={longTextFieldStyle}
-                  value={userData.phoneNumber}
+                  value={userData.phoneNumber || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    changeValue("phoneNumber", Number(e.target.value))
+                    changeValue("phoneNumber", e.target.value)
                   }
                   slotProps={{
                     input: {
@@ -409,7 +409,10 @@ const AccountSection = memo(
                   margin-top: 1rem;
                 `,
               ]}
-              onClick={() => handleSave.mutate()}
+              onClick={() => {
+                console.log("Save button clicked", handleSave, userData);
+                handleSave.mutate(userData);
+              }}
             >
               Save
             </button>
@@ -523,7 +526,10 @@ const CareerSection = memo(
                 margin-top: 1rem;
               `,
             ]}
-            onClick={() => handleSave.mutate()}
+            onClick={() => {
+              console.log("Save button clicked", handleSave);
+              handleSave.mutate();
+            }}
           >
             Save
           </button>
@@ -593,26 +599,39 @@ export const UserPage = () => {
     updateProfileMutation.mutate(selectedFile);
   }, [selectedFile, updateProfileMutation]);
 
-  console.log(userData);
+  // console.log(userData);
 
   const handleSave = useMutation({
-    mutationFn: useCallback(() => {
+    mutationFn: (data: userInfo) => {
       const {
         id: _user_id,
         profileImage: _profileImage,
         createdDt: _createdDt,
         email: _email,
+        provider: _provider,
         ...rest
-      } = userData;
-      return request({ method: "POST", url: ENDPOINTS.user(), body: rest });
-    }, [userData]),
-    onSuccess: useCallback(() => {
+      } = data as userInfo & { provider?: string };
+
+      // 빈 문자열인 blogUrl은 제외 (선택적 필드)
+      const cleanedData = { ...rest };
+      if (cleanedData.blogUrl === "") {
+        delete cleanedData.blogUrl;
+      }
+
+      console.log("mutationFn called with:", cleanedData);
+      return request({
+        method: "POST",
+        url: ENDPOINTS.user(),
+        body: cleanedData,
+      });
+    },
+    onSuccess: () => {
       setAlertUpdate({ type: "user", open: true });
       refetch();
-    }, [refetch]),
-    onError: useCallback((error) => {
+    },
+    onError: (error: unknown) => {
       console.error("Update failed:", error);
-    }, []),
+    },
   });
 
   useEffect(() => {
