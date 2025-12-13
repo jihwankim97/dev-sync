@@ -22,7 +22,7 @@ const ProfileButton = () => {
   });
 
   const handleClick = () => {
-    navigate("/Users"); // 새로운 경로로 이동
+    navigate("/users"); // 새로운 경로로 이동
   };
 
   const handleAvatarClick = (e: React.MouseEvent<HTMLElement>) => {
