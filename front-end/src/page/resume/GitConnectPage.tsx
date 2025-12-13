@@ -88,7 +88,8 @@ export const GitConnectPage = () => {
 
       const result = await response.json();
       console.log("Generated Resume Data:", result);
-      navigate(`/resume/${result.id}/editor`);
+      // navigate(`/resume/${result.id}/editor`);
+      navigate("/resume/list");
       dispatch(setResume(result));
     } catch (error) {
       console.error("Error generating resume:", error);

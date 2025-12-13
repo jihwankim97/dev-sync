@@ -46,9 +46,13 @@ export const ResumeIntroPage = () => {
       // GitHub 계정이 없는 경우 처리
       if (error.message === "GitHub 계정이 없습니다.") {
         alert("깃허브 레포지토리 정보를 알려주세요.");
-        window.location.href = "http://localhost:4000/Users";
+        window.location.href = "http://localhost:4000/users";
       } else {
-        navigate("/resume/Users");
+        alert(
+          error.message ||
+            "GitHub 레포지토리 조회에 실패했습니다. 깃허브 정보를 확인해주세요."
+        );
+        navigate("/users");
       }
     }
   };
