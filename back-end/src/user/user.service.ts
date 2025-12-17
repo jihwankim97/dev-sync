@@ -1,100 +1,106 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
+import { Provider, User } from './entity/user.entity';
 import { Repository } from 'typeorm';
-import { UpdateUserDto } from './user.dto';
-import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ConfigService } from '@nestjs/config';
+import { User as UserEntity } from 'src/user/entity/user.entity';
+import { UploadService } from 'src/upload/upload.service';
+import { extname } from 'path';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private readonly configService: ConfigService,
+    private readonly uploadService: UploadService,
+    private readonly cacheService: CacheService,
   ) {}
 
-  // 사용자 생성
-  createUser(user): Promise<User> {
-    return this.userRepository.save(user);
+  async findOne(userId: number) {
+    return this.userRepository.findOne({ where: { id: userId } });
   }
 
-  // 사용자 조회
-  async getUser(email: string) {
-    return await this.userRepository.findOne({ where: { email } });
-  }
-
-  // 사용자 업데이트 (프로필 이미지 포함)
-  async updateUser(updateUserDto: Partial<UpdateUserDto>) {
-    const email = updateUserDto.email;
-  
-    if (!email) {
-      throw new HttpException('이메일이 필요합니다.', HttpStatus.BAD_REQUEST);
-    }
-  
-    const user = await this.userRepository.findOne({ where: { email } });
-  
-    if (!user) {
-      throw new HttpException('사용자를 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
-    }
-  
-    const { profileImageUrl, ...restDto } = updateUserDto;
-    Object.assign(user, restDto);
-
-    return this.userRepository.save(user);
-  }
-
-
-  async updateProfile(email: string, file?: Express.Multer.File) {
-    if (!email) {
-      throw new HttpException('이메일이 필요합니다.', HttpStatus.BAD_REQUEST);
-    }
-
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new HttpException('사용자를 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
-    }
-
-    // 파일이 있는 경우에만 프로필 이미지 URL 업데이트
-    if (file) {
-      const uniqueFilename = `${uuidv4()}.png`;
-      const newPath = `./uploads/${uniqueFilename}`;
-     
-
-      if (!fs.existsSync('./uploads')) {
-        fs.mkdirSync('./uploads');
-      }
-
-      if (file.buffer) {
-        // 버퍼로 파일을 저장하고 새로운 이미지 URL 설정
-        fs.writeFileSync(newPath, file.buffer);
-        user.profileImageUrl = `http://localhost:3000/uploads/${uniqueFilename}`;
-      } else {
-        console.error('파일 버퍼가 존재하지 않습니다.');
-        throw new HttpException('파일 전송 실패', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-    } else {
-      throw new HttpException('파일이 제공되지 않았습니다.', HttpStatus.BAD_REQUEST);
-    }
-
-    return this.userRepository.save(user);
-  }
-
-
-  // 이메일로 사용자 조회 후 없으면 저장
-  async findByEmailOrSave(email, username, providerId) {
-    const foundUser = await this.getUser(email);
-    if (foundUser) {
-      return foundUser;
-    }
-    const newUser = this.userRepository.create({
+  async findByEmail(email: string) {
+    return this.cacheService.getOrSet<User>(
       email,
-      username,
-      providerId,
-    });
-    return this.userRepository.save(newUser);
+      () => this.userRepository.findOne({ where: { email } }),
+      600000,
+      'user',
+    );
   }
 
-  // 사용자 삭제
-  deleteUser(email: any) {
-    return this.userRepository.delete({ email });
+  async update(email: string, updateUserDto: UpdateUserDto) {
+    if (Object.keys(updateUserDto).length === 0) {
+      throw new HttpException(
+        '업데이트할 데이터가 없습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const result = await this.userRepository.update({ email }, updateUserDto);
+
+    if (result.affected === 0)
+      throw new HttpException(
+        '사용자를 찾을 수 없습니다.',
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.cacheService.del(email, 'user');
+
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async updateProfile(user: UserEntity, file?: Express.Multer.File) {
+    const uploadPath = './uploads/profiles';
+    const filename = `${user.id}-${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+
+    let fileUrl: string;
+    try {
+      fileUrl = await this.uploadService.uploadFile(file, uploadPath, filename);
+
+      await this.userRepository.update(user.id, {
+        profileImage: fileUrl,
+      });
+
+      await this.cacheService.del(user.email, 'user');
+      return this.findOne(user.id);
+    } catch (error) {
+      await this.uploadService.deleteFile(fileUrl);
+      throw error;
+    }
+  }
+
+  async findByEmailOrSave(
+    email: string,
+    name: string,
+    provider: Provider,
+    githubAccessToken?: string,
+  ): Promise<User> {
+    await this.userRepository.upsert(
+      { email, name, provider, githubAccessToken },
+      {
+        conflictPaths: ['email'],
+        skipUpdateIfNoValuesChanged: true,
+      },
+    );
+
+    await this.cacheService.del(email, 'user');
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async remove(userId: number) {
+    const result = await this.userRepository.delete(userId);
+
+    if (result.affected === 0) {
+      throw new HttpException(
+        '사용자를 찾을 수 없습니다.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return { message: '사용자가 삭제되었습니다.', userId: userId };
   }
 }
