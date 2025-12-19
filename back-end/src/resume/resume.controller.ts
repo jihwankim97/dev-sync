@@ -1,69 +1,207 @@
-import { Controller, Get, Post, Request, Body, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  UseGuards,
+  Param,
+  Query,
+  Delete,
+  UseFilters,
+} from '@nestjs/common';
 import { ResumeService } from './resume.service';
-import { UserService } from 'src/user/user.service';
 import { ResumeGenerationService } from './resumeGeneration.Service';
+import { AuthenticatedGuard } from 'src/auth/auth.guard';
+import { CreateIntroductionDto } from './dto/create-introduction.dto';
+import { CreateProfileDto } from './dto/create-profile.dto';
+import { CreateProjectsWidthOutcomesDto } from './dto/create-projects-width-outcomes.dto';
+import { CreateSkillsDto } from './dto/create-skills.dto';
+import { CreateAchievementsDto } from './dto/create-achievements.dto';
+import { CreateCustomDto } from './dto/create-custom.dto';
+import { CreateCareersDto } from './dto/create-careers.dto';
+import { UpdateBlockOrdersDto } from './dto/update-block-orders.dto';
+import { UpsertResumeEntityDtoFilter } from './filter/upsert-resume-entity-dto.filter';
+import { User } from 'src/user/decorator/user.decorator';
+import { User as UserEntity } from 'src/user/entity/user.entity';
+import { githubRepoService } from './github-repo.service';
+import { ResumeOwnershipGuard } from './guard/resume-ownership.guard';
+import { BasePaginationDto } from 'src/common/dto/base-pagination.dto';
 
-@Controller('resume')
+@Controller('resumes')
+@UseGuards(AuthenticatedGuard)
 export class ResumeController {
   constructor(
-    private readonly userService: UserService,
     private readonly resumeService: ResumeService,
     private readonly resumeGenerationService: ResumeGenerationService,
+    private readonly githubRepoService: githubRepoService,
   ) {}
 
-  // 자소서 생성 엔드포인트
   @Post('generate')
-  async generateResume(@Body('profileData') profileData: string) {
-    try {
-      // 입력 데이터 길이를 최대 4000자로 제한
-      const limitedProfileData = profileData.slice(0, 4000);
-
-      const resume = await this.resumeGenerationService.generateResume(limitedProfileData);
-      return { resume };
-    } catch (error) {
-      throw new HttpException('Failed to generate resume', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  async generateResume(
+    @User() user: UserEntity,
+    @Body('profileData') profileData: string,
+  ) {
+    return this.resumeGenerationService.generateResume(profileData, user);
   }
 
-  // 사용자 레포지토리 정보 가져오기 엔드포인트
-  @Get('get-user-repo')
-  async getAuthStatus(@Request() req) {
-    if (req.isAuthenticated()) {
-      const userinfo = [];
+  @Get('skills/search')
+  async searchSkills(@Query('query') query: string) {
+    return this.resumeService.searchSkills(query);
+  }
 
-      const user = await this.userService.getUser(req.user.email);
-      console.log(user);
-      const username = user.githubUrl.split('/').pop();
+  @Get('github-repos')
+  async getGitHubRepos(@User() user: UserEntity) {
+    return this.githubRepoService.getGitHubData(user.name, user.email);
+  }
 
-      // 모든 레포지토리 가져오기
-      const repositories = await this.resumeService.getUserRepositories(username);
+  @Get()
+  async getAllResumes(
+    @User() user: UserEntity,
+    @Query() paginationDto: BasePaginationDto,
+  ) {
+    return this.resumeService.findAll(user.id, paginationDto);
+  }
 
-      // 레포지토리를 크기순으로 내림차순 정렬 후 최대 7개 선택
-      const topRepositories = repositories
-        .sort((a, b) => b.size - a.size)
-        .slice(0, 7);
+  @Get(':id')
+  @UseGuards(ResumeOwnershipGuard)
+  async getResume(@Param('id') id: string) {
+    return this.resumeService.findDetail(id);
+  }
 
-      // 상위 7개의 레포지토리에 대해 정보 수집
-      for (const repository of topRepositories) {
-        const repoInfo = {
-          name: repository.name,
-          description: repository.description,
-          language: repository.language,
-          size: repository.size,
-          stargazers_count: repository.stargazers_count,
-          forks_count: repository.forks_count,
-          html_url: repository.html_url,
-          readme_content: !repository.description && await this.resumeService.getReadmeContent(username, repository.name),
-        };
+  @Delete(':id')
+  @UseGuards(ResumeOwnershipGuard)
+  async deleteResume(@Param('id') id: string) {
+    return this.resumeService.remove(id);
+  }
 
-        const additionalData = await this.resumeService.getAdditionalRepositoryData(username, repository.name);
-        userinfo.push({ ...repoInfo, ...additionalData });
-      }
+  @Post(':id/introductions')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createIntroduction(
+    @Param('id') id: string,
+    @Body() createIntroductionDto: CreateIntroductionDto,
+  ) {
+    return this.resumeService.saveBlock(id, createIntroductionDto);
+  }
 
-      console.log(userinfo);
-      return userinfo;
-    } else {
-      return 'Not authenticated';
-    }
+  @Delete(':id/introductions')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeIntroduction(@Param('id') id: string) {
+    return this.resumeService.removeIntroduction(id);
+  }
+
+  @Post(':id/profiles')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createProfile(
+    @Param('id') id: string,
+    @Body() profileDto: CreateProfileDto,
+  ) {
+    return this.resumeService.saveBlock(id, profileDto);
+  }
+
+  @Delete(':id/profiles')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeProfile(@Param('id') id: string) {
+    return this.resumeService.removeProfile(id);
+  }
+
+  @Post(':id/projects')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createProject(
+    @Param('id') id: string,
+    @Body() createProjectsDto: CreateProjectsWidthOutcomesDto,
+  ) {
+    return this.resumeService.saveBlock(id, createProjectsDto);
+  }
+
+  @Delete(':id/projects')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeProject(@Param('id') id: string) {
+    return this.resumeService.removeProject(id);
+  }
+
+  @Post(':id/skills')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createSkills(
+    @Param('id') id: string,
+    @Body() createSkillsDto: CreateSkillsDto,
+  ) {
+    return this.resumeService.saveBlock(id, createSkillsDto);
+  }
+
+  @Delete(':id/skills')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeSkills(@Param('id') id: string) {
+    return this.resumeService.removeSkills(id);
+  }
+
+  @Post(':id/achievements')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createAchievements(
+    @Param('id') id: string,
+    @Body() createAchievementsDto: CreateAchievementsDto,
+  ) {
+    return this.resumeService.saveBlock(id, createAchievementsDto);
+  }
+
+  @Delete(':id/achievements')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeAchievement(@Param('id') id: string) {
+    return this.resumeService.removeAchievement(id);
+  }
+
+  @Post(':id/careers')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createCareers(
+    @Param('id') id: string,
+    @Body() createCareersDto: CreateCareersDto,
+  ) {
+    return this.resumeService.saveBlock(id, createCareersDto);
+  }
+
+  @Delete(':id/careers')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeCareer(@Param('id') id: string) {
+    return this.resumeService.removeCareer(id);
+  }
+
+  @Post(':id/customs')
+  @UseFilters(UpsertResumeEntityDtoFilter)
+  @UseGuards(ResumeOwnershipGuard)
+  async createCustom(
+    @Param('id') id: string,
+    @Body() createCustomDto: CreateCustomDto,
+  ) {
+    return this.resumeService.saveBlock(id, createCustomDto);
+  }
+
+  @Delete(':id/customs/:customId')
+  @UseGuards(ResumeOwnershipGuard)
+  async removeCustom(
+    @Param('id') id: string,
+    @Param('customId') customId: string,
+  ) {
+    return this.resumeService.removeCustom(id, customId);
+  }
+
+  @Put(':id/orders')
+  @UseGuards(ResumeOwnershipGuard)
+  async updateBlockOrders(
+    @Param('id') id: string,
+    @Body() updateBlockOrdersDto: UpdateBlockOrdersDto,
+  ) {
+    return this.resumeService.updateBlockOrders(id, updateBlockOrdersDto);
+  }
+
+  @Get(':id/orders')
+  @UseGuards(ResumeOwnershipGuard)
+  async findBlockOrders(@Param('id') id: string) {
+    return this.resumeService.findBlockOrders(id);
   }
 }

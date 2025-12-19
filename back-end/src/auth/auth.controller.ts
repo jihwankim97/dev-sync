@@ -1,51 +1,80 @@
-import { Controller, Get, Request, Response, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Request,
+  Response,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
 
-import { GoogleAuthGuard } from './auth.guard';
+import {
+  AuthenticatedGuard,
+  GithubAuthGuard,
+  GoogleAuthGuard,
+} from './auth.guard';
 import { AuthExceptionFilter } from './auth-exception.filter';
+import { User } from 'src/user/decorator/user.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor() {}
 
   @Get('status')
-  getAuthStatus(@Request() req) {
-    if (req.isAuthenticated()) {
-      // 세션이 유효하면 유저의 이메일만 반환
-      return req.user.email;
-    } else {
-      // 세션이 유효하지 않으면 에러 메시지 반환
-      return 'Not authenticated';
-    }
+  getAuthStatus(@User() user) {
+    return user?.email;
   }
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  @UseFilters(AuthExceptionFilter) // 예외 처리기 적용
+  @UseFilters(AuthExceptionFilter)
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  @UseFilters(AuthExceptionFilter)
   async googleAuthRedirect(@Request() req, @Response() res) {
     const { user } = req;
     if (user) {
-      // 로그인 성공 시 세션에 유저 정보 저장
-      console.log('Google Auth successful:', user);
-      return res.redirect('http://localhost:4000/'); // 원하는 경로로 리디렉션
+      return res.redirect('http://localhost:4000/');
     } else {
-      console.log('Google Auth failed');
-      return res.status(403).send('Authentication failed');
+      return res.status(403).send('로그인에 실패했습니다.');
+    }
+  }
+
+  @Get('github')
+  @UseGuards(GithubAuthGuard)
+  @UseFilters(AuthExceptionFilter)
+  async githubAuth() {}
+
+  @Get('github/callback')
+  @UseGuards(GithubAuthGuard)
+  @UseFilters(AuthExceptionFilter)
+  async githubAuthRedirect(@Request() req, @Response() res) {
+    const { user } = req;
+    if (user) {
+      return res.redirect('http://localhost:4000/');
+    } else {
+      return res.status(403).send('로그인에 실패했습니다.');
     }
   }
 
   @Get('logout')
+  @UseGuards(AuthenticatedGuard)
   logout(@Request() req, @Response() res) {
-    console.log('logout');
     req.logout((err) => {
       if (err) {
-        return res.status(500).send('Logout failed');
+        return res
+          .status(500)
+          .json({ message: '로그아웃에 실패했습니다.', error: err.message });
       }
       req.session.destroy((err) => {
         if (err) {
-          return res.status(500).send('Failed to destroy session');
+          return res
+            .status(500)
+            .json({ message: '세션 삭제에 실패했습니다.', error: err.message });
         }
-        res.clearCookie('connect.sid', { path: '/' }); // 세션 쿠키 명시적으로 삭제
-        return res.status(200).send('Logged out');
+        res.clearCookie('connect.sid', { path: '/' });
+        return res.status(200).json({ message: '로그아웃에 성공했습니다.' });
       });
     });
   }

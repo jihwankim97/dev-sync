@@ -16,10 +16,10 @@ export class SessionSerializer extends PassportSerializer {
     payload: any,
     done: (err: Error, user: any) => void,
   ): Promise<any> {
-    const user = await this.userService.getUser(payload);
+    const user = await this.userService.findByEmail(payload);
 
     if (!user) {
-      done(new Error('No User'), null);
+      done(new Error('존재하지 않는 사용자입니다.'), null);
       return;
     }
     const { ...userInfo } = user;
