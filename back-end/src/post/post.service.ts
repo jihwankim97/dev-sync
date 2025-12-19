@@ -72,6 +72,10 @@ export class PostService {
 
   // 카테고리 이름으로 단일 카테고리 조회
   async findCategoryByName(category: string) {
+    if (category === 'default') {
+      return this.categoryRepository.findOne({ where: { category } });
+    }
+
     const categories = await this.cacheService.get<Category[]>(
       'categories',
       'category',

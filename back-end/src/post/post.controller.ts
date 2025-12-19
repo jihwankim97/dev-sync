@@ -79,7 +79,6 @@ export class PostsController {
 
   // 게시글 파일 업로드
   @Post('/upload')
-  @UseGuards(AuthenticatedGuard, PostOwnershipGuard)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
   async uploadPostFiles(
     @UploadedFiles() files: { files?: Express.Multer.File[] },
