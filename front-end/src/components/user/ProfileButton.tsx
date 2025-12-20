@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { request } from "../../api/queries/baseQuery";
 import { ENDPOINTS } from "../../api/endpoint";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 const ProfileButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -22,7 +22,7 @@ const ProfileButton = () => {
   });
 
   const handleClick = () => {
-    navigate("/users"); // 새로운 경로로 이동
+    navigate("/users");
   };
 
   const handleAvatarClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -49,7 +49,6 @@ const ProfileButton = () => {
         disableScrollLock
         slotProps={{
           paper: {
-            // 그림자 0
             elevation: 0,
             sx: {
               filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",

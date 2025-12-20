@@ -1,96 +1,109 @@
 import { css } from "@emotion/react";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 import Header from "./Header";
 import Footer from "./Footer";
-import { StrictMode, useEffect } from "react";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { getTheme } from "../styles/theme";
 import { useQuery } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
 import { setloggedIn } from "../redux/loginSlice";
 import { Outlet } from "react-router-dom";
 import "devicon/devicon.min.css";
 import { loginStateOption } from "../api/queries/userQueries";
 
-const layoutStyle = css`
+const layoutStyle = (theme: any) => css`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
   box-sizing: border-box;
-  max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
-  background: #fff;
-  @media (max-width: 1600px) {
-    max-width: 100%;
-    margin: 0;
-  }
-    @media (max-width: 768px) {
-  .main-container {
-    min-height: 100vh;
-    height: auto;
-  }
-
+  margin: 0;
+  max-width: none;
+  position: relative;
+  overflow: hidden;
+  background: ${theme.palette.mode === "dark"
+    ? "#0d1117"
+    : theme.palette.background.default};
 `;
 
-const contentWrapperStyle = css`
+const contentWrapperStyle = (theme: any) => css`
   flex-grow: 1;
-  margin-top: 80px;
+  margin-top: ${theme.app?.headerHeight ?? 70}px;
   width: 100%;
   height: 100%;
 `;
 
 const containerStyle = css`
-  max-width: 1400px;
   box-sizing: border-box;
   padding: 0 1rem;
+  margin: 0;
+  width: 100%;
 `;
 
-const innerContentStyle = css`
+const innerContentStyle = (theme: any) => css`
   min-height: 800px;
-  background-color: #ffffffff;
+  background-color: ${theme.palette.mode === "dark"
+    ? "transparent"
+    : theme.palette.background.paper};
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  max-width: 1400px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 `;
 
 function App() {
   const dispatch = useDispatch();
-
+  const mode = useSelector((state: any) => state.theme.mode);
   const { data } = useQuery(loginStateOption());
 
   useEffect(() => {
     if (data) {
-      dispatch(setloggedIn(true)); // 로그인 상태 true로 설정
+      dispatch(setloggedIn(true));
     } else {
-      dispatch(setloggedIn(false)); // 로그인 상태 false로 설정
+      dispatch(setloggedIn(false));
     }
-  }, [data]);
+  }, [data, dispatch]);
 
+  const theme = getTheme(mode ?? "light");
   return (
-    <div css={layoutStyle}>
-      <div css={containerStyle}>
-        <Header />
-      </div>
-
-      <main css={contentWrapperStyle}>
-        <div css={innerContentStyle}>
-          <Outlet />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <div css={layoutStyle}>
+        <div css={containerStyle}>
+          <Header />
         </div>
-      </main>
 
-      <footer
-        css={css`
-          width: 100vw;
-          margin-left: calc(-50vw + 50%);
-          box-sizing: border-box;
-          background-color: #f8f8f8f3;
-          height: 180px;
-        `}
-      >
-        <Footer />
-      </footer>
-    </div>
+        <main css={contentWrapperStyle}>
+          <div css={innerContentStyle}>
+            <Outlet />
+          </div>
+        </main>
+
+        <footer
+          css={(theme: any) => css`
+            width: 100%;
+            box-sizing: border-box;
+            background: ${theme.palette.mode === "dark"
+              ? "rgba(13, 17, 23, 0.8)"
+              : "#f8f8f8f3"};
+            backdrop-filter: ${theme.palette.mode === "dark"
+              ? "blur(10px)"
+              : "none"};
+            border-top: ${theme.palette.mode === "dark"
+              ? "1px solid rgba(240, 246, 252, 0.1)"
+              : "1px solid rgba(0,0,0,0.06)"};
+            height: 180px;
+            position: relative;
+            z-index: 1;
+          `}
+        >
+          <Footer />
+        </footer>
+      </div>
+    </ThemeProvider>
   );
 }
 

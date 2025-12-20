@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button, Popover } from "@mui/material";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 export const OptionBar = ({
   deleteClick,
@@ -11,6 +12,7 @@ export const OptionBar = ({
   deleteClick: (() => void) | (() => Promise<void>);
   editClick: (() => void) | (() => Promise<void>);
 }) => {
+  const mode = useSelector((state: any) => state.theme.mode);
   // const location = useLocation();
   // const navigate = useNavigate();
   // const post = location.state; // `navigate`에서 전달된 데이터
@@ -33,7 +35,7 @@ export const OptionBar = ({
           width: 24px;
           height: 24px;
           padding: 0;
-          color: #484848;
+          color: ${mode === "dark" ? "#8b949e" : "#484848"};
         `}
         aria-describedby={id}
         onClick={handleClick}
@@ -54,19 +56,37 @@ export const OptionBar = ({
           vertical: "top", // popover의 위쪽이 버튼 아래쪽에 맞춰짐
           horizontal: "left", // popover의 왼쪽이 버튼 왼쪽에 맞춰짐
         }}
+        slotProps={{
+          paper: {
+            style: {
+              backgroundColor:
+                mode === "dark" ? "rgba(22, 27, 34, 0.9)" : "#ffffff",
+            },
+          },
+        }}
       >
         <div
           css={css`
-                        width: auto;
-                        height: auto;
-                        font-size: 0.9rem;
-                      `}
+            width: auto;
+            height: auto;
+            font-size: 0.9rem;
+          `}
         >
           <div>
             <button
               css={css`
-                background-color: #ffffff;
-                color: #000000;
+                background-color: transparent;
+                color: ${mode === "dark" ? "#c9d1d9" : "#000000"};
+                border: none;
+                padding: 8px 16px;
+                cursor: pointer;
+                width: 100%;
+                text-align: left;
+                &:hover {
+                  background-color: ${mode === "dark"
+                    ? "rgba(30, 40, 50, 0.8)"
+                    : "#f5f5f5"};
+                }
               `}
               onClick={() => {
                 editClick();
@@ -78,8 +98,18 @@ export const OptionBar = ({
           <div>
             <button
               css={css`
-                background-color: #ffffff;
-                color: #000000;
+                background-color: transparent;
+                color: ${mode === "dark" ? "#c9d1d9" : "#000000"};
+                border: none;
+                padding: 8px 16px;
+                cursor: pointer;
+                width: 100%;
+                text-align: left;
+                &:hover {
+                  background-color: ${mode === "dark"
+                    ? "rgba(30, 40, 50, 0.8)"
+                    : "#f5f5f5"};
+                }
               `}
               onClick={() => {
                 deleteClick();

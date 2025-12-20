@@ -3,6 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useDispatch, useSelector } from "react-redux";
 import { closeLoginForm } from "../../redux/loginSlice";
 import styled from "@emotion/styled";
+
 const StyledButton = styled.button`
   margin: 8px 16px;
   padding: 12px;
@@ -57,10 +58,10 @@ const LoginForm = () => {
       slotProps={{
         paper: {
           sx: {
-            m: 4, // 여백 적용
-            p: 2, // 내부 패딩
+            m: 4,
+            p: 2,
             borderRadius: 2,
-            maxWidth: 300, // 원하는 너비 제한
+            maxWidth: 300,
             minWidth: 100,
           },
         },
@@ -101,7 +102,7 @@ const LoginForm = () => {
         구글 간편 로그인
       </GoogleButton>
       <GithubButton onClick={handleGithubLogin}>
-        <img src={"/github_logo.webp"} width={20} height={20} alt="GitHub" />
+        <img src="/github_logo.webp" width={20} height={20} alt="GitHub" />
         깃허브 간편 로그인
       </GithubButton>
     </Dialog>

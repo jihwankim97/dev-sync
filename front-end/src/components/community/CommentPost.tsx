@@ -19,8 +19,9 @@ export const CommentPost = () => {
   const [page, setPage] = useState(1);
   const [editTargetId, setEditTargetId] = useState<number | null>(null);
   const dispatch = useDispatch();
-  type RootState = { login: { loggedIn: boolean } };
+  type RootState = { login: { loggedIn: boolean }; theme: { mode: string } };
   const isLogin = useSelector((state: RootState) => state.login.loggedIn);
+  const mode = useSelector((state: RootState) => state.theme.mode);
   const navigate = useNavigate();
   const sendComment = useSendComment();
   // 댓글과 총 개수는 React Query의 데이터에서 직접 사용
@@ -42,10 +43,6 @@ export const CommentPost = () => {
       console.log(error);
     }
   });
-
-  // useEffect(() => {
-  //   refetch();
-  // }, [page]);
 
   const handleAddComment = () => {
     if (!isLogin) {
@@ -77,7 +74,7 @@ export const CommentPost = () => {
       >
         <div
           css={css`
-            color: #565656;
+            color: ${mode === "dark" ? "#c9d1d9" : "#565656"};
           `}
         >
           댓글
@@ -86,7 +83,7 @@ export const CommentPost = () => {
           css={css`
             margin: 0 0.3rem;
             font-weight: bold;
-            color: #4363ac;
+            color: ${mode === "dark" ? "#58a6ff" : "#4363ac"};
           `}
         >
           {totalPages}
@@ -153,8 +150,25 @@ export const CommentPost = () => {
               css={css`
                 padding: 0;
                 font-size: 14px;
-                background-color: #f7f7f8;
-                color: ${index + 1 === page ? "#2d5999" : "black"};
+                background-color: ${mode === "dark"
+                  ? "rgba(22, 27, 34, 0.8)"
+                  : "#f7f7f8"};
+                color: ${index + 1 === page
+                  ? mode === "dark"
+                    ? "#58a6ff"
+                    : "#2d5999"
+                  : mode === "dark"
+                    ? "#c9d1d9"
+                    : "black"};
+                border: none;
+                padding: 6px 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+                &:hover {
+                  background-color: ${mode === "dark"
+                    ? "rgba(30, 40, 50, 0.8)"
+                    : "#efefef"};
+                }
               `}
               key={index + 1}
               onClick={() => {
