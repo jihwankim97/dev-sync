@@ -49,6 +49,7 @@ export const CommentReplyLayout = memo(
     const postId = location.state.id; // `navigate`에서 전달된 데이터
     const textRef = useRef<HTMLTextAreaElement | null>(null);
     const isLogin = useSelector((state: RootState) => state.login.loggedIn);
+    const mode = useSelector((state: RootState) => state.theme.mode);
     const dispatch = useDispatch();
     const [replying, setReplying] = useState<{
       isReplying: boolean;
@@ -116,14 +117,16 @@ export const CommentReplyLayout = memo(
           css={css`
             padding: 0.8rem;
             font-size: 15px;
-            background-color: rgba(255, 255, 255, 0.557);
+            background-color: ${mode === "dark"
+              ? "rgba(22, 27, 34, 0.4)"
+              : "rgba(255, 255, 255, 0.557)"};
             display: flex;
           `}
         >
           {comment.parent && (
             <div
               css={css`
-                color: #c0c0c0ff;
+                color: ${mode === "dark" ? "#8b949e" : "#c0c0c0ff"};
                 margin-right: 5px;
               `}
             >
@@ -152,7 +155,14 @@ export const CommentReplyLayout = memo(
                   src={
                     comment.profile_image ? comment.profile_image : undefined
                   }
-                  sx={{ width: 38, height: 38 }}
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    border:
+                      mode === "dark"
+                        ? "1px solid #41464dff"
+                        : "1px solid #e1e4e8",
+                  }}
                 />
                 <div
                   css={css`
@@ -163,7 +173,7 @@ export const CommentReplyLayout = memo(
                   <div
                     css={css`
                       font-size: 14px;
-                      color: #4e4e4e;
+                      color: ${mode === "dark" ? "#c9d1d9" : "#4e4e4e"};
                       font-weight: bold;
                     `}
                   >
@@ -173,7 +183,7 @@ export const CommentReplyLayout = memo(
                     <span
                       css={css`
                         font-size: 12.5px;
-                        color: #7e7e7e;
+                        color: ${mode === "dark" ? "#8b949e" : "#7e7e7e"};
                         font-weight: 100;
                       `}
                     >
@@ -223,11 +233,18 @@ export const CommentReplyLayout = memo(
                     css={[
                       buttonStyles("sm"),
                       css`
-                        background: transparent;
-                        color: #333;
-                        border: 1px solid #cfcfcf;
+                        background: ${mode === "dark"
+                          ? "transparent"
+                          : "transparent"};
+                        color: ${mode === "dark" ? "#c9d1d9" : "#333"};
+                        border: 1px solid
+                          ${mode === "dark"
+                            ? "rgba(240, 246, 252, 0.1)"
+                            : "#cfcfcf"};
                         &:hover {
-                          background: #f5f5f5;
+                          background: ${mode === "dark"
+                            ? "rgba(30, 40, 50, 0.8)"
+                            : "#f5f5f5"};
                         }
                       `,
                     ]}
@@ -283,15 +300,22 @@ export const CommentReplyLayout = memo(
                     align-items: center;
                     gap: 6px;
                     padding: 0 6px;
-                    background-color: #ffffff;
+                    background-color: ${mode === "dark"
+                      ? "rgba(22, 27, 34, 0.8)"
+                      : "#ffffff"};
                     font-size: 11px;
                     font-weight: bold;
-                    color: #3272a3;
+                    color: ${mode === "dark" ? "#58a6ff" : "#3272a3"};
                     height: 25px;
-                    border: none;
+                    border: 1px solid
+                      ${mode === "dark"
+                        ? "rgba(240, 246, 252, 0.1)"
+                        : "transparent"};
                     cursor: pointer;
                     &:hover {
-                      background-color: #a8cefa55;
+                      background-color: ${mode === "dark"
+                        ? "rgba(30, 40, 50, 0.8)"
+                        : "#a8cefa55"};
                     }
                   `}
                 >

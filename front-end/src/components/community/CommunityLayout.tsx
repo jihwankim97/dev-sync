@@ -1,8 +1,16 @@
 import { css } from "@emotion/react";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import useFetchCategories from "../../api/FetchCategories";
 import CommunityAction from "./CommunityAction";
+import {
+  communityContainer,
+  sidebarNav,
+  categoryButton,
+  contentArea,
+} from "../../styles/communityStyles";
+
 type PostType = {
   post_id: number;
   title: string;
@@ -14,6 +22,7 @@ type PostType = {
 
 export const CommunityLayout = () => {
   const navigate = useNavigate();
+  const mode = useSelector((state: any) => state.theme.mode);
   const [category, setCategory] = useState("자유게시판");
   const { categories } = useFetchCategories();
   const [search, setSearch] = useState<{
@@ -38,19 +47,8 @@ export const CommunityLayout = () => {
   };
 
   return (
-    <div
-      css={css`
-        display: flex;
-        padding-top: 3rem;
-      `}
-    >
-      <nav
-        css={css`
-          width: 300px;
-          min-height: 80vh;
-          border-right: 1px solid #ddd;
-        `}
-      >
+    <div css={communityContainer(mode)}>
+      <nav css={sidebarNav(mode)}>
         <ul
           css={css`
             list-style: none;
@@ -61,23 +59,7 @@ export const CommunityLayout = () => {
           {categories.map((cat, index) => (
             <li key={index}>
               <button
-                css={css`
-                  width: 100%;
-                  padding: 0rem 0rem 2rem 0rem;
-                  text-align: center;
-                  border: none;
-                  background: none;
-                  font-weight: bold;
-                  color: ${category === cat.category
-                    ? "#2264d6f5"
-                    : "#6d6d6dff"};
-                  font-size: 1rem;
-                  cursor: pointer;
-                  transition: background 0.2s;
-                  &:hover {
-                    color: #8d8d8df5;
-                  }
-                `}
+                css={categoryButton(mode, category === cat.category)}
                 onClick={() => handleCategory(cat.category)}
               >
                 {cat.category}
@@ -88,15 +70,7 @@ export const CommunityLayout = () => {
       </nav>
 
       {/* 오른쪽 컨텐츠 영역 */}
-      <div
-        css={css`
-          padding: 0 3rem;
-          max-width: 1000px;
-          margin-right: auto;
-          box-sizing: border-box;
-          width: 100%;
-        `}
-      >
+      <div css={contentArea}>
         <CommunityAction category={category} setSearch={setSearch} />
         {/* 게시물 영역 */}
         <div>
@@ -105,9 +79,7 @@ export const CommunityLayout = () => {
       </div>
       <div
         css={css`
-          width: 100%;
-          max-width: 200px;
-          box-sizing: border-box;
+          display: none;
         `}
       ></div>
     </div>

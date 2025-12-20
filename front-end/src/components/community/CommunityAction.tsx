@@ -6,6 +6,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { openLoginForm } from "../../redux/loginSlice";
 import type { RootState } from "../../redux/store";
 import { buttonStyles, dividerStyles } from "../../styles/resumeCommonStyle";
+import {
+  searchContainer,
+  select as selectStyle,
+  inputContainer,
+  input as inputStyle,
+  searchIcon as searchIconStyle,
+} from "../../styles/communityStyles";
 
 interface CommunityActionsProps {
   category: string;
@@ -14,58 +21,7 @@ interface CommunityActionsProps {
   >;
 }
 
-// 검색바 컨테이너 스타일
-const searchContainerStyles = css`
-  display: flex;
-  margin-bottom: 1rem;
-  gap: 1rem;
-`;
-
-// Select 스타일
-const selectStyles = css`
-  width: 140px;
-  padding: 8px 12px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: #1976d2;
-  }
-`;
-
-// TextField 스타일
-const inputContainerStyles = css`
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-`;
-
-const inputStyles = css`
-  width: 100%;
-  padding: 8px 12px 8px 40px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #1976d2;
-  }
-`;
-
-const searchIconStyles = css`
-  position: absolute;
-  left: 12px;
-  color: #666;
-  pointer-events: none;
-  z-index: 1;
-`;
+// Centralized styles imported from styles/communityStyles
 
 // 글쓰기 버튼 컨테이너 스타일
 const writeButtonContainerStyles = css`
@@ -77,6 +33,7 @@ const writeButtonContainerStyles = css`
 const CommunityAction = ({ category, setSearch }: CommunityActionsProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const mode = useSelector((state: RootState) => state.theme.mode);
   // 입력값은 로컬 상태로 관리
   const [localKeyword, setLocalKeyword] = useState("");
   const [localType, setLocalType] = useState<"title" | "content" | "all">(
@@ -105,26 +62,26 @@ const CommunityAction = ({ category, setSearch }: CommunityActionsProps) => {
   return (
     <>
       {/* 검색 바 */}
-      <div css={searchContainerStyles}>
+      <div css={searchContainer}>
         <select
           value={localType}
           onChange={(e) => {
             const val = e.target.value as "title" | "content" | "all";
             setLocalType(val);
           }}
-          css={selectStyles}
+          css={selectStyle(mode)}
         >
           <option value="title">제목</option>
           <option value="content">내용</option>
           <option value="all">제목+내용</option>
         </select>
 
-        <div css={inputContainerStyles}>
+        <div css={inputContainer}>
           {/* 검색 아이콘 */}
-          <SearchIcon css={searchIconStyles} />
+          <SearchIcon css={searchIconStyle(mode)} />
           <input
             type="text"
-            css={inputStyles}
+            css={inputStyle(mode)}
             value={localKeyword}
             onChange={(e) => setLocalKeyword(e.target.value)}
             onKeyDown={(e) => {

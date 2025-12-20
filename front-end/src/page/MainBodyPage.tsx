@@ -27,8 +27,8 @@ export const MainBodyPage = () => {
   const [ref2, inView2] = useInView({ triggerOnce: true, threshold: 0.2 });
   const [ref3, inView3] = useInView({ triggerOnce: true, threshold: 0.2 });
 
-  const MotionUserCard = motion(UserCard);
-  const MotionStartButton = motion(StartButton);
+  const MotionUserCard = motion.create(UserCard);
+  const MotionStartButton = motion.create(StartButton);
 
   return (
     <Responsive>
@@ -62,7 +62,7 @@ export const MainBodyPage = () => {
               지금 시작하기 →
             </MotionStartButton>
           </HeroContent>
-          <ImgMain>
+          {/* <ImgMain>
             <img
               src="/homepage.webp"
               alt="코딩하는 메인 이미지"
@@ -71,7 +71,7 @@ export const MainBodyPage = () => {
               loading="lazy"
               decoding="async"
             />
-          </ImgMain>
+          </ImgMain> */}
         </HeroSection>
 
         {/* Section 2 */}
@@ -234,22 +234,6 @@ export const MainBodyPage = () => {
             </Features>
           </motion.div>
         </CommunitySection>
-
-        {/* CTA */}
-        <CTASection>
-          <h2>
-            지금 바로 <span style={{ color: "#ffe066" }}>Dev-Sync</span>를
-            시작해보세요!
-          </h2>
-          <p>
-            AI가 당신의 개발 커리어를 자동으로 정리해드립니다.
-            <br />
-            무료로 이력서와 포트폴리오를 만들어보세요!
-          </p>
-          <MotionStartButton className="cta-btn">
-            무료로 시작하기
-          </MotionStartButton>
-        </CTASection>
       </MainContainer>
     </Responsive>
   );

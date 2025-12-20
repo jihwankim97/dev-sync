@@ -1,6 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import MenuIcon from "@mui/icons-material/Menu";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +10,7 @@ import logo from "../assets/logo.png";
 import LoginForm from "../components/user/LoginForm";
 import ProfileButton from "../components/user/ProfileButton";
 import { openLoginForm } from "../redux/loginSlice";
-
+import { toggleTheme } from "../redux/themeSlice";
 const containerStyle = css`
   max-width: 1600px; /* main과 동일하게 설정 */
   margin: 0 auto;
@@ -21,8 +23,12 @@ const containerStyle = css`
   box-sizing: border-box;
 `;
 const Header = () => {
-  const isLogin = useSelector((state: any) => state.login.loggedIn);
+  // 다크/라이트 토글 상태 redux로 관리
+
   const dispatch = useDispatch();
+  const mode = useSelector((state: any) => state.theme.mode);
+  const handleThemeToggle = () => dispatch(toggleTheme());
+  const isLogin = useSelector((state: any) => state.login.loggedIn);
   const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -55,10 +61,14 @@ const Header = () => {
           right: 0;
           width: 100vw;
           z-index: 1000;
-          background: rgba(255, 255, 255, 0.8);
+          background: ${mode === "dark"
+            ? "rgba(2, 2, 2, 0.36)"
+            : "rgba(255, 255, 255, 0.8)"};
           backdrop-filter: blur(5px);
-          border-bottom: 1px solid #d2d1d1;
-          height: 80px;
+          border-bottom: ${mode === "dark"
+            ? "1px solid rgba(34, 33, 33, 1)"
+            : "1px solid #d2d1d1"};
+          height: 70px;
         `}
       >
         <div
@@ -95,7 +105,9 @@ const Header = () => {
               `}
               onClick={handleMenuClick}
             >
-              <MenuIcon sx={{ color: "#3369c7" }} />
+              <MenuIcon
+                sx={{ color: mode === "dark" ? "#ffffff" : "#3369c7" }}
+              />
             </button>
           </div>
 
@@ -144,8 +156,7 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
-                font-size: 1.1rem;
+                color: ${mode === "dark" ? "#e0e0e0ff" : "#3369c7"};
                 margin-right: 1.5rem;
                 cursor: pointer;
               `}
@@ -157,8 +168,7 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
-                font-size: 1.1rem;
+                color: ${mode === "dark" ? "#e0e0e0ff" : "#3369c7"};
                 margin-right: 1.5rem;
                 cursor: pointer;
               `}
@@ -170,8 +180,7 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
-                font-size: 1.1rem;
+                color: ${mode === "dark" ? "#e0e0e0ff" : "#3369c7"};
                 margin-right: 1.5rem;
                 cursor: pointer;
               `}
@@ -181,31 +190,62 @@ const Header = () => {
             </button>
           </nav>
 
-          {/* 로그인 or 프로필 (오른쪽) */}
+          {/* 로그인/프로필 + 테마 토글 (오른쪽) */}
           <div
             css={css`
               margin-left: auto;
               display: flex;
               align-items: center;
               margin-right: 1rem;
-
+              gap: 0.5rem;
             `}
           >
+            {/* 테마 토글 버튼 */}
+            <button
+              onClick={handleThemeToggle}
+              css={css`
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                border: 1.5px solid #e0e0e0;
+                background: transparent;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 0.5rem;
+                font-size: 0.9rem;
+                transition:
+                  box-shadow 0.15s,
+                  border-color 0.15s;
+                &:hover {
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+                }
+              `}
+              aria-label="테마 토글"
+            >
+              {mode === "dark" ? (
+                <DarkModeIcon sx={{ color: "#cfcfcfff" }} />
+              ) : (
+                <LightModeIcon sx={{ color: "#fbc02d" }} />
+              )}
+            </button>
+            {/* 로그인/프로필 */}
             {!isLogin ? (
               <button
                 css={css`
-                  background: #3369c7;
-                  color: #fff;
-                  border: none;
-                  border-radius: 5px;
-                  padding: 0.5rem 1.2rem;
-                  font-size: 1rem;
+                  background: ${mode === "dark" ? "none" : "#3369c7"};
+                  color: ${mode === "dark" ? "#cfcfcfff" : "#ffffffff"};
+                  border: ${mode === "dark" ? "1px solid #ffffffff" : "none"};
+                  border-radius: 7px;
+                  padding: 0.4rem 1rem;
+                  font-size: 0.9rem;
                   cursor: pointer;
                   font-weight: bold;
-                  box-shadow: 0 2px 8px rgba(51, 105, 199, 0.08);
+
                   transition: background 0.2s;
                   &:hover {
-                    background: #254e8e;
+                    background: ${mode === "dark" ? "none" : "#254e8e"};
                   }
                 `}
                 onClick={handleOpenLogin}
@@ -226,8 +266,10 @@ const Header = () => {
               top: 70px;
               left: 0;
               width: 100vw;
-              background: #fff;
-              box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+              background: ${mode === "dark" ? "rgba(13,17,23,0.95)" : "#fff"};
+              box-shadow: ${mode === "dark"
+                ? "0 2px 12px rgba(0, 0, 0, 0.3)"
+                : "0 2px 12px rgba(0, 0, 0, 0.08)"};
               z-index: 2000;
               display: flex;
               flex-direction: column;
@@ -237,12 +279,13 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
+                color: ${mode === "dark" ? "#ffffff" : "#3369c7"};
                 font-size: 1.1rem;
                 padding: 1rem;
                 text-align: left;
                 cursor: pointer;
-                border-bottom: 1px solid #eee;
+                border-bottom: 1px solid
+                  ${mode === "dark" ? "rgba(240, 246, 252, 0.1)" : "#eee"};
               `}
               onClick={() => {
                 handleNavigate("/resume");
@@ -255,12 +298,13 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
+                color: ${mode === "dark" ? "#ffffff" : "#3369c7"};
                 font-size: 1.1rem;
                 padding: 1rem;
                 text-align: left;
                 cursor: pointer;
-                border-bottom: 1px solid #eee;
+                border-bottom: 1px solid
+                  ${mode === "dark" ? "rgba(240, 246, 252, 0.1)" : "#eee"};
               `}
               onClick={() => {
                 navigate("/inquiry");
@@ -273,7 +317,7 @@ const Header = () => {
               css={css`
                 background: none;
                 border: none;
-                color: #3369c7;
+                color: ${mode === "dark" ? "#ffffff" : "#3369c7"};
                 font-size: 1.1rem;
                 padding: 1rem;
                 text-align: left;

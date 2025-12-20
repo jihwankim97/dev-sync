@@ -1,4 +1,5 @@
 import { css } from "@emotion/react";
+import { useSelector } from "react-redux";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -11,101 +12,19 @@ import { getCategoryData } from "../../api/getCategoryData";
 import { searchPost } from "../../api/SearchPost";
 import { postKeys } from "../../api/queryKeys";
 
-const listStyles = css`
-  background-color: #fff;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-`;
-
-const listItemStyles = css`
-  padding: 10px;
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f6f6f6;
-  }
-`;
-
-const listItemTextStyles = css`
-  flex: 1;
-  margin: 0;
-`;
-
-const primaryTextStyles = css`
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0 0 4px 0;
-  color: #000;
-  line-height: 1.5;
-`;
-
-const secondaryTextStyles = css`
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-  line-height: 1.43;
-`;
-
-const dividerStyles = css`
-  border: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  height: 1px;
-`;
-
-const iconContainerStyles = css`
-  position: absolute;
-  bottom: 4px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: gray;
-`;
-
-const iconTextStyles = css`
-  font-size: 13px;
-  margin: 0;
-`;
-
-const paginationContainerStyles = css`
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 16px;
-`;
-
-const buttonStyles = css`
-  padding: 6px 16px;
-  font-size: 14px;
-  background-color: #f7f7f8;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #e0e0e0;
-  }
-`;
-
-const pageButtonStyles = css`
-  padding: 3px 6px;
-  font-size: 12px;
-  background-color: #f7f7f8;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #cacaca;
-  }
-`;
+import {
+  list,
+  listItem,
+  listItemText,
+  primaryText,
+  secondaryText,
+  dividerLine,
+  iconContainer,
+  iconText,
+  paginationContainer,
+  pagerButton,
+  pageButton,
+} from "../../styles/communityStyles";
 
 type postType = {
   id: number;
@@ -117,6 +36,7 @@ type postType = {
 };
 
 export const CommunityListPage = () => {
+  const mode = useSelector((state: any) => state.theme.mode);
   const categoryMap = {
     question: "질문게시판",
     notice: "공지사항",
@@ -200,31 +120,31 @@ export const CommunityListPage = () => {
 
   return (
     <>
-      <ul css={listStyles}>
+      <ul css={list(mode)}>
         {postList?.data.map((post: postType, index: number) => (
           <div key={`${post.id} - ${index}`}>
-            <li css={listItemStyles} onClick={() => handleListClick(post)}>
-              <div css={listItemTextStyles}>
-                <h3 css={primaryTextStyles}>{post.title}</h3>
-                <p css={secondaryTextStyles}>{removeTag(post.content) || ""}</p>
+            <li css={listItem(mode)} onClick={() => handleListClick(post)}>
+              <div css={listItemText}>
+                <h3 css={primaryText(mode)}>{post.title}</h3>
+                <p css={secondaryText(mode)}>{removeTag(post.content) || ""}</p>
               </div>
-              <div css={iconContainerStyles}>
+              <div css={iconContainer(mode)}>
                 <VisibilityOutlinedIcon sx={{ fontSize: "13px" }} />
-                <span css={iconTextStyles}>{post.viewCount ?? 0}</span>
+                <span css={iconText(mode)}>{post.viewCount ?? 0}</span>
                 <ChatBubbleOutlineOutlinedIcon sx={{ fontSize: "13px" }} />
-                <span css={iconTextStyles}>{post.commentcount}</span>
+                <span css={iconText(mode)}>{post.commentcount}</span>
                 <FavoriteBorderIcon sx={{ fontSize: "13px" }} />
-                <span css={iconTextStyles}>{post.likecount}</span>
+                <span css={iconText(mode)}>{post.likecount}</span>
               </div>
             </li>
-            <hr css={dividerStyles} />
+            <hr css={dividerLine(mode)} />
           </div>
         ))}
       </ul>
-      <div css={paginationContainerStyles}>
+      <div css={paginationContainer}>
         {currentPage > 5 && (
           <button
-            css={buttonStyles}
+            css={pagerButton(mode)}
             onClick={() => handlePageChange(currentPage - 5)}
           >
             이전
@@ -239,17 +159,7 @@ export const CommunityListPage = () => {
             const pageNumber = i + 1;
             return (
               <button
-                css={[
-                  pageButtonStyles,
-                  css`
-                    color: ${pageNumber === currentPage
-                      ? "hsl(216, 55%, 39%)"
-                      : "black"};
-                    background-color: ${pageNumber === currentPage
-                      ? "#e3f2fd"
-                      : "#f7f7f8"};
-                  `,
-                ]}
+                css={pageButton(mode, pageNumber === currentPage)}
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
               >
@@ -261,7 +171,7 @@ export const CommunityListPage = () => {
 
         {currentPage + 5 <= postList?.meta.totalPages && (
           <button
-            css={buttonStyles}
+            css={pagerButton(mode)}
             onClick={() => handlePageChange(currentPage + 5)}
           >
             다음

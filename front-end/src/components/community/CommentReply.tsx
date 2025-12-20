@@ -1,6 +1,7 @@
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import { css } from "@emotion/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   buttonStyles,
   dividerStyles,
@@ -18,6 +19,7 @@ export const CommentReply = ({
   replying: { isReplying: boolean; id: number };
 }) => {
   const location = useLocation();
+  const mode = useSelector((state: any) => state.theme.mode);
   const postId = location.state.id; // `navigate`에서 전달된 데이터
   const textRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -66,7 +68,9 @@ export const CommentReply = ({
   return (
     <div
       css={css`
-        background-color: rgba(255, 255, 255, 0.557);
+        background-color: ${mode === "dark"
+          ? "rgba(22, 27, 34, 0.4)"
+          : "rgba(255, 255, 255, 0.557)"};
       `}
     >
       <div
