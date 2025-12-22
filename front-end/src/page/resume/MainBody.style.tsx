@@ -15,9 +15,9 @@ export const HeroSection = styled.section(
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(1rem, 3vw, 3rem);
+    gap: 2%;
     background: ${theme.palette.mode === "dark"
-      ? "linear-gradient(135deg, #0d1117 0%, #1a1f2e 30%, #2d1b3d 60%, #1a1f2e 100%)"
+      ? "linear-gradient(135deg, #0d1117 0%, #1a1f2e 30%, #3d2057ff 50%, #2846a0ff 100%)"
       : "linear-gradient(to right, #105ecb 20%, #61c0ff 65%, #fffafa 100%)"};
     color: #ffffff;
     height: 100%;
@@ -57,21 +57,19 @@ export const HeroContent = styled.div(
     flex: 0 1 auto;
     width: clamp(360px, 42vw, 900px);
     height: 100%;
-    padding: clamp(16px, 2.5vw, 64px);
-    margin: 0 10%;
+    padding: clamp(16px, 2vw, 64px) 0;
     position: ${theme.palette.mode === "dark" ? "relative" : "initial"};
     z-index: ${theme.palette.mode === "dark" ? 1 : "auto"};
 
     h1 {
-      font-size: clamp(1.6rem, 3vw, 3rem);
+      font-size: clamp(1.6rem, 3vw, 3.5rem);
       font-weight: 800;
-      margin-bottom: 3rem;
-      line-height: 1.3;
       color: ${theme.palette.mode === "dark" ? "#ffffff" : "inherit"};
     }
 
     p {
       font-size: 1.3rem;
+      padding-bottom: 2rem;
       color: ${theme.palette.mode === "dark" ? "#c9d1d9" : "#e0f2fe"};
     }
 
@@ -89,15 +87,16 @@ export const HeroContent = styled.div(
 export const ImgMain = styled.div(
   ({ theme }) => css`
     flex: 0 1 auto;
-    width: clamp(280px, 38vw, 760px);
+    width: clamp(280px, 32vw, 800px);
     position: ${theme.palette.mode === "dark" ? "relative" : "initial"};
     z-index: ${theme.palette.mode === "dark" ? 1 : "auto"};
-    margin: 0 auto;
+    margin: 0;
+    align-self: flex-end;
 
     img {
       display: block;
-      margin: 0 auto;
-      width: 85%;
+      margin: 0;
+      width: 100%;
       max-width: 100%;
       height: auto;
     }
@@ -115,9 +114,9 @@ const SectionBase = styled.section`
 
 export const TargetUsersSection = styled(SectionBase)(
   ({ theme }) => css`
-    padding: 30px 0 30px 0;
+    padding-bottom: clamp(3rem, 6vw, 6rem);
+    --section-height: clamp(640px, 95vh, 1000px);
     background: ${theme.palette.mode === "dark" ? "transparent" : "#f8fbff"};
-    --section-height: 560px;
     position: ${theme.palette.mode === "dark" ? "relative" : "initial"};
     z-index: ${theme.palette.mode === "dark" ? 1 : "auto"};
   `
@@ -136,7 +135,7 @@ export const SectionTitle = styled.h2(
 export const Cards = styled.div`
   display: flex;
   justify-content: center;
-  gap: 36px;
+  gap: 100px;
   padding: 5rem;
   flex-wrap: wrap;
 `;
@@ -154,7 +153,7 @@ export const UserCard = styled.div(
     box-shadow: ${theme.palette.mode === "dark"
       ? "0 4px 16px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.15)"
       : "0 2px 16px 0 rgba(79, 141, 255, 0.133)"};
-    padding: 32px;
+    padding: 40px;
     min-width: 260px;
     max-width: 320px;
     transition: all 0.3s ease;
@@ -203,7 +202,8 @@ export const UserCard = styled.div(
 
 export const InfoSection = styled(SectionBase)(
   ({ theme }) => css`
-    padding: 5rem 0;
+    padding: clamp(4rem, 7vw, 9rem) 1.5rem;
+    --section-height: clamp(620px, 90vh, 960px);
     background: ${theme.palette.mode === "dark" ? "transparent" : "#fff"};
     position: ${theme.palette.mode === "dark" ? "relative" : "initial"};
     z-index: ${theme.palette.mode === "dark" ? 1 : "auto"};
@@ -219,32 +219,73 @@ export const InfoBox = styled.div`
 export const StepList = styled.div`
   display: flex;
   justify-content: center;
-  gap: 32px;
+  gap: clamp(2rem, 4vw, 3rem);
   flex-wrap: wrap;
+  position: relative;
+  margin: 3rem 0;
+
+  @media (max-width: 768px) {
+    gap: 1.5rem;
+  }
 `;
 
 export const StepItem = styled.div(
   ({ theme }) => css`
     text-align: center;
-    max-width: 220px;
+    max-width: 240px;
+    padding: 2rem 2rem;
+    background: ${theme.palette.mode === "dark"
+      ? "rgba(22, 27, 34, 0.7)"
+      : "linear-gradient(135deg, #f8fbff 0%, #f0f7ff 100%)"};
+    border: ${theme.palette.mode === "dark"
+      ? "1px solid rgba(88, 166, 255, 0.2)"
+      : "1px solid rgba(79, 141, 255, 0.15)"};
+    border-radius: 16px;
+    box-shadow: ${theme.palette.mode === "dark"
+      ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+      : "0 2px 12px rgba(79, 141, 255, 0.08)"};
+    transition: all 0.3s ease;
+    position: relative;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: ${theme.palette.mode === "dark"
+        ? "0 12px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(88, 166, 255, 0.15)"
+        : "0 8px 24px rgba(79, 141, 255, 0.15)"};
+      border-color: ${theme.palette.mode === "dark"
+        ? "rgba(88, 166, 255, 0.4)"
+        : "rgba(79, 141, 255, 0.3)"};
+    }
 
     .number {
-      font-size: 40px;
-      font-weight: 700;
-      color: ${theme.palette.mode === "dark" ? "#58a6ff" : "#4f8cff"};
-      margin-bottom: 8px;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #4f8cff 0%, #79c0ff 100%);
+      border-radius: 50%;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .title {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: ${theme.palette.mode === "dark" ? "#ffffff" : "inherit"};
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: ${theme.palette.mode === "dark" ? "#58a6ff" : "#2c3e50"};
+      letter-spacing: -0.5px;
     }
 
     .desc {
-      color: ${theme.palette.mode === "dark" ? "#8b949e" : "#888"};
-      font-size: 15px;
+      color: ${theme.palette.mode === "dark" ? "#8b949e" : "#666"};
+      font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+      line-height: 1.6;
+      margin: 0;
     }
   `
 );
@@ -350,7 +391,9 @@ export const CTASection = styled(SectionBase)(
 export const StartButton = styled.button(
   ({ theme }) => css`
     color: #fff;
-    background-color: ${theme.palette.mode === "dark" ? "#238636" : "#153d93"};
+    background-color: ${theme.palette.mode === "dark"
+      ? "#4a37b8ff"
+      : "#153d93"};
     border: none;
     padding: 1rem 2rem;
     font-size: 1.2rem;
@@ -359,12 +402,12 @@ export const StartButton = styled.button(
     cursor: pointer;
     transition: all 0.3s ease;
     ${theme.palette.mode === "dark"
-      ? "box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);"
+      ? "box-shadow: 0 4px 12px rgba(66, 49, 165, 0.3);"
       : ""}
 
     &:hover {
       ${theme.palette.mode === "dark"
-        ? "background-color: #2ea043; box-shadow: 0 6px 20px rgba(35,134,54,0.4); transform: translateY(-2px);"
+        ? "background-color: #745ea8ff; box-shadow: 0 6px 20px rgba(81, 45, 129, 0.4); transform: translateY(-2px);"
         : "background-color: #e0f2fe;"}
     }
   `
