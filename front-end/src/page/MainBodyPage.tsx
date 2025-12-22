@@ -22,6 +22,50 @@ import {
   Features,
   Feature,
 } from "./resume/MainBody.style";
+import styled from "@emotion/styled";
+
+export const ScrollingSection = styled.section`
+  position: relative;
+  overflow: hidden;
+  padding: 100px 0;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 120px;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  &::before {
+    left: 0;
+    background: linear-gradient(to right, #f9fbff 0%, transparent 100%);
+  }
+
+  &::after {
+    right: 0;
+    background: linear-gradient(to left, #f9fbff 0%, transparent 100%);
+  }
+`;
+
+export const ScrollingRow = styled(motion.div)`
+  display: flex;
+  gap: 30px;
+  width: max-content;
+  margin-bottom: 20px;
+`;
+
+export const Bubble = styled.div`
+  background: #2f6bff;
+  color: white;
+  padding: clamp(10px, 2vw, 25px) clamp(16px, 4vw, 40px);
+  border-radius: 999px;
+  font-size: clamp(14px, 2.4vw, 24px);
+  font-weight: 500;
+  white-space: nowrap;
+`;
 
 export const MainBodyPage = () => {
   const [ref2, inView2] = useInView({ triggerOnce: true, threshold: 0.2 });
@@ -29,7 +73,19 @@ export const MainBodyPage = () => {
 
   const MotionUserCard = motion.create(UserCard);
   const MotionStartButton = motion.create(StartButton);
+  const row1 = [
+    "이런건 비싸겠지..?",
+    "하… 취업 어렵다…",
+    "면접 준비는 어떡하지..",
+    "다른 지원자들은 어떤 자격증이 있으려나?",
+  ];
 
+  const row2 = [
+    "자소서 첫 문장 뭘로 시작하지?",
+    "프로젝트가 부족한가…",
+    "이력서 또 고쳐야 하나",
+    "나만 뒤처진 느낌...",
+  ];
   return (
     <Responsive>
       <MainContainer>
@@ -62,20 +118,40 @@ export const MainBodyPage = () => {
               지금 시작하기 →
             </MotionStartButton>
           </HeroContent>
-          {/* <ImgMain>
+          <ImgMain>
             <img
-              src="/homepage.webp"
+              src="/homepage_resume.png"
               alt="코딩하는 메인 이미지"
               width="600"
               height="400"
               loading="lazy"
               decoding="async"
             />
-          </ImgMain> */}
+          </ImgMain>
         </HeroSection>
 
         {/* Section 2 */}
         <TargetUsersSection ref={ref2}>
+          <ScrollingSection>
+            <ScrollingRow
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+            >
+              {[...row1, ...row1].map((text, i) => (
+                <Bubble key={`row1-${i}`}>{text}</Bubble>
+              ))}
+            </ScrollingRow>
+
+            <ScrollingRow
+              animate={{ x: ["-20%", "0%"] }}
+              transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+            >
+              {[...row2, ...row2].map((text, i) => (
+                <Bubble key={`row2-${i}`}>{text}</Bubble>
+              ))}
+            </ScrollingRow>
+          </ScrollingSection>
+
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={inView2 ? { opacity: 1, y: 0 } : {}}
