@@ -71,7 +71,7 @@ export class ResumeGenerationService {
       email: user.email,
       phoneNumber: user.phoneNumber,
       education: user.educationLevel,
-      githubUrl: `https://github.com/${user.githubUrl}`,
+      githubUrl: `${user.githubUrl}`,
       blogUrl: user.blogUrl,
     });
 

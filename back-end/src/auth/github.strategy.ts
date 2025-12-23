@@ -41,11 +41,17 @@ export class GithubStrategy extends PassportStrategy(GitHubStrategy, 'github') {
         `${profile.name?.familyName ?? ''}${profile.name?.givenName ?? ''}` ||
         'GitHub User';
 
+      const githubUsername = profile.username;
+      const githubUrl = githubUsername
+        ? `https://github.com/${githubUsername}`
+        : undefined;
+
       user = await this.userService.findByEmailOrSave(
         email,
         fallbackName,
         Provider.GITHUB,
         encryptedToken,
+        githubUrl,
       );
     } else {
       if (encryptedToken) {
