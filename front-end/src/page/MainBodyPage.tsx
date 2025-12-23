@@ -74,7 +74,6 @@ export const MainBodyPage = () => {
   const MotionUserCard = motion.create(UserCard);
   const MotionStartButton = motion.create(StartButton);
   const row1 = [
-    "이런건 비싸겠지..?",
     "하… 취업 어렵다…",
     "면접 준비는 어떡하지..",
     "다른 지원자들은 어떤 자격증이 있으려나?",
@@ -96,20 +95,21 @@ export const MainBodyPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1 }}
             >
-              코드를 기록했다면,
+              개발자의 성장을,
               <br />
-              이젠 보여줄 차례
+              데이터로 증명하세요
               <br />
-              자동생성 <span>AI 포트폴리오</span>
+              <span>AI 기반 포트폴리오</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.3 }}
             >
-              더 이상 이력서와 포트폴리오 작성에 시간을 낭비하지 마세요.
+              GitHub 활동을 분석해 전문적인 이력서와 포트폴리오를 자동으로
+              생성합니다.
               <br />
-              AI가 당신의 개발 커리어를 기록해드립니다.
+              개발에 집중하고, 나머지는 AI에게 맡기세요.
             </motion.p>
             <MotionStartButton
               whileHover={{ scale: 1.05 }}

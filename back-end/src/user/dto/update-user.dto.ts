@@ -1,4 +1,11 @@
-import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ValidateLength } from 'src/common/decorator/validate-length.decorator';
 
@@ -17,7 +24,8 @@ export class UpdateUserDto {
   @IsOptional()
   phoneNumber?: number;
 
-  @IsString()
+  @IsUrl()
+  @Matches(/^https:\/\/github\.com\/.+$/)
   @IsOptional()
   githubUrl?: string;
 

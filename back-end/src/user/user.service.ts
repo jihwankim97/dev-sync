@@ -78,9 +78,10 @@ export class UserService {
     name: string,
     provider: Provider,
     githubAccessToken?: string,
+    githubUrl?: string,
   ): Promise<User> {
     await this.userRepository.upsert(
-      { email, name, provider, githubAccessToken },
+      { email, name, provider, githubAccessToken, githubUrl },
       {
         conflictPaths: ['email'],
         skipUpdateIfNoValuesChanged: true,

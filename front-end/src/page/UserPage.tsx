@@ -359,7 +359,7 @@ const AccountSection = memo(
               <div css={labelStyle}>
                 GitHub
                 <CustomTextField
-                  label="github.com/"
+                  label="https://github.com/username"
                   value={userData.githubUrl}
                   onChange={(value) => changeValue("githubUrl", value)}
                 />
@@ -647,6 +647,12 @@ export const UserPage = () => {
     []
   );
 
+  const getGithubUsername = useCallback((url: string) => {
+    if (!url) return null;
+    const match = url.match(/github\.com\/([^\/]+)/);
+    return match ? match[1] : null;
+  }, []);
+
   // Suspense로 데이터 로딩 처리
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -669,7 +675,9 @@ export const UserPage = () => {
               >
                 <StatsTitle>🌱 GitHub Activity</StatsTitle>
                 <img
-                  src={`https://ghchart.rshah.org/${userData.githubUrl}`}
+                  src={`https://ghchart.rshah.org/${getGithubUsername(
+                    userData.githubUrl
+                  )}`}
                   alt="GitHub Contributions"
                   loading="lazy"
                   css={css`
