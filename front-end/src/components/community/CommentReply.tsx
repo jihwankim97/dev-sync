@@ -1,12 +1,11 @@
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import { css } from "@emotion/react";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import {
   buttonStyles,
   dividerStyles,
   textAreaStyles,
-  whiteButtonStyle,
 } from "../../styles/resumeCommonStyle";
 import { useLocation } from "react-router-dom";
 import { useSendComment } from "../../api/mutations/userMutations";
@@ -56,6 +55,16 @@ export const CommentReply = ({
                 variables.page
               ),
             });
+          }
+          // 부모 댓글 목록도 무효화하여 hasReplies 플래그 업데이트
+          queryClient.invalidateQueries({
+            queryKey: postKeys.comments(postId, 1),
+          });
+
+          // textarea 초기화
+          if (textRef.current) {
+            textRef.current.value = "";
+            textRef.current.style.height = "auto";
           }
         },
         onError: (error) => {
@@ -116,15 +125,6 @@ export const CommentReply = ({
       >
         <button type="button" onClick={onChangeTextField} css={buttonStyles()}>
           입력
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            // setReplying({ isReplying: false, id: 0 });/
-          }}
-          css={whiteButtonStyle}
-        >
-          취소
         </button>
       </div>
       <hr css={dividerStyles} />

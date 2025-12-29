@@ -1,8 +1,7 @@
 import { css } from "@emotion/react";
-// import { Button, TextField } from "@mui/material";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useEvent } from "../../hooks/useEvent";
 import { openLoginForm } from "../../redux/loginSlice";
 import { CommentReplyLayout } from "./commentReplyLayout";
@@ -10,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSendComment } from "../../api/mutations/userMutations";
 import { GetCommentsOption } from "../../api/queries/communityQuerys";
 import { buttonStyles, textAreaStyles } from "../../styles/resumeCommonStyle";
+import { themeColors } from "../../styles/communityStyles";
 
 export const CommentPost = () => {
   const textRef = useRef<HTMLTextAreaElement | null>(null);
@@ -22,8 +22,8 @@ export const CommentPost = () => {
   type RootState = { login: { loggedIn: boolean }; theme: { mode: string } };
   const isLogin = useSelector((state: RootState) => state.login.loggedIn);
   const mode = useSelector((state: RootState) => state.theme.mode);
-  const navigate = useNavigate();
   const sendComment = useSendComment();
+  const colors = themeColors(mode);
   // 댓글과 총 개수는 React Query의 데이터에서 직접 사용
 
   const { data: commentsData, refetch } = useQuery({
@@ -59,6 +59,8 @@ export const CommentPost = () => {
     }
   };
 
+  console.log(commentsData);
+
   return (
     <div
       css={css`
@@ -74,7 +76,7 @@ export const CommentPost = () => {
       >
         <div
           css={css`
-            color: ${mode === "dark" ? "#c9d1d9" : "#565656"};
+            color: ${colors.primaryText};
           `}
         >
           댓글
@@ -83,7 +85,7 @@ export const CommentPost = () => {
           css={css`
             margin: 0 0.3rem;
             font-weight: bold;
-            color: ${mode === "dark" ? "#58a6ff" : "#4363ac"};
+            color: ${colors.accentText};
           `}
         >
           {totalPages}
@@ -111,6 +113,17 @@ export const CommentPost = () => {
             css`
               width: 80%;
               font-size: 15px;
+              background-color: ${colors.inputBg};
+              color: ${colors.primaryText};
+              border: 1px solid ${colors.borderColor};
+              border-radius: 6px;
+              &::placeholder {
+                color: ${colors.secondaryText};
+              }
+              &:focus {
+                border-color: ${colors.accentText};
+                outline: none;
+              }
             `,
           ]}
         />
@@ -119,6 +132,15 @@ export const CommentPost = () => {
             ${buttonStyles("lg")}
             align-self: stretch;
             height: 100%;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
           `}
           disabled={sendComment.isPending}
           onClick={handleAddComment}
@@ -127,7 +149,7 @@ export const CommentPost = () => {
         </button>
       </div>
       {/* 댓글 그룹화된 데이터 출력 */}
-      {commentsData?.data.map((rootComment, index: number) => (
+      {commentsData?.data.map((rootComment: any, index: number) => (
         <CommentReplyLayout
           key={rootComment.id ?? `comment-${index}`}
           comment={rootComment}
@@ -148,26 +170,21 @@ export const CommentPost = () => {
           {Array.from({ length: commentsData?.meta.totalPages }, (_, index) => (
             <button
               css={css`
-                padding: 0;
-                font-size: 14px;
-                background-color: ${mode === "dark"
-                  ? "rgba(22, 27, 34, 0.8)"
-                  : "#f7f7f8"};
-                color: ${index + 1 === page
-                  ? mode === "dark"
-                    ? "#58a6ff"
-                    : "#2d5999"
-                  : mode === "dark"
-                    ? "#c9d1d9"
-                    : "black"};
-                border: none;
                 padding: 6px 12px;
+                font-size: 14px;
+                background-color: ${index + 1 === page
+                  ? colors.accentText
+                  : colors.bgPrimary};
+                color: ${index + 1 === page ? "#ffffff" : colors.primaryText};
+                border: 1px solid ${colors.borderColor};
+                border-radius: 4px;
                 cursor: pointer;
                 transition: all 0.2s;
+                font-weight: ${index + 1 === page ? 600 : 400};
                 &:hover {
-                  background-color: ${mode === "dark"
-                    ? "rgba(30, 40, 50, 0.8)"
-                    : "#efefef"};
+                  background-color: ${index + 1 === page
+                    ? colors.accentText
+                    : colors.bgSecondary};
                 }
               `}
               key={index + 1}

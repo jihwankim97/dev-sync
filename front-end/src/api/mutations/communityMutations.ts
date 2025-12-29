@@ -34,7 +34,7 @@ export const useEditComment = (commentId: number, postId: number, page: number) 
     });
 };
 
-export const useRemoveComment = (commentId: number ,postId: number, page: number) => {
+export const useRemoveComment = (commentId: number ,postId: number, page: number, parentId?: number) => {
     return useMutation({
         mutationFn: () =>
             request({
@@ -43,6 +43,10 @@ export const useRemoveComment = (commentId: number ,postId: number, page: number
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: postKeys.comments(postId ,page) });
+            // 답글인 경우 답글 목록도 무효화
+            if (parentId) {
+                queryClient.invalidateQueries({ queryKey: postKeys.commentReply(parentId, page) });
+            }
         }
     });
 };

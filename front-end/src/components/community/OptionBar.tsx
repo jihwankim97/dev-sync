@@ -13,11 +13,9 @@ export const OptionBar = ({
   editClick: (() => void) | (() => Promise<void>);
 }) => {
   const mode = useSelector((state: any) => state.theme.mode);
-  // const location = useLocation();
-  // const navigate = useNavigate();
-  // const post = location.state; // `navigate`에서 전달된 데이터
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
   };
 
@@ -48,6 +46,7 @@ export const OptionBar = ({
         open={open}
         onClose={handleClose}
         anchorEl={anchorEl}
+        disableScrollLock={true}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "left",
@@ -89,6 +88,7 @@ export const OptionBar = ({
                 }
               `}
               onClick={() => {
+                handleClose();
                 editClick();
               }}
             >
@@ -112,6 +112,7 @@ export const OptionBar = ({
                 }
               `}
               onClick={() => {
+                handleClose();
                 deleteClick();
               }}
             >
