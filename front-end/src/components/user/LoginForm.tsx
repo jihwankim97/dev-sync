@@ -36,13 +36,15 @@ const GoogleButton = styled(StyledButton)`
 `;
 
 const GithubButton = styled(StyledButton)`
-  background-color: #f0f0f0;
+  background-color: #f5f5f5ef;
+  border: 1px solid #e3e3e3ff;
   color: black;
   margin-bottom: 24px;
 `;
 
 const LoginForm = () => {
   const dialogOpen = useSelector((state: any) => state.login.loginForm);
+  const mode = useSelector((state: any) => state.theme.mode);
   const dispatch = useDispatch();
 
   const handleGoogleLogin = () => {
@@ -58,11 +60,12 @@ const LoginForm = () => {
       slotProps={{
         paper: {
           sx: {
-            m: 4,
-            p: 2,
-            borderRadius: 2,
-            maxWidth: 300,
-            minWidth: 100,
+            m: 10,
+            p: 3,
+            borderRadius: 1,
+            maxWidth: 400,
+            minWidth: 200,
+            backgroundColor: mode === "dark" ? "#111111da" : undefined,
           },
         },
       }}
@@ -72,10 +75,11 @@ const LoginForm = () => {
       <DialogTitle
         sx={{
           fontWeight: "bold",
-          color: "#3369c7",
+          fontSize: 20,
+          color: mode === "dark" ? "#e7e7e7ff" : "#3764a0ff",
           m: 0,
-          pr: 15,
-          pl: 15,
+          pr: 10,
+          pl: 10,
           pt: 3,
           pb: 3,
         }}
@@ -88,10 +92,10 @@ const LoginForm = () => {
         aria-label="close"
         sx={{
           position: "absolute",
-          right: 0,
-          top: 0,
+          right: 7,
+          top: 7,
           "&:focus": { outline: "none" },
-          color: "#767676",
+          color: mode === "dark" ? "#a0a0a0" : "#767676",
         }}
         onClick={() => dispatch(closeLoginForm())}
       >

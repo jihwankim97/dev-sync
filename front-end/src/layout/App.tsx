@@ -22,9 +22,7 @@ const layoutStyle = (theme: any) => css`
   max-width: none;
   position: relative;
   overflow: hidden;
-  background: ${theme.palette.mode === "dark"
-    ? "#0d1117"
-    : theme.palette.background.default};
+  // background: ${theme.palette.background.default};
 `;
 
 const contentWrapperStyle = (theme: any) => css`
@@ -87,7 +85,7 @@ function App() {
             width: 100%;
             box-sizing: border-box;
             background: ${theme.palette.mode === "dark"
-              ? "rgba(13, 17, 23, 0.8)"
+              ? "rgba(15, 17, 20, 0.8)"
               : "#f8f8f8f3"};
             backdrop-filter: ${theme.palette.mode === "dark"
               ? "blur(10px)"

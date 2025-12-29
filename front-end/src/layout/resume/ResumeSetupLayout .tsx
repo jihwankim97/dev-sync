@@ -3,7 +3,9 @@ import { css } from "@emotion/react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Button } from "@mui/material";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { RootState } from "../../redux/store";
 import {
   blueBackgroundStyle,
   containerStyle,
@@ -35,6 +37,7 @@ const subtitleStyle = css`
 `;
 
 export const ResumeSetupLayout = () => {
+  const mode = useSelector((state: RootState) => state.theme.mode);
   const [isLoading, setIsLoading] = useState(false);
   const [repoData, setRepoData] = useState<GitHubRepoData[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<
@@ -57,12 +60,10 @@ export const ResumeSetupLayout = () => {
   const navigate = useNavigate();
 
   return (
-    <div css={containerStyle}>
-      <div css={blueBackgroundStyle} />
+    <div css={containerStyle(mode)}>
+      <div css={blueBackgroundStyle(mode)} />
       <div css={contentWrapperStyle}>
         <header css={headerStyle}>
-          {/* <h2>DevSync</h2>
-           */}
           <img
             src={logo}
             alt="로고"

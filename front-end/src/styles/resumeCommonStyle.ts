@@ -1,16 +1,20 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
+import { getTheme } from "./theme";
 
-const containerStyle = css`
-  display: flex;
-  position: relative;
-  flex-direction: column;
-  @media (max-width: 768px) {
+const containerStyle = (mode: string) => {
+  const theme = getTheme(mode as 'light' | 'dark');
+  return css`
+    display: flex;
+    position: relative;
     flex-direction: column;
-  }
-  min-height: 100vh;
-  background-color: #ededed;
-`;
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
+    min-height: 100vh;
+    background-color: ${theme.palette.background.default};
+  `;
+};
 
 const titleStyle = css`
   font-size: 3rem;
@@ -34,13 +38,13 @@ const contentWrapperStyle = css`
   width: 100%;
 `;
 
-const blueBackgroundStyle = css`
+const blueBackgroundStyle = (mode: string) => css`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100vh; // 전체 높이
-  background: #3599fd;
+  background: ${mode === "dark" ? "#222222f8" : "#3599fd"};
   transform: skewY(-5deg);
   transform-origin: top left;
   z-index: 0;
@@ -77,7 +81,7 @@ const whiteButtonStyle = css`
   background-color: #ffffff;
 `;
 
-const buttonStyles = (size: "sm" | "md" | "lg" = "md") => {
+const buttonStyles = (size: "sm" | "md" | "lg" = "md" ) => {
   const sizeConfig = {
     sm: {
       padding: "6px 12px",

@@ -14,6 +14,8 @@ import { request } from "../../api/queries/baseQuery";
 import { ENDPOINTS } from "../../api/endpoint";
 import { userDataOption } from "../../api/queries/userQueries";
 import { CommentPost } from "../../components/community/CommentPost";
+import { themeColors } from "../../styles/communityStyles";
+import { useSelector } from "react-redux";
 
 export const ReadPostPage = () => {
   const location = useLocation();
@@ -92,6 +94,9 @@ export const ReadPostPage = () => {
     };
     navigate(`/post/${post.id}/edit`, { state: updatedPost });
   };
+  type RootState = { theme: { mode: string } };
+  const mode = useSelector((state: RootState) => state.theme.mode);
+  const colors = themeColors(mode);
 
   return (
     <>
@@ -102,9 +107,10 @@ export const ReadPostPage = () => {
       >
         <div
           css={css`
-            background-color: #fdfdfd;
+            background-color: ${mode === "dark" ? colors.surface : "#ffffff"};
             padding: 1.7rem 1.5rem;
             border-radius: 10px;
+            color: ${colors.primaryText};
           `}
         >
           <div
@@ -123,6 +129,7 @@ export const ReadPostPage = () => {
                   height: 10%;
                   font-size: 1.7rem;
                   font-weight: bold;
+                  color: ${colors.primaryText};
                 `}
               >
                 {post.title}
@@ -139,7 +146,7 @@ export const ReadPostPage = () => {
             <div
               css={css`
                 display: flex;
-                color: #898989;
+                color: ${colors.secondaryText};
                 font-size: 14px;
               `}
             >
@@ -161,9 +168,15 @@ export const ReadPostPage = () => {
                 `}
               >
                 <VisibilityOutlinedIcon
-                  sx={{ fontSize: "13px", marginRight: "3px" }}
+                  sx={{
+                    fontSize: "13px",
+                    marginRight: "3px",
+                    color: colors.secondaryText,
+                  }}
                 />
-                <Typography sx={{ fontSize: "13px" }}>
+                <Typography
+                  sx={{ fontSize: "13px", color: colors.secondaryText }}
+                >
                   {post.viewCount ?? 0}
                 </Typography>
               </div>
@@ -184,7 +197,7 @@ export const ReadPostPage = () => {
           />
         </div>
         <div>
-          <Divider />
+          <Divider sx={{ borderColor: colors.divider }} />
         </div>
         <div
           css={css`
@@ -204,8 +217,12 @@ export const ReadPostPage = () => {
               width: "100%",
               margin: "2px",
               padding: "5 0rem",
-              color: "#588eda",
-              boxShadow: "0px 0px 5px rgba(230, 230, 230, 0.8)",
+              color: colors.accentText,
+              borderColor: colors.borderColor,
+              boxShadow:
+                mode === "dark"
+                  ? "0 0 0 1px rgba(240, 246, 252, 0.08) inset"
+                  : "0px 0px 5px rgba(230, 230, 230, 0.8)",
             }}
           >
             <KeyboardBackspaceIcon />
@@ -218,9 +235,13 @@ export const ReadPostPage = () => {
               width: "100%",
               margin: "2px",
               padding: "5 0rem",
-              color: "#588eda",
+              color: colors.accentText,
               gap: "5px",
-              boxShadow: "0px 0px 5px rgba(230, 230, 230, 0.8)",
+              borderColor: colors.borderColor,
+              boxShadow:
+                mode === "dark"
+                  ? "0 0 0 1px rgba(240, 246, 252, 0.08) inset"
+                  : "0px 0px 5px rgba(230, 230, 230, 0.8)",
             }}
           >
             {likeStatus === "true" ? <FavoriteIcon /> : <FavoriteBorderIcon />}

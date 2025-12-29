@@ -4,7 +4,7 @@ import { css } from "@emotion/react";
 export const MainContainer = styled.div(
   ({ theme }) => css`
     font-family: "Inter", sans-serif;
-    background: ${theme.palette.mode === "dark" ? "transparent" : "#f8fafc"};
+    background: ${theme.palette.mode === "dark" ? "#0d1117" : "#f8fafc"};
     position: ${theme.palette.mode === "dark" ? "relative" : "initial"};
     z-index: ${theme.palette.mode === "dark" ? 1 : "auto"};
   `
