@@ -61,8 +61,15 @@ export const CommentReplyLayout = memo(
     const [addReply, setAddReply] = useState<boolean>(false);
     const { data: userData } = useQuery(userDataOption());
     if (!comment) return null;
-    const removeComment = useRemoveComment(comment.id, postId, page);
+    const removeComment = useRemoveComment(
+      comment.id,
+      postId,
+      page,
+      comment.parent || undefined
+    );
     const editComment = useEditComment(comment.id, postId, page);
+
+    console.log(comment);
 
     const { data: repliesData, isSuccess } = useQuery({
       queryKey: postKeys.commentReply(comment.id, page),
@@ -107,7 +114,10 @@ export const CommentReplyLayout = memo(
         dispatch(openLoginForm()); // 로그인되지 않았다면 로그인 폼 열기
       } else {
         setAddReply(!addReply);
-        setReplying({ ...replying, id: comment.id });
+        setReplying((prev) => ({
+          isReplying: !prev.isReplying,
+          id: comment.id,
+        }));
       }
     };
 
@@ -118,7 +128,7 @@ export const CommentReplyLayout = memo(
             padding: 0.8rem;
             font-size: 15px;
             background-color: ${mode === "dark"
-              ? "rgba(22, 27, 34, 0.4)"
+              ? "rgba(110, 110, 110, 0.05)"
               : "rgba(255, 255, 255, 0.557)"};
             display: flex;
           `}

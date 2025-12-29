@@ -23,6 +23,9 @@ import {
   Feature,
 } from "./resume/MainBody.style";
 import styled from "@emotion/styled";
+import { useNavigate } from "react-router-dom";
+import { openLoginForm } from "../redux/loginSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export const ScrollingSection = styled.section`
   position: relative;
@@ -70,21 +73,34 @@ export const Bubble = styled.div`
 export const MainBodyPage = () => {
   const [ref2, inView2] = useInView({ triggerOnce: true, threshold: 0.2 });
   const [ref3, inView3] = useInView({ triggerOnce: true, threshold: 0.2 });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isLogin = useSelector((state: any) => state.login.loggedIn);
 
   const MotionUserCard = motion.create(UserCard);
   const MotionStartButton = motion.create(StartButton);
   const row1 = [
+    "이력서에서 강점이 한눈에 보일까..?",
+    "프로젝트를 제대로 설명할 수 있을까..",
+    "준비 방향이 맞는지 모르겠네",
     "하… 취업 어렵다…",
-    "면접 준비는 어떡하지..",
-    "다른 지원자들은 어떤 자격증이 있으려나?",
+    "포트폴리오 구조부터 다시 짜야 하나?",
   ];
 
   const row2 = [
     "자소서 첫 문장 뭘로 시작하지?",
-    "프로젝트가 부족한가…",
-    "이력서 또 고쳐야 하나",
-    "나만 뒤처진 느낌...",
+    "프로젝트 설명이 너무 평범한 것 같기도 하고..",
+    "계속 고치는 게 맞으려나..?",
+    "프로젝트 설명이 너무 약한 것 같은데…",
   ];
+
+  const handleButtonClick = () => {
+    if (!isLogin) {
+      dispatch(openLoginForm());
+    } else {
+      navigate("/resume");
+    }
+  };
   return (
     <Responsive>
       <MainContainer>
@@ -114,6 +130,7 @@ export const MainBodyPage = () => {
             <MotionStartButton
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handleButtonClick}
             >
               지금 시작하기 →
             </MotionStartButton>

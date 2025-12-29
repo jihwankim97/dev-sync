@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 import * as styles from "../../components/contact/Inquiry.styles";
 
 export interface Inquiry {
@@ -15,6 +17,7 @@ export const InquiryPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const navigate = useNavigate();
+  const mode = useSelector((state: RootState) => state.theme.mode);
   useEffect(() => {
     // fetchInquiries();
   }, []);
@@ -51,10 +54,10 @@ export const InquiryPage = () => {
   };
 
   return (
-    <div css={styles.container}>
-      <div css={styles.card}>
-        <h2 css={styles.title}>내 문의 </h2>
-        <div css={styles.inputGroup}>
+    <div css={styles.container(mode)}>
+      <div css={styles.card(mode)}>
+        <h2 css={styles.title(mode)}>내 문의 </h2>
+        <div css={styles.inputGroup(mode)}>
           <input
             type="email"
             value={email}
@@ -71,7 +74,7 @@ export const InquiryPage = () => {
         </div>
 
         {inquiries?.length > 0 ? (
-          <ul css={styles.inquiryList}>
+          <ul css={styles.inquiryList(mode)}>
             {inquiries.map((inquiry) => (
               <li key={inquiry.id}>
                 {inquiry.isPrivate ? (

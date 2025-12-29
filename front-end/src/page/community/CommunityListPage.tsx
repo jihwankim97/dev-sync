@@ -24,6 +24,7 @@ import {
   paginationContainer,
   pagerButton,
   pageButton,
+  noticeBadge,
 } from "../../styles/communityStyles";
 
 type postType = {
@@ -33,6 +34,10 @@ type postType = {
   viewCount: number;
   commentcount?: number;
   likecount?: number;
+  category: {
+    category: string;
+    id: number;
+  };
 };
 
 export const CommunityListPage = () => {
@@ -123,10 +128,22 @@ export const CommunityListPage = () => {
       <ul css={list(mode)}>
         {postList?.data.map((post: postType, index: number) => (
           <div key={`${post.id} - ${index}`}>
-            <li css={listItem(mode)} onClick={() => handleListClick(post)}>
-              <div css={listItemText}>
-                <h3 css={primaryText(mode)}>{post.title}</h3>
-                <p css={secondaryText(mode)}>{removeTag(post.content) || ""}</p>
+            <li
+              css={listItem(mode, post.category.category)}
+              onClick={() => handleListClick(post)}
+            >
+              {post.category.category === "공지사항" && (
+                <div css={noticeBadge(mode)}>공지</div>
+              )}
+              <div css={listItemText()}>
+                <h3 css={primaryText(mode, post.category.category)}>
+                  {post.title}
+                </h3>
+                {post.category.category !== "공지사항" && (
+                  <p css={secondaryText(mode)}>
+                    {removeTag(post.content) || ""}
+                  </p>
+                )}
               </div>
               <div css={iconContainer(mode)}>
                 <VisibilityOutlinedIcon sx={{ fontSize: "13px" }} />

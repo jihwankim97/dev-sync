@@ -34,7 +34,7 @@ const titleStyle = css`
   text-align: center;
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #444444ff;
   margin-bottom: 20px;
 `;
 
@@ -324,7 +324,10 @@ export const WritePostPage = () => {
         >
           {categories
             .filter(
-              (i) => i.category == "자유게시판" || i.category == "질문게시판"
+              (i) =>
+                i.category == "자유게시판" ||
+                i.category == "질문게시판" ||
+                i.category == "공지사항"
             )
             .map((i, idx) => (
               <MenuItem key={idx} value={i.category}>

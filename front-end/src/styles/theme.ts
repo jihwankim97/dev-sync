@@ -1,7 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 import type { Theme as MuiTheme } from '@mui/material/styles';
 
-// Make emotion's Theme match MUI Theme so css/styled can access palette/tokens
 declare module '@emotion/react' {
   export interface Theme extends MuiTheme {}
 }
@@ -32,7 +31,7 @@ export const getTheme = (mode: 'light' | 'dark') =>
       primary: { main: mode === 'dark' ? '#8ab4f8' : '#1976d2' },
       secondary: { main: mode === 'dark' ? '#fbc02d' : '#9c27b0' },
       background: {
-        default: mode === 'dark' ? '#121212' : '#f7f7f9',
+        default: mode === 'dark' ? '#181818ff' : '#f7f7f9',
         paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
       },
       text: {
@@ -61,6 +60,23 @@ export const getTheme = (mode: 'light' | 'dark') =>
     },
   });
 
-// Compatibility exports if some files still import these
 export const lightTheme = getTheme('light');
 export const darkTheme = getTheme('dark');
+
+// 색상만 추출하는 헬퍼 함수
+export const getThemeColors = (mode: 'light' | 'dark') => {
+  const theme = getTheme(mode);
+  return {
+    // 배경
+    bgDefault: theme.palette.background.default,
+    bgPaper: theme.palette.background.paper,
+    
+    // 텍스트
+    textPrimary: theme.palette.text.primary,
+    textSecondary: theme.palette.text.secondary,
+    
+    // Primary 색상
+    primary: theme.palette.primary.main,
+    secondary: theme.palette.secondary.main,
+  };
+};

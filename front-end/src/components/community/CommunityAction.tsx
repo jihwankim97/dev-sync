@@ -97,7 +97,9 @@ const CommunityAction = ({ category, setSearch }: CommunityActionsProps) => {
       </div>
 
       {/* 글쓰기 버튼 */}
-      {(category === "자유게시판" || category === "질문게시판") && (
+      {(category === "자유게시판" ||
+        category === "질문게시판" ||
+        category === "공지사항") && (
         <div css={writeButtonContainerStyles}>
           <button css={buttonStyles()} onClick={handleWrite}>
             글쓰기
